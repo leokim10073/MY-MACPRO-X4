@@ -135,6 +135,7 @@ describe('Burn flow in the app', () => {
     expect(text()).toContain('Kevin')
     expect(text()).not.toContain(BURNED)
     expect(screen.getByRole('button', { name: 'Burn room…' })).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Burn room…' }))
   })
 
   it('a successful burn() starts closing even before room_burned arrives, and room_burned does not restart it', async () => {
@@ -152,6 +153,21 @@ describe('Burn flow in the app', () => {
     expectClosingOverFrozenRoom()
     await advance(1)
     expectCleanSlate()
+  })
+
+  it('a host burn whose room_burned event never arrives still ends at the clean slate with nothing left in the DOM', async () => {
+    const { client, emit } = fakeClient({ host: true })
+    await joinWith(client, 'Create room')
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    for (const e of fixtureEvents()) emit(e)
+    expect(text()).toContain('Kevin')
+
+    await tapBurn()
+    expectClosingOverFrozenRoom(true)
+    await advance(2900)
+    expectCleanSlate()
+    expect(document.body.innerHTML).not.toContain('Kevin')
+    expect(document.body.innerHTML.toLowerCase()).not.toContain('cake')
   })
 
   it('a burn during the entry ritual dismisses the ritual and burns the room behind it', async () => {
@@ -231,6 +247,35 @@ describe('Burn flow in the app', () => {
     window.history.replaceState(null, '', '/')
   })
 
+  it('Back home disposes the old client once', async () => {
+    const first = fakeClient({ host: true }).client
+    const dispose = vi.fn()
+    first.dispose = dispose
+    await joinWith(first, 'Create room', () => fakeClient({ host: false }).client)
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    expect(dispose).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Back home' }))
+    expect(dispose).toHaveBeenCalledTimes(1)
+  })
+
+  it('Start a new room disposes the old client once', async () => {
+    const first = fakeClient({ host: true }).client
+    const dispose = vi.fn()
+    first.dispose = dispose
+    const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom: newRoomCreator() }
+    await joinWith(first, 'Create room', () => fresh)
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Start a new room' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dispose).toHaveBeenCalledTimes(1)
+  })
+
   it('Start a new room creates once on a fresh client with the same nickname and shows the ritual', async () => {
     const createRoom = newRoomCreator()
     const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom }
@@ -248,6 +293,19 @@ describe('Burn flow in the app', () => {
     expect(createRoom).toHaveBeenCalledWith('Leo')
     expect(screen.getByRole('button', { name: 'Enter room' })).toBeTruthy()
     expect(text()).not.toContain(BURNED)
+  })
+
+  it('Start a new room shows a Creating room status while the new room is made', async () => {
+    const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom: () => new Promise(() => {}) }
+    await joinWith(fakeClient({ host: true }).client, 'Create room', () => fresh)
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Start a new room' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(screen.getByRole('status').textContent).toBe('Creating room…')
   })
 
   it('Start a new room creates exactly one room under StrictMode', async () => {

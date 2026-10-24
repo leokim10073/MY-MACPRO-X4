@@ -444,23 +444,6 @@ button.primary {
   padding: 0 16px;
 }
 
-.burn {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid #e03131;
-  border-radius: 8px;
-  background: transparent;
-  color: #e03131;
-  font-size: 14px;
-}
-
-.burned {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 48px 16px;
-  text-align: center;
-}
-
 .recap-toggle {
   display: block;
   min-height: 44px;
@@ -680,10 +663,6 @@ button.primary {
   background: rgba(127, 127, 127, 0.45);
 }
 
-.burn {
-  font-weight: 600;
-}
-
 .leave {
   min-height: 44px;
   padding: 0 14px;
@@ -833,9 +812,14 @@ button.primary {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 1px solid var(--br-ember);
   border-radius: 12px;
+  /* Charcoal fill like the badge: the gold label then holds contrast on a light or dark room. */
+  background: var(--br-charcoal);
   color: var(--br-gold);
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -1157,4 +1141,17 @@ button.primary {
 .burned-secondary:focus-visible {
   outline: 3px solid var(--br-gold);
   outline-offset: 2px;
+}
+
+/* Visually hidden, still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

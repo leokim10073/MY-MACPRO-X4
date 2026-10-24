@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
 import BurnIgnition from '../components/BurnIgnition'
@@ -93,6 +93,15 @@ export default function RoomScreen({
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmBurn, setConfirmBurn] = useState(false)
   const burnControl = useRef<HTMLButtonElement>(null)
+  const keepRoom = useCallback(() => {
+    setConfirmBurn(false)
+    burnControl.current?.focus()
+  }, [])
+  // Counts failed burns; the effect below returns focus to "Burn room…" once the sheet has unmounted.
+  const [burnFailures, setBurnFailures] = useState(0)
+  useEffect(() => {
+    if (burnFailures > 0) burnControl.current?.focus()
+  }, [burnFailures])
   // When closing starts, any open sheet closes once. Leave can be opened again afterwards.
   const [wasClosing, setWasClosing] = useState(isClosing)
   if (wasClosing !== isClosing) {
@@ -106,7 +115,10 @@ export default function RoomScreen({
   const [wasBurning, setWasBurning] = useState(false)
   if (wasBurning !== (pending === 'burn')) {
     setWasBurning(pending === 'burn')
-    if (wasBurning && error) setConfirmBurn(false)
+    if (wasBurning && error) {
+      setConfirmBurn(false)
+      setBurnFailures((n) => n + 1)
+    }
   }
   // After Enter, a decorative icon shrinks toward the badge once, then goes away.
   const [ritualSeen, setRitualSeen] = useState(!entered)
@@ -134,148 +146,145 @@ export default function RoomScreen({
 
   return (
     <>
-    <main className="room" aria-hidden={entered ? undefined : true} inert={!entered}>
-      <header className="room-header">
-        <ShhhBadge />
-        <h1>Gossip Window</h1>
-        <ListeningIndicator micLive={isClosing ? false : voice?.state.isListening} />
-        {(isHost || onLeave) && (
-          <div className="room-actions">
-            {isHost && !isClosing && (
-              <button type="button" className="burn" ref={burnControl} onClick={() => setConfirmBurn(true)}>
-                <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
-                  <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
-                </svg>
-                Burn room…
-              </button>
-            )}
-            {isHost && !isClosing && onLeave && <span className="actions-divider" aria-hidden="true" />}
-            {onLeave && (
-              <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
-                Leave
-              </button>
+      <main className="room" aria-hidden={entered ? undefined : true} inert={!entered}>
+        <header className="room-header">
+          <ShhhBadge />
+          <h1>Gossip Window</h1>
+          {!isClosing && <ListeningIndicator micLive={voice?.state.isListening} />}
+          {(isHost || onLeave) && (
+            <div className="room-actions">
+              {isHost && !isClosing && (
+                <button type="button" className="burn" ref={burnControl} onClick={() => setConfirmBurn(true)}>
+                  <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
+                    <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
+                  </svg>
+                  Burn room…
+                </button>
+              )}
+              {isHost && !isClosing && onLeave && <span className="actions-divider" aria-hidden="true" />}
+              {onLeave && (
+                <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
+                  Leave
+                </button>
+              )}
+            </div>
+          )}
+        </header>
+        <ConnectionBanner status={connection} onRejoin={onRejoin} />
+        {error && (
+          <p role="alert" className="error">
+            {error.message}
+          </p>
+        )}
+        {confirmLeave && onLeave && (
+          <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
+        )}
+        {isHost && confirmBurn && (
+          <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={keepRoom} />
+        )}
+        {!isClosing && showReplay && onStartReplay && !replayStarted && isHost && (
+          <button
+            type="button"
+            className="replay"
+            onClick={() => {
+              setReplayStarted(true)
+              void onStartReplay().catch(() => setReplayStarted(false))
+            }}
+          >
+            Start Kevin replay
+          </button>
+        )}
+        {inviteUrl && room.hostMemberId === self.id && (
+          <p className="room-invite">
+            Invite: <a href={inviteUrl}>{inviteUrl}</a>
+          </p>
+        )}
+        <div className="room-board">
+          <div className="room-banner">
+            {!recapDismissed && !isClosing && (
+              <RecapBanner
+                recap={recapFor(state, self)}
+                isLatecomer={self.joinedAtSeq > 0}
+                onDismiss={() => setRecapDismissed(true)}
+                collapsed={!!openStory && peekedFor !== openStory.id}
+                onExpand={() => openStory && setPeekedFor(openStory.id)}
+              />
             )}
           </div>
-        )}
-      </header>
-      <ConnectionBanner status={connection} onRejoin={onRejoin} />
-      {error && (
-        <p role="alert" className="error">
-          {error.message}
-        </p>
-      )}
-      {confirmLeave && onLeave && (
-        <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
-      )}
-      {isHost && confirmBurn && (
-        <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={() => {
-            setConfirmBurn(false)
-            burnControl.current?.focus()
-          }} />
-      )}
-      {!isClosing && showReplay && onStartReplay && !replayStarted && isHost && (
-        <button
-          type="button"
-          className="replay"
-          onClick={() => {
-            setReplayStarted(true)
-            void onStartReplay().catch(() => setReplayStarted(false))
-          }}
-        >
-          Start Kevin replay
-        </button>
-      )}
-      {inviteUrl && room.hostMemberId === self.id && (
-        <p className="room-invite">
-          Invite: <a href={inviteUrl}>{inviteUrl}</a>
-        </p>
-      )}
-      <div className="room-board">
-        <div className="room-banner">
-          {!recapDismissed && !isClosing && (
-            <RecapBanner
-              recap={recapFor(state, self)}
-              isLatecomer={self.joinedAtSeq > 0}
-              onDismiss={() => setRecapDismissed(true)}
-              collapsed={!!openStory && peekedFor !== openStory.id}
-              onExpand={() => openStory && setPeekedFor(openStory.id)}
-            />
-          )}
-        </div>
-        <RoomStage
-          members={state.members}
-          self={self}
-          speaker={!isClosing && speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
-          lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
-          compact={!!openStory}
-        />
-        <div className="room-transcript">
-          <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
-        </div>
-        <div className="room-popup-slot">
-          {openStory ? (
-            <StoryCard
-              key={openStory.id}
-              story={openStory}
-              people={state.storyState?.people ?? []}
-              self={self}
-              onClose={closeStory}
-            />
-          ) : (
-            shownPopup &&
-            popupPerson && (
-              <RecallPopup
-                key={shownPopup.expiresAt}
-                person={popupPerson}
-                chips={visibleChips(shownPopup, state.storyState?.stories ?? [])}
-                focusStoryId={shownPopup.focusStoryId}
-                onChip={tapChip}
-                onDismiss={dismiss}
-                hint={hint !== 'done'}
-              />
-            )
-          )}
-        </div>
-        {closing && (
-          <BurnOverlay
-            startAt={closing.startedAt + BURN_START_MS}
-            durationMs={BURN_DURATION_MS}
-            seed={closing.seed}
-            reducedMotion={!motion}
+          <RoomStage
+            members={state.members}
+            self={self}
+            speaker={!isClosing && speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
+            lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
+            compact={!!openStory}
           />
-        )}
-        <BurnIgnition animated={motion}active={closing?.phase === 'ignite'} />
-      </div>
-      <div className="room-dock">
-        {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}
-        <div className="room-talk">
-          {!isClosing && voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
-          {!isClosing && voice?.state.error && (
-            <p role="alert" className="talk-error">
-              {voice.state.error}
-            </p>
+          <div className="room-transcript">
+            <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
+          </div>
+          <div className="room-popup-slot">
+            {openStory ? (
+              <StoryCard
+                key={openStory.id}
+                story={openStory}
+                people={state.storyState?.people ?? []}
+                self={self}
+                onClose={closeStory}
+              />
+            ) : (
+              shownPopup &&
+              popupPerson && (
+                <RecallPopup
+                  key={shownPopup.expiresAt}
+                  person={popupPerson}
+                  chips={visibleChips(shownPopup, state.storyState?.stories ?? [])}
+                  focusStoryId={shownPopup.focusStoryId}
+                  onChip={tapChip}
+                  onDismiss={dismiss}
+                  hint={hint !== 'done'}
+                />
+              )
+            )}
+          </div>
+          {closing && (
+            <BurnOverlay
+              startAt={closing.startedAt + BURN_START_MS}
+              durationMs={BURN_DURATION_MS}
+              seed={closing.seed}
+              reducedMotion={!motion}
+            />
           )}
-          {!isClosing && voice?.state.failed.map((f, i) => (
-            <button key={i} type="button" className="talk-retry" onClick={f.retry}>
-              Not sent: “{f.line.text}” · tap to retry
-            </button>
-          ))}
-          {isClosing ? (
-            <button type="button" className="ptt" disabled>
-              Room closed
-            </button>
-          ) : (
-            <PushToTalkButton onPressChange={voice?.press ?? noop} />
-          )}
+          <BurnIgnition animated={motion} active={closing?.phase === 'ignite'} />
         </div>
-      </div>
-    </main>
-    {!entered && <EntryRitual onEnter={onEnter} />}
-    {entered && ritualSeen && !exitDone && (
-      <div className="entry-ritual-exit" aria-hidden="true" onAnimationEnd={() => setExitDone(true)}>
-        <ShhhIcon size={96} />
-      </div>
-    )}
+        <div className="room-dock">
+          {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}
+          <div className="room-talk">
+            {!isClosing && voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
+            {!isClosing && voice?.state.error && (
+              <p role="alert" className="talk-error">
+                {voice.state.error}
+              </p>
+            )}
+            {!isClosing && voice?.state.failed.map((f, i) => (
+              <button key={i} type="button" className="talk-retry" onClick={f.retry}>
+                Not sent: “{f.line.text}” · tap to retry
+              </button>
+            ))}
+            {isClosing ? (
+              <button type="button" className="ptt" disabled>
+                Room closed
+              </button>
+            ) : (
+              <PushToTalkButton onPressChange={voice?.press ?? noop} />
+            )}
+          </div>
+        </div>
+      </main>
+      {!entered && <EntryRitual onEnter={onEnter} />}
+      {entered && ritualSeen && !exitDone && closing === null && (
+        <div className="entry-ritual-exit" aria-hidden="true" onAnimationEnd={() => setExitDone(true)}>
+          <ShhhIcon size={96} />
+        </div>
+      )}
     </>
   )
 }

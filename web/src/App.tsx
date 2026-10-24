@@ -91,7 +91,13 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
 
   if (!self) {
     // Creating the new room: show nothing from the Join form until it answers (or fails).
-    if (autoCreate !== undefined && !error) return <main className="burned" aria-busy="true" />
+    if (autoCreate !== undefined && !error) return (
+        <main className="burned" aria-busy="true">
+          <p role="status" className="sr-only">
+            Creating room…
+          </p>
+        </main>
+      )
     return (
       <JoinScreen
         inviteToken={readInviteToken(search)}

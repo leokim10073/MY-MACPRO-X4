@@ -23,6 +23,11 @@ describe('EntryRitual', () => {
     expect(container.querySelector('.shhh-icon-animated')).toBeTruthy()
   })
 
+  it('focuses Enter room on mount', () => {
+    render(<EntryRitual onEnter={() => {}} />)
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Enter room' }))
+  })
+
   it('Enter room is enabled at once and calls onEnter', () => {
     const onEnter = vi.fn()
     render(<EntryRitual onEnter={onEnter} />)

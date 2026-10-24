@@ -99,14 +99,15 @@ describe('closing room', () => {
     expect(spy.mock.calls.at(-1)![0]).toBeUndefined()
   })
 
-  it('turns the mic indicator off while closing', () => {
+  it('removes the Listening indicator while closing', () => {
     const live = { status: 'talking', isListening: true, preview: '', sending: 0, failed: [], error: null } as const
     vi.spyOn(useVoiceModule, 'useVoice').mockReturnValue({ state: live, press: () => {} })
     const { rerender } = render(view(base))
     expect(screen.getByText('Listening · mic on')).toBeTruthy()
     rerender(view(base, ignite))
     expect(screen.queryByText('Listening · mic on')).toBeNull()
-    expect(screen.getByText('Listening')).toBeTruthy()
+    expect(screen.queryByText('Listening')).toBeNull()
+    expect(document.querySelector('.listening-dot')).toBeNull()
   })
 
   it('highlights no speaker while closing', () => {

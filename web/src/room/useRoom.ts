@@ -61,13 +61,16 @@ export function useRoom(client: RoomClient): UseRoom {
     (token: string, name: string) => run('join', () => client.joinRoom(token, name)),
     [client, run],
   )
+  const roomId = joined?.room.id
   const burn = useCallback(
     () =>
       run('burn', async () => {
         await client.burn()
         setBurnConfirmed(true)
+        // Drop the conversation now, even if the server's room_burned event never arrives.
+        if (roomId) dispatch({ type: 'room_burned', roomId })
       }),
-    [client, run],
+    [client, run, roomId],
   )
   const addLine = useCallback((text: string, at: number) => client.addLine(text, at), [client])
   const startReplay = useCallback(() => client.startReplay!(), [client])

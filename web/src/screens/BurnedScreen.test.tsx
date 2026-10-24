@@ -16,6 +16,13 @@ describe('BurnedScreen', () => {
     expect(screen.getByRole('button', { name: 'Back home' })).toBeTruthy()
   })
 
+  it('focuses the heading on mount', () => {
+    render(<BurnedScreen />)
+    const h1 = screen.getByRole('heading', { name: 'Room burned.' })
+    expect(h1.getAttribute('tabindex')).toBe('-1')
+    expect(document.activeElement).toBe(h1)
+  })
+
   it('calls the handlers', () => {
     const onNewRoom = vi.fn()
     const onHome = vi.fn()

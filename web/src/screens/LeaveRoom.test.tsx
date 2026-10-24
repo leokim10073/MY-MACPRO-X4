@@ -66,7 +66,7 @@ describe('Leave on the room screen', () => {
     expect(screen.getByRole('alertdialog').textContent).not.toContain("You're the host")
   })
 
-  it('keeps Burn red and apart from Leave', () => {
+  it('keeps Burn and Leave as separate controls divided by a rule', () => {
     const { container } = roomScreen('m_taylor', { onLeave: () => {} })
     const burn = screen.getByRole('button', { name: 'Burn room…' })
     const leave = screen.getByRole('button', { name: 'Leave' })

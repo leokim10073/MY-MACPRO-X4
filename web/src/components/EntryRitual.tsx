@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import ShhhIcon from './ShhhIcon'
 
 const RULES = [
@@ -9,6 +10,8 @@ const RULES = [
 
 /** The first thing anyone sees in a room. A full-screen overlay; the room behind is inert until Enter. */
 export default function EntryRitual({ onEnter }: { onEnter: () => void }) {
+  const enter = useRef<HTMLButtonElement>(null)
+  useEffect(() => enter.current?.focus(), [])
   return (
     <div className="entry-ritual">
       <ShhhIcon size={96} animated />
@@ -18,7 +21,7 @@ export default function EntryRitual({ onEnter }: { onEnter: () => void }) {
           <li key={rule}>{rule}</li>
         ))}
       </ul>
-      <button type="button" className="entry-ritual-enter" onClick={onEnter}>
+      <button type="button" ref={enter} className="entry-ritual-enter" onClick={onEnter}>
         Enter room
       </button>
     </div>
