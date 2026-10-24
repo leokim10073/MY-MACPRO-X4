@@ -11,6 +11,7 @@ import {
 import type { Id } from '../../../shared/schema'
 import { TrackSource } from '../audio/trackSource'
 import type { CallToken } from '../server/livekit'
+import { loadNoiseFilter } from './noiseFilter'
 
 /** Which noise filtering really runs on the published mic. */
 export type NoiseFilterKind = 'krisp' | 'browser'
@@ -95,7 +96,7 @@ export class CallSession implements CallLike {
   private source: TrackSource | null = null
   private readonly frameListeners = new Set<(frame: Int16Array) => void>()
 
-  constructor() {
+  constructor(private readonly opts: { krispDebugLogs?: boolean; onBufferDrop?: () => void } = {}) {
     this.sinks.hidden = true
   }
 
@@ -108,9 +109,12 @@ export class CallSession implements CallLike {
     this.events = events
     this.leaving = false
 
-    const [token, stream] = await Promise.all([
+    const [token, stream, filter] = await Promise.all([
       tokenPromise,
       navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS }),
+      loadNoiseFilter({ debugLogs: this.opts.krispDebugLogs, onBufferDrop: this.opts.onBufferDrop }).catch(
+        () => ({ kind: 'browser', processor: null }) as const,
+      ),
     ])
     this.raw = stream.getAudioTracks()[0]
     await resumed
@@ -123,14 +127,28 @@ export class CallSession implements CallLike {
     const published = new LocalAudioTrack(this.raw.clone(), undefined, true, ctx)
     this.published = published
     await room.localParticipant.publishTrack(published, { source: Track.Source.Microphone })
+
+    // Krisp goes on after publishing, the order the spike verified. Ink gets the same cleaned
+    // audio friends hear. If Krisp fails, both get the browser-filtered mic.
+    let kind = filter.kind
+    if (filter.processor) {
+      try {
+        await published.setProcessor(filter.processor)
+      } catch {
+        kind = 'browser'
+      }
+    }
+    const forInk = (kind === 'krisp' && filter.processor?.processedTrack) || published.mediaStreamTrack
+    if (kind === 'krisp' && !filter.processor?.processedTrack) kind = 'browser'
+
     this.source = new TrackSource(ctx)
     this.source.onFrame((frame) => {
       for (const l of this.frameListeners) l(frame)
     })
-    await this.source.attach(published.mediaStreamTrack)
+    await this.source.attach(forInk)
     document.body.append(this.sinks)
     this.emitParticipants()
-    return 'browser'
+    return kind
   }
 
   onFrame(listener: (frame: Int16Array) => void): () => void {
