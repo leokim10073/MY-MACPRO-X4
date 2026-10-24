@@ -87,6 +87,7 @@ export default function RoomScreen({
   closing = null,
 }: Props) {
   const isClosing = closing !== null
+  const motion = motionOk()
   // No transport once closing: useVoice stops the mic.
   const voice = useVoice(isClosing ? undefined : transport, room, self, state)
   const [confirmLeave, setConfirmLeave] = useState(false)
@@ -240,10 +241,10 @@ export default function RoomScreen({
             startAt={closing.startedAt + BURN_START_MS}
             durationMs={BURN_DURATION_MS}
             seed={closing.seed}
-            reducedMotion={!motionOk()}
+            reducedMotion={!motion}
           />
         )}
-        <BurnIgnition animated={motionOk()} active={closing?.phase === 'ignite'} />
+        <BurnIgnition animated={motion}active={closing?.phase === 'ignite'} />
       </div>
       <div className="room-dock">
         {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}

@@ -311,10 +311,10 @@ function run(canvas: HTMLCanvasElement, startAt: number, dur: number, seed: numb
       if (u < 1) {
         spawn(band, spawnRand, u)
         spawn(band, spawnRand, u)
-        drawParts(dt)
-      } else {
-        // The burn ends with the duration: drop any leftover sparks and settle on charcoal.
-        parts = []
+      }
+      drawParts(dt)
+      // Leftover ash keeps drifting until it is gone, then the canvas settles on charcoal.
+      if (u >= 1 && parts.length === 0) {
         fillCharcoal()
         finished = true
       }
