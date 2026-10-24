@@ -118,6 +118,11 @@ describe('popupReducer', () => {
     expect(run([recallAt(r1, 0)], none)).toEqual(initialPopupState)
   })
 
+  it('a recall from before the join (seq 10 for joinedAtSeq 16) is dropped', () => {
+    expect(run([recallAt({ ...r1, seq: 10 }, 0)])).toEqual(initialPopupState)
+    expect(run([recallAt({ ...r1, seq: 16 }, 0)])).toEqual(initialPopupState)
+  })
+
   it('a pending recall is dropped after 6000 ms', () => {
     const empty = { ...ctx, stories: [], people: [] }
     const pending = run([recallAt(r1, 0)], empty)

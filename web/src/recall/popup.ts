@@ -88,6 +88,7 @@ export function popupReducer(state: PopupState, input: PopupInput, ctx: PopupCon
     case 'recall': {
       const { recall, now } = input
       if (recall.confidence < RECALL_MIN_CONFIDENCE) return state
+      if (recall.seq <= ctx.self.joinedAtSeq) return state
       if (personKnown(recall, ctx) && shouldShowRecall(ctx.self, recall, ctx.stories)) {
         return present(state, recall, now, ctx)
       }
