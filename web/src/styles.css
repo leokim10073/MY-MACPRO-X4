@@ -669,6 +669,12 @@ button.primary {
   font-weight: 600;
 }
 
+.recall-hint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
 .link-button {
   min-height: 44px;
   border: 0;

@@ -38,6 +38,11 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speak
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
   const openStory = openStoryId ? storiesById(state).get(openStoryId) : undefined
+  // The first pop-up of this session carries a hint; once it closes (tap, dismiss or fade) the hint is done.
+  // Kept in memory only: leaving or reloading starts a new session.
+  const [hint, setHint] = useState<'waiting' | 'showing' | 'done'>('waiting')
+  if (hint === 'waiting' && popup) setHint('showing')
+  if (hint === 'showing' && !popup) setHint('done')
   const lineSpeaking = useLineSpeaking(state.lines, self.joinedAtSeq)
   const { speakerId } = speaking ?? lineSpeaking
   const newest = latestLine(state)
@@ -111,6 +116,7 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speak
                 focusStoryId={popup.focusStoryId}
                 onChip={tapChip}
                 onDismiss={dismiss}
+                hint={hint !== 'done'}
               />
             )
           )}
