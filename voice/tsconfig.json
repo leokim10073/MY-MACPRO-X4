@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "scripts", "spike", "vite.config.ts", "devApi.ts"]
+  "include": ["src", "scripts", "vite.config.ts", "devApi.ts"]
 }

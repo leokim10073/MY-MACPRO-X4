@@ -385,6 +385,28 @@ describe('OpenMic', () => {
     expect(s.lines).toEqual([])
   })
 
+  it('duck lowers friends to 0.3 and restores 1', async () => {
+    const s = await inCall()
+    s.mic.duck(true)
+    s.mic.duck(false)
+    expect(s.call.volumes).toEqual([0.3, 1])
+  })
+
+  it('stop releases everything', async () => {
+    const s = await inCall({ endOnClose: 'Never sent.' })
+    s.last().serverSend({ type: 'turn.start' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Never' })
+    s.mic.stop()
+    s.last().serverSend({ type: 'turn.end', transcript: 'Never sent.' })
+    await vi.advanceTimersByTimeAsync(5000)
+    const st = s.mic.getState()
+    expect(s.call.left).toBe(1)
+    expect(s.lines).toEqual([])
+    expect(st.failed).toEqual([])
+    expect(st.isListening).toBe(false)
+    expect(st.status).toBe('stopped')
+  })
+
   it('a cut-off turn is sent and flagged', async () => {
     const s = await inCall()
     s.last().serverSend({ type: 'turn.start' })

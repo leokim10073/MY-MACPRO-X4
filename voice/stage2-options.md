@@ -1,6 +1,6 @@
 # Stage 2: two ways to build the live call
 
-Replace push-to-talk with an always-on voice call, like a phone call. This document records what we've decided so far, what the research found, and a comparison of two ways to build it. No approach has been chosen yet, and no code has been written.
+Replace push-to-talk with an always-on voice call, like a phone call. This document records what we've decided so far, what the research found, and a comparison of two ways to build it. Approach 1 was chosen; see [stage2-design.md](stage2-design.md) for the design and the Results table at the end for the phone checks.
 
 Related: [process.md](process.md) (sections 1 and 7 hold the original stage 2 plan), [project_description.md](../project_description.md).
 
@@ -256,4 +256,6 @@ Phone checks from [stage2-plan.md](stage2-plan.md), in order.
 | Milestone | Date | Result |
 | --- | --- | --- |
 | M1: the call | 2026-10-24 | **Pass.** Two phones with headsets hear each other, the participant list is correct, speaking lights up, Leave works |
-| M2: transcription | 2026-10-24 | **Skipped by the owner, treated as pass.** Not run on phones; the M3 check covers two phones transcribing together |
+| M2: transcription | 2026-10-24 | **Skipped by the owner, treated as pass.** Moved into the combined final test |
+| M3: noise | 2026-10-24 | **Skipped by the owner, treated as pass.** Noise layer stays Krisp (no switch to VIVA). Moved into the combined final test |
+| M4–M6 | 2026-10-24 | Built without phone checks at the owner's request; all of them run together in one final test |

@@ -309,6 +309,8 @@ $('play-recap').addEventListener('click', async () => {
   status.textContent = 'Generating…'
   const opener = tts(RECAP_OPENER_TEXT)
   const recap = tts(fixture.recap.text)
+  // Friends' voices are lowered while the recap plays in this headset. It's never published.
+  openMic?.duck(true)
   try {
     await playUrl(audio, await opener)
     const url = await recap
@@ -317,6 +319,8 @@ $('play-recap').addEventListener('click', async () => {
     status.textContent += ' · done'
   } catch (err) {
     status.textContent = err instanceof Error ? err.message : 'Playback failed'
+  } finally {
+    openMic?.duck(false)
   }
 })
 

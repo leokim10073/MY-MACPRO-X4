@@ -3,7 +3,7 @@ import { CallSession, type CallEvents, type CallLike, type CallParticipant, type
 import { Chunker } from '../audio/chunker'
 import { LoudnessGate } from '../audio/loudnessGate'
 import type { LiveText } from '../call/liveText'
-import { LIVE_FINAL_HOLD_MS, STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
+import { DUCK_VOLUME, LIVE_FINAL_HOLD_MS, STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
 import type { CallToken } from '../server/livekit'
 import { LineSender, type FailedLine } from './lineSender'
 import { openBrowserSocket, type OpenSocket } from './socket'
@@ -109,6 +109,7 @@ export class OpenMic {
   private startThreshold = TURN_START_THRESHOLD
   private readonly liveTimers = new Map<Id, ReturnType<typeof setTimeout>>()
   private lastSentLive = ''
+  private ducked = false
 
   constructor(private readonly opts: OpenMicOptions) {
     this.openSocket = opts.openSocket ?? openBrowserSocket
@@ -202,7 +203,8 @@ export class OpenMic {
 
   /** Lowers friends' voices while the recap plays in this phone's headset. */
   duck = (on: boolean): void => {
-    void on
+    this.ducked = on
+    this.call?.setRemoteVolume(on ? DUCK_VOLUME : 1)
   }
 
   /** Every line_added from the backend. Used to split my open turn when someone cuts in. */
@@ -244,6 +246,8 @@ export class OpenMic {
       // Muted: nothing goes to Ink and nothing is learned.
       if (this.session) this.gateChunker.push(frame)
     })
+    // The recap may have started while we were joining.
+    if (this.ducked) call.setRemoteVolume(DUCK_VOLUME)
     this.update({ noiseFilter: kind })
     this.startTurns()
   }

@@ -143,7 +143,7 @@ export class CallSession implements CallLike {
     this.published = published
     await room.localParticipant.publishTrack(published, { source: Track.Source.Microphone })
 
-    // Krisp goes on after publishing, the order the spike verified. Ink gets the same cleaned
+    // Krisp goes on after publishing, the order the stage 2 spike verified. Ink gets the same cleaned
     // audio friends hear. If Krisp fails, both get the browser-filtered mic.
     let kind = filter.kind
     if (filter.processor) {
