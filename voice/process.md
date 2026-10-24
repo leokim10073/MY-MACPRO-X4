@@ -613,12 +613,12 @@ Cartesia-Version: 2026-08-14
 | 步驟 | 內容 | 完成的判斷方式 |
 | --- | --- | --- |
 | 13 | 🟡 註冊 LiveKit Cloud、backend 的 LiveKit token 端點 | 兩支手機能加入同一個 LiveKit 房間並聽到彼此。程式完成：`server/livekit.ts` 和 dev API 的 `/api/livekit-token`。**M1 手機實測通過（2026-10-24）**，還差接上 Convex |
-| 14 | 🟡 `OpenMicSession`：`/stt/turns/websocket`、`turn.start` / `turn.end`、送出一行 | 戴耳機通話，兩個人的句子都出現在 transcript，名字正確。程式完成（`OpenMic`、`TurnSession`，加上 Krisp BVC 和音量閘門），另外加了即時文字：說話的同時，其他人的手機就看得到正在講的字。**手機實測留到最後一起測** |
-| 15 | 🟡 靜音／取消靜音、自動重連、keyterm 更新、成員名單上的 listening 狀態 | 靜音時指示燈熄滅且沒有任何一行產生。中斷網路後會自動恢復。程式完成，包含鎖屏、切換 App 後的恢復和 wake lock。**手機實測留到最後一起測** |
-| 16 | 🟡 階段二的 recap：只在本機播放、降低其他人的音量 | 後到的人在通話中聽完 recap，其他人沒有聽到。程式完成（`duck`）。**手機實測留到最後一起測** |
-| 17 | 🟡 階段二的 burn：離開 LiveKit 並刪除房間 | Burn 後所有人都被踢出通話。程式完成（`stop` 和 `endCall`）。**手機實測留到最後一起測** |
-| 18 | 🟡 調整 turn detection 參數；兩個人同時說話的測試 | 同時說話時各自產生自己的一行，名字都正確。程式完成：有人插話時切開正在講的那一行，測試頁有 `turn_start_threshold` 滑桿。**手機實測留到最後一起測** |
-| 19 | 🟡 設定裡可以切換「Push-to-talk / Open mic」 | 切換後兩種模式都能用。測試頁可以切換。web 的設定畫面等 PR 時討論 |
+| 14 | 🟡 `OpenMicSession`：`/stt/turns/websocket`、`turn.start` / `turn.end`、送出一行 | 戴耳機通話，兩個人的句子都出現在 transcript，名字正確。程式完成（`OpenMic`、`TurnSession`，加上 Krisp BVC 和音量閘門），另外加了即時文字：說話的同時，其他人的手機就看得到正在講的字。**合併實測通過（2026-10-24）** |
+| 15 | 🟡 靜音／取消靜音、自動重連、keyterm 更新、成員名單上的 listening 狀態 | 靜音時指示燈熄滅且沒有任何一行產生。中斷網路後會自動恢復。程式完成，包含鎖屏、切換 App 後的恢復和 wake lock。靜音、斷線和鎖屏恢復不在 demo 範圍，負責人決定不實測（2026-10-24） |
+| 16 | 🟡 階段二的 recap：只在本機播放、降低其他人的音量 | 後到的人在通話中聽完 recap，其他人沒有聽到。程式完成（`duck`）。**合併實測通過（2026-10-24）** |
+| 17 | 🟡 階段二的 burn：離開 LiveKit 並刪除房間 | Burn 後所有人都被踢出通話。程式完成（`stop` 和 `endCall`）。**合併實測通過（2026-10-24）** |
+| 18 | 🟡 調整 turn detection 參數；兩個人同時說話的測試 | 同時說話時各自產生自己的一行，名字都正確。程式完成：有人插話時切開正在講的那一行，測試頁有 `turn_start_threshold` 滑桿。**合併實測通過（2026-10-24）** |
+| 19 | 🟡 設定裡可以切換「Push-to-talk / Open mic」 | 切換後兩種模式都能用。測試頁可以切換，合併實測兩種模式都能用。web 的設定畫面等 PR 時討論 |
 
 ### 週六午夜之後
 
@@ -641,7 +641,7 @@ Cartesia-Version: 2026-08-14
 
 > 兩支手機透過通話同時聊天，不按任何按鈕，兩個人說的話（包含同時說的話）都出現在同一個房間的 transcript，掛在正確的名字下。
 
-階段二的實測結果記在 [stage2-options.md](stage2-options.md) 的「Results (stage 2 build)」。M1 通過；M2 到 M6 依負責人的決定，留到全部做完後一起測（2026-10-24）。
+階段二的實測結果記在 [stage2-options.md](stage2-options.md) 的「Results (stage 2 build)」。M1 通過；M2 到 M6 依負責人的決定，留到全部做完後一起測，合併實測通過（2026-10-24）。路人、靜音、斷線、鎖屏和長時間通話不在 demo 範圍，沒有實測。
 
 ### 測試清單
 

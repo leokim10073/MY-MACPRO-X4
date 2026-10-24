@@ -259,3 +259,4 @@ Phone checks from [stage2-plan.md](stage2-plan.md), in order.
 | M2: transcription | 2026-10-24 | **Skipped by the owner, treated as pass.** Moved into the combined final test |
 | M3: noise | 2026-10-24 | **Skipped by the owner, treated as pass.** Noise layer stays Krisp (no switch to VIVA). Moved into the combined final test |
 | M4–M6 | 2026-10-24 | Built without phone checks at the owner's request; all of them run together in one final test. The owner dropped these from that test as out of the demo's reach: passerby at 1 m, mute mid-sentence, Wi-Fi loss and iPhone lock/app switch/call, 12+ minutes in a call |
+| Final combined test | 2026-10-24 | **Pass.** Turn-by-turn lines under the right names with live text on every phone; talking at once gives separate lines; an interruption splits the line in the right order; recap ducks friends and isn't heard by them; burn ends the call for everyone; push-to-talk still works |
