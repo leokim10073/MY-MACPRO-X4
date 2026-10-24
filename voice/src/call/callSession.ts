@@ -42,8 +42,11 @@ export interface CallEvents {
 
 /** What OpenMic needs from a call. CallSession is the real one; tests use a fake. */
 export interface CallLike {
-  /** Must be called from a user gesture (iOS). */
-  join(token: CallToken, events: CallEvents): Promise<NoiseFilterKind>
+  /**
+   * Must be called from a user gesture (iOS). The token may still be on its way: audio is
+   * started inside the tap first, then the token is awaited.
+   */
+  join(token: Promise<CallToken>, events: CallEvents): Promise<NoiseFilterKind>
   /** 16 kHz PCM16 frames of the published mic. */
   onFrame(listener: (frame: Int16Array) => void): () => void
   setMuted(muted: boolean): Promise<void>
@@ -98,7 +101,7 @@ export class CallSession implements CallLike {
     this.sinks.hidden = true
   }
 
-  async join(token: CallToken, events: CallEvents): Promise<NoiseFilterKind> {
+  async join(tokenPromise: Promise<CallToken>, events: CallEvents): Promise<NoiseFilterKind> {
     // iOS only lets audio start inside the user's tap, so the context is created and resumed
     // before the first await.
     const ctx = new AudioContext()
@@ -107,7 +110,10 @@ export class CallSession implements CallLike {
     this.events = events
     this.leaving = false
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS })
+    const [token, stream] = await Promise.all([
+      tokenPromise,
+      navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS }),
+    ])
     this.raw = stream.getAudioTracks()[0]
     await resumed
 

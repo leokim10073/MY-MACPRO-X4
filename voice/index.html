@@ -27,6 +27,9 @@
       #transcript b { margin-right: 6px; }
       .error { color: #dc2626; }
       .preview { min-height: 1.4em; font-style: italic; }
+      #people { list-style: none; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+      #people li { padding: 4px 10px; border-radius: 999px; background: #8882; }
+      #people li.speaking { outline: 2px solid #16a34a; }
       [hidden] { display: none !important; }
     </style>
   </head>
@@ -58,7 +61,21 @@
       <p class="error" id="error"></p>
       <ul id="failed"></ul>
 
+      <div class="row" role="radiogroup" aria-label="Mode">
+        <label><input type="radio" name="mode" value="ptt" checked /> Push-to-talk</label>
+        <label><input type="radio" name="mode" value="call" /> Call</label>
+      </div>
+
       <button class="ptt" id="ptt" type="button" aria-pressed="false">Hold to talk</button>
+
+      <section id="call" hidden>
+        <div class="row">
+          <button type="button" id="join-call">Join call</button>
+          <button type="button" id="leave-call" hidden>Leave</button>
+          <span class="muted" id="call-status"></span>
+        </div>
+        <ul id="people"></ul>
+      </section>
 
       <details>
         <summary>Recap audio test</summary>

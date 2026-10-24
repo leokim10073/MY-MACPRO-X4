@@ -5,13 +5,20 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
 import type { Member, NewTranscriptLine, TranscriptLine } from '../shared/schema'
 import { countWords, mintSttToken, synthesizeSpeech } from './src/server/cartesia'
+import { endCall, mintCallToken, type LiveKitConfig } from './src/server/livekit'
 
 const ROOM_ID = 'dev-room'
 const MAX_LINES = 500
 const MAX_TTS_WORDS = 80
 const TOKENS_PER_MINUTE = 30
 
-export function voiceDevApi(apiKey: string | undefined): Plugin {
+export interface DevApiEnv {
+  cartesiaKey?: string
+  /** Set when LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET are all in voice/.env. */
+  livekit?: LiveKitConfig
+}
+
+export function voiceDevApi({ cartesiaKey: apiKey, livekit }: DevApiEnv): Plugin {
   let members: Member[] = []
   let lines: TranscriptLine[] = []
   let tokenRequests: { memberId: string; at: number }[] = []
@@ -47,6 +54,11 @@ export function voiceDevApi(apiKey: string | undefined): Plugin {
       return send(res, 200, await mintSttToken(apiKey))
     }
 
+    if (req.method === 'POST' && path === '/livekit-token') {
+      if (!livekit) return send(res, 500, { error: 'LIVEKIT_URL, LIVEKIT_API_KEY or LIVEKIT_API_SECRET missing from voice/.env' })
+      return send(res, 200, await mintCallToken(livekit, { roomId: ROOM_ID, memberId: me.id, name: me.name }))
+    }
+
     if (req.method === 'POST' && path === '/lines') {
       const body = (await readJson(req)) as Partial<NewTranscriptLine>
       if (body.speakerId !== me.id || typeof body.text !== 'string' || typeof body.at !== 'number') {
@@ -78,6 +90,7 @@ export function voiceDevApi(apiKey: string | undefined): Plugin {
       members = []
       lines = []
       tokenRequests = []
+      if (livekit) await endCall(livekit, ROOM_ID)
       return send(res, 200, { burned: true })
     }
 

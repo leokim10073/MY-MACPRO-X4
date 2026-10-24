@@ -4,6 +4,8 @@ import type { Member, TranscriptLine } from '../../../shared/schema'
 import fixture from '../../../shared/fixtures/kevin.expected.json'
 import { MicSource } from '../audio/micSource'
 import { RECAP_OPENER_TEXT } from '../config'
+import { CallSession, type CallParticipant } from '../call/callSession'
+import type { CallToken } from '../server/livekit'
 import { buildKeyterms } from '../stt/keyterms'
 import { PushToTalk } from '../stt/pushToTalk'
 import { TokenSource, fetchTokenFrom } from '../stt/tokenSource'
@@ -58,6 +60,7 @@ function enterRoom(self: Member) {
   ptt.subscribe(render)
   render()
   bindButton(ptt)
+  bindModes()
 
   poll = setInterval(refresh, 700)
   void refresh()
@@ -84,6 +87,73 @@ function bindButton(p: PushToTalk) {
   btn.addEventListener('pointerup', release)
   btn.addEventListener('pointercancel', release)
   btn.addEventListener('contextmenu', (e) => e.preventDefault())
+}
+
+// --- Call mode -----------------------------------------------------------------------------
+
+let call: CallSession | null = null
+
+function bindModes() {
+  for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="mode"]')) {
+    radio.addEventListener('change', () => {
+      const isCall = radio.value === 'call' && radio.checked
+      $('ptt').hidden = isCall
+      $('call').hidden = !isCall
+    })
+  }
+}
+
+$('join-call').addEventListener('click', () => {
+  if (call || !me) return
+  const session = new CallSession()
+  call = session
+  // No await before join: iOS needs the AudioContext started inside this tap.
+  const joined = api('/livekit-token', { method: 'POST' }).then(async (res) => {
+    const body = (await res.json()) as CallToken & { error?: string }
+    if (!res.ok) throw new Error(body.error ?? `Call token failed (${res.status})`)
+    return body
+  })
+  $('call-status').textContent = 'Joining…'
+  void session
+    .join(
+      joined,
+      {
+        onParticipants: renderPeople,
+        onRemoteSpeakingStarted: () => {},
+        onReconnecting: (r) => ($('call-status').textContent = r ? 'Reconnecting…' : 'In call'),
+        onDropped: (msg) => endCall(msg),
+        onMicRestarted: () => {},
+        onNeedsTap: () => {},
+      },
+    )
+    .then(() => {
+      $('call-status').textContent = 'In call'
+      $('join-call').hidden = true
+      $('leave-call').hidden = false
+    })
+    .catch((err: unknown) => endCall(err instanceof Error ? err.message : 'Could not join the call.'))
+})
+
+$('leave-call').addEventListener('click', () => endCall(''))
+
+function endCall(message: string) {
+  void call?.leave()
+  call = null
+  $('call-status').textContent = message
+  $('join-call').hidden = false
+  $('leave-call').hidden = true
+  $('people').replaceChildren()
+}
+
+function renderPeople(list: CallParticipant[]) {
+  $('people').replaceChildren(
+    ...list.map((p) => {
+      const li = document.createElement('li')
+      li.textContent = `${p.name}${p.id === me?.id ? ' (me)' : ''}${p.muted ? ' · muted' : ''}`
+      li.classList.toggle('speaking', p.speaking)
+      return li
+    }),
+  )
 }
 
 function render() {
