@@ -1,6 +1,9 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { createRoomClient } from './room/createRoomClient'
+
+const mock = (search: string) => ({ ...createRoomClient(search, {}), search })
 
 afterEach(() => {
   cleanup()
@@ -17,7 +20,7 @@ function chips(): HTMLElement[] {
 describe('Phase 1 checkpoint', () => {
   it('replay as a latecomer pops up Kevin and moves the focus', async () => {
     vi.useFakeTimers()
-    render(<App search="?room=demo&speed=10" />)
+    render(<App {...mock("?room=demo&speed=10")} />)
     fireEvent.change(screen.getByLabelText(/nickname/i), { target: { value: 'Leo' } })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Join room' }))

@@ -81,7 +81,7 @@ describe('Burned screen', () => {
       burn: vi.fn().mockResolvedValue(undefined),
       dispose: vi.fn(),
     }
-    render(<App client={client} search="?room=demo" />)
+    render(<App client={client} kind="mock" search="?room=demo" />)
     fireEvent.change(screen.getByLabelText(/nickname/i), {
       target: { value: 'Taylor' },
     })

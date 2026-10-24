@@ -28,3 +28,6 @@ graphify-out/
 
 # Claude Code plugin state
 .omc/
+
+# Local preview launch config
+.claude/launch.json

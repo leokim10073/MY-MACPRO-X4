@@ -18,3 +18,7 @@ export function readMockOptions(search: string): Omit<TimelineOptions, 'self'> &
   if (room) out.inviteToken = room
   return out
 }
+
+export function readInviteToken(search: string): string | undefined {
+  return readMockOptions(search).inviteToken
+}

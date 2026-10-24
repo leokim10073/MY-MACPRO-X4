@@ -2,14 +2,9 @@
 // append-only event log and hands each RoomEvent to listeners in eventSeq order,
 // so the reducer sees exactly what it sees from the mock.
 import { ConvexClient } from 'convex/browser'
-import { anyApi } from 'convex/server'
-import type { api as backendApi } from '../../../../backend/convex/_generated/api'
-import type { Id as ConvexId } from '../../../../backend/convex/_generated/dataModel'
 import type { RoomEvent } from '../../../../shared/schema'
 import type { JoinResult, RoomClient } from '../RoomClient'
-
-// Typed references without bundling the backend's generated JS into the web app.
-const api = anyApi as unknown as typeof backendApi
+import { backendApi as api } from './backendApi'
 
 type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'close'>
 interface Joined extends Omit<JoinResult, 'self'> {
@@ -24,7 +19,7 @@ interface EventLog {
 export class ConvexRoomClient implements RoomClient {
   private readonly convex: Convex
   private listeners: Array<(event: RoomEvent) => void> = []
-  private session: { roomId: ConvexId<'rooms'>; sessionToken: string } | null = null
+  private session: { roomId: string; sessionToken: string } | null = null
   private stopEvents: (() => void) | null = null
   private lastEventSeq = 0
   private burned = false
@@ -67,7 +62,7 @@ export class ConvexRoomClient implements RoomClient {
 
   private start(joined: Joined): JoinResult {
     if (this.session) throw new Error('ConvexRoomClient: already in a room')
-    const session = { roomId: joined.room.id as ConvexId<'rooms'>, sessionToken: joined.sessionToken }
+    const session = { roomId: joined.room.id, sessionToken: joined.sessionToken }
     this.session = session
     this.stopEvents = this.convex.onUpdate(
       api.events.listAfter,
