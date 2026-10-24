@@ -994,98 +994,97 @@ button.primary {
   }
 }
 
+/* The host's Last Sip control: peach, outlined, a small hard shadow; subordinate to the speaking control. */
 .room-actions .burn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--gw-space-1);
   min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--gw-color-coral);
-  border-radius: 12px;
-  /* Charcoal fill like the badge: the gold label then holds contrast on a light or dark room. */
-  background: var(--gw-color-ink);
-  color: var(--gw-color-yellow);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.room-actions .burn svg path {
-  fill: var(--gw-color-coral);
-}
-
-.burn-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  background: rgba(5, 5, 7, 0.62);
-}
-
-.burn-sheet {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 480px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px 20px 26px;
-  border-top: 1px solid rgba(255, 118, 46, 0.4);
-  border-radius: 22px 22px 0 0;
-  background: var(--gw-color-ink);
-  color: var(--gw-color-card);
-}
-
-.burn-sheet h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.burn-sheet p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.burn-sheet-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.burn-sheet-actions button {
-  flex: 1;
-  min-height: 52px;
-  border-radius: 14px;
-  font: inherit;
-  font-size: 16px;
+  padding: 0 var(--gw-space-3) 0 var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-accent-last-sip);
+  color: var(--gw-text);
+  box-shadow: var(--gw-shadow-sm);
+  font: 700 15px var(--gw-font-body);
   cursor: pointer;
+  transition:
+    transform var(--gw-dur-press) ease-out,
+    box-shadow var(--gw-dur-press) ease-out;
 }
 
-.burn-keep {
-  border: 1px solid rgba(245, 239, 231, 0.25);
-  background: transparent;
-  color: var(--gw-color-card);
+.room-actions .burn:hover {
+  transform: translateY(-1px);
+}
+
+.room-actions .burn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+}
+
+/* Last Sip dialog: shared gw-dialog styling, plus the cup. */
+.burn-sheet {
+  align-items: stretch;
+  text-align: left;
+}
+
+.burn-sheet-cup {
+  align-self: center;
+  transition: transform var(--gw-dur-pop) var(--gw-ease-bounce);
+}
+
+/* Waiting: the cup leans a little when you point at the room-ending action. */
+.burn-sheet:has(.burn-go:hover:not(:disabled)) .burn-sheet-cup {
+  transform: rotate(-6deg);
 }
 
 .burn-go {
-  border: 0;
-  background: var(--gw-color-coral);
-  color: var(--gw-color-ink);
-  font-weight: 600;
+  white-space: nowrap;
 }
 
+/* Pending: the button stays sunk into its shadow while the room ends. */
 .burn-go:disabled {
-  background: var(--gw-color-danger-ink);
-  color: var(--gw-color-card);
-  cursor: default;
+  background: var(--gw-accent-last-sip);
+  color: var(--gw-text);
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+  cursor: progress;
 }
 
-.room-actions .burn:focus-visible,
-.burn-sheet-actions button:focus-visible {
-  outline: 2px solid var(--gw-color-coral);
-  outline-offset: 2px;
+.lsc-steam-dots circle {
+  animation: lsc-dot 1.2s ease-in-out infinite;
+}
+
+.lsc-steam-dots circle:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.lsc-steam-dots circle:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes lsc-dot {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-actions .burn,
+  .burn-sheet-cup {
+    transition: none;
+  }
+
+  .room-actions .burn:hover,
+  .room-actions .burn:active,
+  .burn-sheet:has(.burn-go:hover:not(:disabled)) .burn-sheet-cup,
+  .burn-go:disabled {
+    transform: none;
+  }
+
+  .lsc-steam-dots circle {
+    animation: none;
+  }
 }
 
 /* Entry: a compact illustrated welcome over the room (the room behind stays inert until Enter). */

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import LastSipCup from './art/LastSipCup'
 
 interface Props {
   pending: boolean
@@ -6,7 +7,8 @@ interface Props {
   onKeep: () => void
 }
 
-// Bottom sheet that asks before burning. Keep talking gets focus, so a stray Enter keeps the room.
+// Asks before ending the room (Last Sip): a sheet on phones, a card on wider screens.
+// Keep chatting gets focus, so a stray Enter keeps the room.
 // While the burn is in flight the Burn button is disabled, so a double tap calls onBurn once.
 export default function BurnConfirm({ pending, onBurn, onKeep }: Props) {
   const keep = useRef<HTMLButtonElement>(null)
@@ -49,26 +51,27 @@ export default function BurnConfirm({ pending, onBurn, onKeep }: Props) {
   }, [onKeep])
 
   return (
-    <div className="burn-scrim" onClick={onKeep}>
+    <div className="burn-scrim gw-scrim" onClick={onKeep}>
       <div
         ref={sheet}
-        className="burn-sheet"
+        className="burn-sheet gw-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="burn-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="burn-title">Burn this room for everyone?</h2>
+        <LastSipCup size={112} mood={pending ? 'pending' : 'waiting'} className="burn-sheet-cup" />
+        <h2 id="burn-title">Ready for the last sip?</h2>
         <p>
-          This ends the conversation for everyone and deletes its transcript, stories and catch-ups. People may still
-          remember what was said.
+          End this room for everyone and permanently delete its conversation, transcript, and AI catch-ups. This can't
+          be undone.
         </p>
-        <div className="burn-sheet-actions">
-          <button type="button" ref={keep} className="burn-keep" onClick={onKeep}>
-            Keep talking
+        <div className="burn-sheet-actions gw-dialog-actions">
+          <button type="button" ref={keep} className="burn-keep gw-btn gw-btn--quiet" onClick={onKeep}>
+            Keep chatting
           </button>
-          <button type="button" className="burn-go" onClick={burn} disabled={pending}>
-            {pending ? 'Burning…' : 'Burn room'}
+          <button type="button" className="burn-go gw-btn gw-btn--peach" onClick={burn} disabled={pending}>
+            {pending ? 'Ending room…' : 'End & delete room'}
           </button>
         </div>
       </div>

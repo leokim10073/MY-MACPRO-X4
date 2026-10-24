@@ -64,9 +64,9 @@ async function joinWith(client: RoomClient, button: 'Start the party' | 'Join th
 }
 
 async function tapBurn() {
-  fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     await vi.advanceTimersByTimeAsync(0)
   })
 }
@@ -108,7 +108,7 @@ describe('Burn flow in the app', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     for (const e of fixtureEvents()) emit(e)
     expect(text()).toContain('Kevin')
-    expect(screen.queryByRole('button', { name: 'Burn room…' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Last Sip…' })).toBeNull()
 
     emit({ type: 'room_burned', roomId: 'demo' })
     expectClosingOverFrozenRoom(true)
@@ -126,7 +126,7 @@ describe('Burn flow in the app', () => {
     for (const e of fixtureEvents()) emit(e)
 
     await tapBurn()
-    expect(screen.getByRole('alert').textContent).toBe('Could not burn.')
+    expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
     expect(hasRoomClosed()).toBe(false)
     expect(screen.queryByText("That's between us.")).toBeNull()
 
@@ -134,8 +134,8 @@ describe('Burn flow in the app', () => {
     expect(hasRoomClosed()).toBe(false)
     expect(text()).toContain('Kevin')
     expect(text()).not.toContain(BURNED)
-    expect(screen.getByRole('button', { name: 'Burn room…' })).toBeTruthy()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Burn room…' }))
+    expect(screen.getByRole('button', { name: 'Last Sip…' })).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Last Sip…' }))
   })
 
   it('a successful burn() starts closing even before room_burned arrives, and room_burned does not restart it', async () => {

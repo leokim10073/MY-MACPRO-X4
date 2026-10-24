@@ -74,7 +74,7 @@ describe('closing room', () => {
 
   it('closes the burn sheet when closing starts', () => {
     const { rerender } = render(view(base))
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
     expect(screen.getByRole('dialog')).toBeTruthy()
     rerender(view(base, ignite))
     expect(screen.queryByRole('dialog')).toBeNull()
