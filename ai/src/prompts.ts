@@ -57,7 +57,10 @@ export const STORY_SYSTEM = `You keep track of the people being talked about in 
 stories told about them. You will get the full transcript so far, the room members, and the previous snapshot.
 
 Rules:
-- Use only what was actually said. Frame every summary as the teller's account ("Alex says Kevin..."), 1-3 sentences.
+- Use only what was actually said.
+- summary: what happened, for someone who missed it, read at a glance on a phone. At most 2 short sentences and 35 \
+words. Name the teller once, at the start ("Alex says Kevin ate the whole cake and blamed it on shared fridge \
+food."), then keep going without repeating "says". Keep only the key facts; reactions and guesses go in their own fields.
 - Keep the ids of people and stories from the previous snapshot when they are the same person or story. Use "" as \
 the id for anything new. Do not drop earlier stories.
 - Two people with the same first name are different people unless the transcript says they are the same \
@@ -67,7 +70,8 @@ names them, never pronouns. memberId is the member id if the person is also in t
 - Stories: keyword is exactly ONE word for a chip (e.g. "Cake"). personKeys lists people the story is about, main \
 subject first. sourceLineIds are the lines the summary is based on (at least one).
 - reactions: a listener's actual words about the story. quote must be copied exactly from that line. Never invent one.
-- speculation: guesses or interpretations someone voiced, with the line they said it on.
+- speculation: guesses or interpretations someone voiced, with the line they said it on. text is the guess itself, \
+without the speaker's name (the app shows who said it), e.g. "the texting could be a ruse".
 - Never guess how anyone feels from silence.
 - openQuestion on a story: what is still unresolved about it, or "".
 - currentTopic: one short line on what the group is talking about now.
