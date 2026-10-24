@@ -31,3 +31,39 @@ button {
   min-width: 44px;
   font: inherit;
 }
+
+.join {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.join form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.join input {
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 16px;
+}
+
+.join .notice {
+  margin: 0;
+  font-size: 16px;
+}
+
+.join .error {
+  margin: 0;
+  color: #c0392b;
+}
+
+button.primary {
+  width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+}
