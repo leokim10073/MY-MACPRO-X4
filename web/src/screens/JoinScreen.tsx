@@ -15,12 +15,15 @@ interface Props {
 
 export default function JoinScreen({ inviteToken, onCreate, onJoin, error, pending = false, offlineDemoHref }: Props) {
   const [name, setName] = useState('')
+  // After leaving, the invite link is often still in the URL; let people start their own room instead.
+  const [createInstead, setCreateInstead] = useState(false)
+  const joining = !!inviteToken && !createInstead
   const trimmed = name.trim()
 
   function submit(e: FormEvent) {
     e.preventDefault()
     if (!trimmed) return
-    if (inviteToken) onJoin(inviteToken, trimmed)
+    if (joining) onJoin(inviteToken, trimmed)
     else onCreate(trimmed)
   }
 
@@ -50,8 +53,13 @@ export default function JoinScreen({ inviteToken, onCreate, onJoin, error, pendi
           </p>
         )}
         <button type="submit" className="primary" disabled={!trimmed || pending}>
-          {pending ? 'Connecting…' : inviteToken ? 'Join room' : 'Create room'}
+          {pending ? 'Connecting…' : joining ? 'Join room' : 'Create room'}
         </button>
+        {joining && (
+          <button type="button" className="link-button" onClick={() => setCreateInstead(true)}>
+            Create a new room instead
+          </button>
+        )}
       </form>
     </main>
   )

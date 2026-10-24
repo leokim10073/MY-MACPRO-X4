@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { readInviteToken } from './config'
 import type { RoomClient } from './room/RoomClient'
 import { inviteUrl, type ClientKind } from './room/createRoomClient'
@@ -10,9 +11,40 @@ interface Props {
   client: RoomClient
   kind: ClientKind
   search?: string
+  /** Makes a fresh client after Leave. Without it, the Leave button isn't offered. */
+  makeClient?: () => RoomClient
 }
 
-export default function App({ client, kind, search = window.location.search }: Props) {
+// Leaving disposes this phone's client and remounts everything under a new key,
+// so the reducer, pop-up and recap state all start clean on a fresh client.
+export default function App({ client, kind, search = window.location.search, makeClient }: Props) {
+  const [session, setSession] = useState({ key: 0, client })
+
+  function leave() {
+    if (!makeClient) return
+    session.client.dispose()
+    setSession({ key: session.key + 1, client: makeClient() })
+  }
+
+  return (
+    <RoomSession
+      key={session.key}
+      client={session.client}
+      kind={kind}
+      search={search}
+      onLeave={makeClient ? leave : undefined}
+    />
+  )
+}
+
+interface SessionProps {
+  client: RoomClient
+  kind: ClientKind
+  search: string
+  onLeave?: () => void
+}
+
+function RoomSession({ client, kind, search, onLeave }: SessionProps) {
   const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
   const params = new URLSearchParams(search)
 
@@ -49,6 +81,7 @@ export default function App({ client, kind, search = window.location.search }: P
       showReplay={params.get('replay') === '1' && !!startReplay}
       onStartReplay={startReplay}
       voice={client.voice}
+      onLeave={onLeave}
     />
   )
 }

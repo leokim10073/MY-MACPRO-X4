@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnButton from '../components/BurnButton'
 import ConnectionBanner from '../components/ConnectionBanner'
+import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
@@ -9,10 +10,13 @@ import Transcript from '../components/Transcript'
 import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
+import RoomStage from '../components/RoomStage'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
 import type { ConnectionStatus, VoiceTransport } from '../room/RoomClient'
+import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
+import { latestLine } from '../room/derived'
 import { useVoice } from '../voice/useVoice'
 
 interface Props {
@@ -37,6 +41,10 @@ interface Props {
   onStartReplay?: () => Promise<void>
   /** Push-to-talk to the backend. Absent on the mock, where the button only animates. */
   voice?: VoiceTransport
+  /** A real "who is speaking" signal (e.g. push-to-talk). Without it, the speaker of each new line is shown. */
+  speaking?: SpeakingSignal
+  /** Leave this phone's session (not a burn). Without it there's no Leave button. */
+  onLeave?: () => void
 }
 
 const noop = () => {}
@@ -56,21 +64,46 @@ export default function RoomScreen({
   showReplay = false,
   onStartReplay,
   voice: transport,
+  speaking,
+  onLeave,
 }: Props) {
   const voice = useVoice(transport, room, self, state)
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const isHost = room.hostMemberId === self.id
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
   const [replayStarted, setReplayStarted] = useState(false)
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
   const openStory = openStoryId ? storiesById(state).get(openStoryId) : undefined
+  // The first pop-up of this session carries a hint; once it closes (tap, dismiss or fade) the hint is done.
+  // Kept in memory only: leaving or reloading starts a new session.
+  const [hint, setHint] = useState<'waiting' | 'showing' | 'done'>('waiting')
+  if (hint === 'waiting' && popup) setHint('showing')
+  if (hint === 'showing' && !popup) setHint('done')
+  const lineSpeaking = useLineSpeaking(state.lines, self.joinedAtSeq)
+  const { speakerId } = speaking ?? lineSpeaking
+  const newest = latestLine(state)
+  const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
+  const nameOf = (id: string) =>
+    state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
 
   return (
     <main className="room">
       <header className="room-header">
         <h1>Gossip Window</h1>
         <ListeningIndicator micLive={voice?.state.isListening} />
-        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} pending={pending === 'burn'} />}
+        {(isHost || onLeave) && (
+          <div className="room-actions">
+            {isHost && <BurnButton onBurn={onBurn} pending={pending === 'burn'} />}
+            {isHost && onLeave && <span className="actions-divider" aria-hidden="true" />}
+            {onLeave && (
+              <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
+                Leave
+              </button>
+            )}
+          </div>
+        )}
       </header>
       <ConnectionBanner status={connection} onRejoin={onRejoin} />
       {error && (
@@ -78,7 +111,10 @@ export default function RoomScreen({
           {error.message}
         </p>
       )}
-      {showReplay && onStartReplay && !replayStarted && room.hostMemberId === self.id && (
+      {confirmLeave && onLeave && (
+        <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
+      )}
+      {showReplay && onStartReplay && !replayStarted && isHost && (
         <button
           type="button"
           className="replay"
@@ -106,6 +142,13 @@ export default function RoomScreen({
           />
         )}
       </div>
+      <RoomStage
+        members={state.members}
+        self={self}
+        speaker={speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
+        lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
+        compact={!!openStory}
+      />
       <div className="room-transcript">
         <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
       </div>
@@ -129,6 +172,7 @@ export default function RoomScreen({
                 focusStoryId={popup.focusStoryId}
                 onChip={tapChip}
                 onDismiss={dismiss}
+                hint={hint !== 'done'}
               />
             )
           )}
