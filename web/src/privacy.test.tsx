@@ -53,9 +53,9 @@ describe('storage guard', () => {
     render(<App {...mock("?speed=1000")} />)
     await enter('Create room')
     expect(document.body.textContent).toContain(line21())
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Tap again to burn' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
       await vi.advanceTimersByTimeAsync(0)
     })
     expect(screen.getByText('This room has ended.')).toBeTruthy()

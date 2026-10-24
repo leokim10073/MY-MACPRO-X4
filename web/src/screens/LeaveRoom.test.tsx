@@ -68,7 +68,7 @@ describe('Leave on the room screen', () => {
 
   it('keeps Burn red and apart from Leave', () => {
     const { container } = roomScreen('m_taylor', { onLeave: () => {} })
-    const burn = screen.getByRole('button', { name: 'Burn room' })
+    const burn = screen.getByRole('button', { name: 'Burn room…' })
     const leave = screen.getByRole('button', { name: 'Leave' })
     expect(burn.className).toContain('burn')
     expect(leave.className).toContain('leave')

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
-import BurnButton from '../components/BurnButton'
+import BurnConfirm from '../components/BurnConfirm'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
@@ -70,6 +70,13 @@ export default function RoomScreen({
 }: Props) {
   const voice = useVoice(transport, room, self, state)
   const [confirmLeave, setConfirmLeave] = useState(false)
+  const [confirmBurn, setConfirmBurn] = useState(false)
+  // A failed burn closes the sheet so the error line underneath shows; a successful one ends this screen anyway.
+  const [wasBurning, setWasBurning] = useState(false)
+  if (wasBurning !== (pending === 'burn')) {
+    setWasBurning(pending === 'burn')
+    if (wasBurning && error) setConfirmBurn(false)
+  }
   const isHost = room.hostMemberId === self.id
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
@@ -97,7 +104,14 @@ export default function RoomScreen({
         <ListeningIndicator micLive={voice?.state.isListening} />
         {(isHost || onLeave) && (
           <div className="room-actions">
-            {isHost && <BurnButton onBurn={onBurn} pending={pending === 'burn'} />}
+            {isHost && (
+              <button type="button" className="burn" onClick={() => setConfirmBurn(true)}>
+                <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
+                  <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
+                </svg>
+                Burn room…
+              </button>
+            )}
             {isHost && onLeave && <span className="actions-divider" aria-hidden="true" />}
             {onLeave && (
               <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
@@ -115,6 +129,9 @@ export default function RoomScreen({
       )}
       {confirmLeave && onLeave && (
         <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
+      )}
+      {isHost && confirmBurn && (
+        <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={() => setConfirmBurn(false)} />
       )}
       {showReplay && onStartReplay && !replayStarted && isHost && (
         <button

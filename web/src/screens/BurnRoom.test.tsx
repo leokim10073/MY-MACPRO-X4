@@ -41,22 +41,39 @@ describe('Burn button', () => {
     expect(screen.queryByRole('button', { name: /burn/i })).toBeNull()
     cleanup()
     renderRoom('m_taylor')
-    expect(screen.getByRole('button', { name: 'Burn room' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Burn room…' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('needs two taps and resets after 4 seconds', () => {
-    vi.useFakeTimers()
+  it('opens a confirmation sheet, and only its Burn room button burns', () => {
     const onBurn = renderRoom('m_taylor')
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    expect(screen.getByRole('dialog', { name: 'Burn this room for everyone?' })).toBeTruthy()
     expect(onBurn).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Tap again to burn' })).toBeTruthy()
-    act(() => {
-      vi.advanceTimersByTime(4000)
-    })
-    expect(screen.getByRole('button', { name: 'Burn room' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Tap again to burn' }))
     expect(onBurn).toHaveBeenCalledTimes(1)
+  })
+
+  it('Keep talking closes the sheet without burning', () => {
+    const onBurn = renderRoom('m_taylor')
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Keep talking' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(onBurn).not.toHaveBeenCalled()
+  })
+
+  it('closes the sheet and shows the error when a burn fails', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const self = state.members.find((m) => m.id === 'm_taylor')!
+    const room = { ...baseRoom, hostMemberId: 'm_taylor' }
+    const props = { state, self, room, onBurn: vi.fn() }
+    const { rerender } = render(<RoomScreen {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    rerender(<RoomScreen {...props} pending="burn" />)
+    expect((screen.getByRole('button', { name: 'Burning…' }) as HTMLButtonElement).disabled).toBe(true)
+    rerender(<RoomScreen {...props} pending={null} error={{ kind: 'unknown', message: 'Could not burn.' }} />)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('alert').textContent).toBe('Could not burn.')
   })
 })
 
