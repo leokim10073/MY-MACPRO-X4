@@ -12,7 +12,7 @@ import type { Id } from '../../../shared/schema'
 import { TrackSource } from '../audio/trackSource'
 import type { CallToken } from '../server/livekit'
 import { decodeLive, encodeLive, LIVE_TOPIC, type LiveText } from './liveText'
-import { loadNoiseFilter } from './noiseFilter'
+import { loadNoiseFilter, type NoiseFilter } from './noiseFilter'
 
 /** Which noise filtering really runs on the published mic. */
 export type NoiseFilterKind = 'krisp' | 'browser'
@@ -81,6 +81,8 @@ export function newSpeakers(before: ReadonlySet<Id>, now: readonly Id[], selfId:
   return now.filter((id) => id !== selfId && !before.has(id))
 }
 
+const LEFT = 'Left the call.'
+
 const MIC_CONSTRAINTS: MediaTrackConstraints = {
   echoCancellation: true,
   noiseSuppression: true,
@@ -101,6 +103,7 @@ export class CallSession implements CallLike {
   private source: TrackSource | null = null
   private readonly frameListeners = new Set<(frame: Int16Array) => void>()
   private kind: NoiseFilterKind = 'browser'
+  private processor: NoiseFilter['processor'] = null
   private wakeLock: WakeLockSentinel | null = null
   private recovering: Promise<void> | null = null
   private needsTap = false
@@ -124,24 +127,37 @@ export class CallSession implements CallLike {
     this.events = events
     this.leaving = false
 
-    const [token, stream, filter] = await Promise.all([
+    // All three settle before anything is decided: a token failure must not leave a mic that
+    // the permission prompt grants a moment later running with nobody holding it.
+    const [tokenResult, streamResult, filterResult] = await Promise.allSettled([
       tokenPromise,
       navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS }),
-      loadNoiseFilter({ debugLogs: this.opts.krispDebugLogs, onBufferDrop: this.opts.onBufferDrop }).catch(
-        () => ({ kind: 'browser', processor: null }) as const,
-      ),
+      loadNoiseFilter({ debugLogs: this.opts.krispDebugLogs, onBufferDrop: this.opts.onBufferDrop }),
     ])
-    this.raw = stream.getAudioTracks()[0]
+    const filter: NoiseFilter =
+      filterResult.status === 'fulfilled' ? filterResult.value : { kind: 'browser', processor: null }
+    this.processor = filter.processor
+    if (streamResult.status === 'fulfilled') this.raw = streamResult.value.getAudioTracks()[0]
+    if (this.leaving || tokenResult.status === 'rejected' || streamResult.status === 'rejected') {
+      await this.release()
+      if (tokenResult.status === 'rejected') throw tokenResult.reason
+      if (streamResult.status === 'rejected') throw streamResult.reason
+      throw new Error(LEFT)
+    }
+    const token = tokenResult.value
     await resumed
+    await this.abortIfLeft()
 
     const room = new Room({ webAudioMix: { audioContext: ctx } })
     this.room = room
     this.watch(room)
     await room.connect(token.url, token.token)
+    await this.abortIfLeft()
 
-    const published = new LocalAudioTrack(this.raw.clone(), undefined, true, ctx)
+    const published = new LocalAudioTrack(this.raw!.clone(), undefined, true, ctx)
     this.published = published
     await room.localParticipant.publishTrack(published, { source: Track.Source.Microphone })
+    await this.abortIfLeft()
 
     // Krisp goes on after publishing, the order the stage 2 spike verified. Ink gets the same cleaned
     // audio friends hear. If Krisp fails, both get the browser-filtered mic.
@@ -161,6 +177,7 @@ export class CallSession implements CallLike {
       for (const l of this.frameListeners) l(frame)
     })
     await this.source.attach(this.inkTrack())
+    await this.abortIfLeft()
     this.watchTracks()
     document.body.append(this.sinks)
     document.addEventListener('visibilitychange', this.onVisibility)
@@ -202,8 +219,21 @@ export class CallSession implements CallLike {
     this.updateNeedsTap()
   }
 
+  /** Also ends a join that's still running: it stops where it is and rejects. */
   async leave(): Promise<void> {
     this.leaving = true
+    await this.release()
+  }
+
+  /** Leave was called while joining: let go of what this step got, and stop. */
+  private async abortIfLeft(): Promise<void> {
+    if (!this.leaving) return
+    await this.release()
+    throw new Error(LEFT)
+  }
+
+  /** Lets go of everything held so far. Safe to call more than once. */
+  private async release(): Promise<void> {
     document.removeEventListener('visibilitychange', this.onVisibility)
     this.unwatchTracks()
     void this.wakeLock?.release().catch(() => {})
@@ -213,6 +243,9 @@ export class CallSession implements CallLike {
     await this.room?.disconnect().catch(() => {})
     this.published?.stop()
     this.raw?.stop()
+    // Attached to the track, Krisp is stopped with it; this covers a join that never got there.
+    void this.processor?.destroy().catch(() => {})
+    this.processor = null
     this.sinks.replaceChildren()
     this.sinks.remove()
     await this.ctx?.close().catch(() => {})
@@ -287,9 +320,16 @@ export class CallSession implements CallLike {
       this.raw?.stop()
       this.raw = stream.getAudioTracks()[0]
       const old = published.mediaStreamTrack
-      await published.replaceTrack(this.raw.clone(), true)
+      const raw = this.raw
+      await published.replaceTrack(raw.clone(), true)
       // We provided it, so LiveKit leaves stopping the old one to us.
       old.stop()
+      if (this.leaving) {
+        // Left during the swap: release() stopped the tracks it knew, not the new ones.
+        published.mediaStreamTrack.stop()
+        raw.stop()
+        return
+      }
       this.watchTracks()
       await this.source?.attach(this.inkTrack())
       this.events?.onMicRestarted()

@@ -48,6 +48,9 @@ class FakeCall implements CallLike {
   }
   async leave() {
     this.left++
+    // Like CallSession: leaving ends a join that's still running.
+    this.settle?.reject(new Error('Left the call.'))
+    this.settle = null
   }
   emit(n = 1600, v = 1000) {
     this.listener?.(new Int16Array(n).fill(v))
@@ -405,6 +408,63 @@ describe('OpenMic', () => {
     expect(st.failed).toEqual([])
     expect(st.isListening).toBe(false)
     expect(st.status).toBe('stopped')
+  })
+
+  it('mute during joining keeps Ink closed and the track muted', async () => {
+    const s = setup({ call: new FakeCall('manual') })
+    const joining = s.mic.join()
+    await s.mic.setMuted(true)
+    s.call.finishJoin()
+    await joining
+    await flush()
+    const st = s.mic.getState()
+    expect(s.sockets).toHaveLength(0)
+    expect(s.call.muted).toEqual([true])
+    expect(st.isListening).toBe(false)
+    expect(st.status).toBe('in_call')
+    await s.mic.setMuted(false)
+    await flush()
+    expect(s.sockets).toHaveLength(1)
+  })
+
+  it('stop during join leaves the call at once and ignores its events', async () => {
+    const s = setup({ call: new FakeCall('manual') })
+    const joining = s.mic.join()
+    s.mic.stop()
+    expect(s.call.left).toBe(1)
+    s.call.events!.onParticipants([{ id: 'm_alex', name: 'Alex', speaking: false, muted: false }])
+    s.call.events!.onLive('m_sam', { text: 'Hi', final: false })
+    await joining
+    await flush()
+    const st = s.mic.getState()
+    expect(st.participants).toEqual([])
+    expect(st.live).toEqual({})
+    expect(st.status).toBe('stopped')
+    expect(s.call.left).toBe(1)
+    expect(s.sockets).toHaveLength(0)
+  })
+
+  it('leave during join leaves the call at once', async () => {
+    const s = setup({ call: new FakeCall('manual') })
+    const joining = s.mic.join()
+    const leaving = s.mic.leave()
+    expect(s.call.left).toBe(1)
+    await Promise.all([joining, leaving])
+    await flush()
+    expect(s.mic.getState().status).toBe('left')
+    expect(s.mic.getState().error).toBeNull()
+    expect(s.sockets).toHaveLength(0)
+  })
+
+  it('a non-final live text clears after 10 s without updates', async () => {
+    const s = await inCall()
+    s.call.events!.onLive('m_sam', { text: 'So I', final: false })
+    await vi.advanceTimersByTimeAsync(9000)
+    s.call.events!.onLive('m_sam', { text: 'So I went', final: false })
+    await vi.advanceTimersByTimeAsync(9000)
+    expect(s.mic.getState().live.m_sam?.text).toBe('So I went')
+    await vi.advanceTimersByTimeAsync(1100)
+    expect(s.mic.getState().live).toEqual({})
   })
 
   it('a cut-off turn is sent and flagged', async () => {

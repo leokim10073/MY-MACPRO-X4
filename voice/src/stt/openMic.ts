@@ -3,7 +3,7 @@ import { CallSession, type CallEvents, type CallLike, type CallParticipant, type
 import { Chunker } from '../audio/chunker'
 import { LoudnessGate } from '../audio/loudnessGate'
 import type { LiveText } from '../call/liveText'
-import { DUCK_VOLUME, LIVE_FINAL_HOLD_MS, STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
+import { DUCK_VOLUME, LIVE_FINAL_HOLD_MS, LIVE_STALE_MS, STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
 import type { CallToken } from '../server/livekit'
 import { LineSender, type FailedLine } from './lineSender'
 import { openBrowserSocket, type OpenSocket } from './socket'
@@ -102,7 +102,6 @@ export class OpenMic {
   /** The current connection's splitter; a connection still draining after mute keeps its own. */
   private splitter: TurnSplitter | null = null
   private joining: Promise<void> | null = null
-  private wantLeave = false
   private stopped = false
   private callReconnecting = false
   private inkReconnecting = false
@@ -133,11 +132,10 @@ export class OpenMic {
     if (this.stopped) return Promise.resolve()
     if (this.joining) return this.joining
     if (this.call) return Promise.resolve()
-    this.wantLeave = false
     const call = this.createCall()
     this.call = call
     // join runs first, with no await before it, so it stays inside the tap.
-    const joined = call.join(this.opts.getCallToken(), this.callEvents())
+    const joined = call.join(this.opts.getCallToken(), this.callEvents(call))
     this.update({ status: 'joining', error: null, muted: false })
     this.joining = this.finishJoin(call, joined).finally(() => {
       this.joining = null
@@ -170,7 +168,10 @@ export class OpenMic {
   /** Leaves the call. The turn in progress is finished and sent; unsent lines keep retrying. */
   leave = async (): Promise<void> => {
     if (this.joining) {
-      this.wantLeave = true
+      // Leaving ends the join right away; finishJoin sees it and settles on 'left'.
+      const call = this.call
+      this.call = null
+      await call?.leave().catch(() => {})
       await this.joining
       return
     }
@@ -187,11 +188,9 @@ export class OpenMic {
     this.splitter = null
     this.unsubscribeFrames?.()
     this.unsubscribeFrames = null
-    // Still joining: finishJoin leaves once the call is up.
-    if (!this.joining) {
-      void this.call?.leave()
-      this.call = null
-    }
+    // Also while joining: leaving ends the join, and the call's events are ignored from now on.
+    void this.call?.leave().catch(() => {})
+    this.call = null
     this.sender.cancel()
     this.clearAllLive()
     this.update({ status: 'stopped', isListening: false, preview: '', failed: [], error: null, needsTap: false })
@@ -226,9 +225,13 @@ export class OpenMic {
     try {
       kind = await joined
     } catch (err) {
+      // Stop or leave during the join already left the call.
+      if (this.call !== call) {
+        if (!this.stopped) this.update({ status: 'left', isListening: false })
+        return
+      }
       this.call = null
       await call.leave().catch(() => {})
-      if (this.stopped) return
       this.update({
         status: 'error',
         isListening: false,
@@ -236,11 +239,14 @@ export class OpenMic {
       })
       return
     }
-    if (this.stopped || this.wantLeave) {
-      this.call = null
-      await call.leave().catch(() => {})
+    if (this.call !== call) {
       if (!this.stopped) this.update({ status: 'left', isListening: false })
       return
+    }
+    if (this.state.muted) {
+      // Muted while joining: the track goes quiet and Ink isn't opened until unmute.
+      await call.setMuted(true)
+      if (this.call !== call) return
     }
     this.unsubscribeFrames = call.onFrame((frame) => {
       // Muted: nothing goes to Ink and nothing is learned.
@@ -249,7 +255,8 @@ export class OpenMic {
     // The recap may have started while we were joining.
     if (this.ducked) call.setRemoteVolume(DUCK_VOLUME)
     this.update({ noiseFilter: kind })
-    this.startTurns()
+    if (this.state.muted) this.refreshStatus()
+    else this.startTurns()
   }
 
   private startTurns(): void {
@@ -307,25 +314,30 @@ export class OpenMic {
     this.refreshStatus()
   }
 
-  private callEvents(): CallEvents {
+  /** Events from a call we've left (stop or leave while joining) are ignored. */
+  private callEvents(call: CallLike): CallEvents {
+    const current = () => this.call === call
     return {
       onParticipants: (participants) => {
+        if (!current()) return
         this.update({ participants })
         const here = new Set(participants.map((p) => p.id))
         for (const id of Object.keys(this.state.live)) if (!here.has(id)) this.clearLive(id)
       },
-      onLive: (id, live) => this.showLive(id, live),
-      onRemoteSpeakingStarted: () => this.split(),
+      onLive: (id, live) => current() && this.showLive(id, live),
+      onRemoteSpeakingStarted: () => current() && this.split(),
       onReconnecting: (reconnecting) => {
+        if (!current()) return
         this.callReconnecting = reconnecting
         this.refreshStatus()
       },
-      onDropped: (message) => void this.teardown('error', message),
+      onDropped: (message) => current() && void this.teardown('error', message),
       onMicRestarted: () => {
+        if (!current()) return
         this.gate.reset()
         this.updateDebug()
       },
-      onNeedsTap: (needsTap) => this.update({ needsTap }),
+      onNeedsTap: (needsTap) => current() && this.update({ needsTap }),
     }
   }
 
@@ -365,7 +377,10 @@ export class OpenMic {
       return
     }
     this.update({ live: { ...this.state.live, [id]: live } })
-    if (live.final) this.liveTimers.set(id, setTimeout(() => this.clearLive(id), LIVE_FINAL_HOLD_MS))
+    // A final waits for its line; a running guess that stops updating (their message lost, their
+    // phone locked mid-turn) goes away too.
+    const hold = live.final ? LIVE_FINAL_HOLD_MS : LIVE_STALE_MS
+    this.liveTimers.set(id, setTimeout(() => this.clearLive(id), hold))
   }
 
   private clearLive(id: Id): void {

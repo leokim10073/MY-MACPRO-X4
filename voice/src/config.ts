@@ -125,5 +125,7 @@ export const RECAP_OPENER_TEXT = 'Previously, on Gossip Window.'
 
 /** Live text over the call: a friend's finished turn stays this long if their line hasn't come. */
 export const LIVE_FINAL_HOLD_MS = 4000
+/** A friend's running live text with no update for this long is cleared. */
+export const LIVE_STALE_MS = 10_000
 /** Live text sent per update is cut to its last this-many characters. */
 export const LIVE_MAX_CHARS = 1000
