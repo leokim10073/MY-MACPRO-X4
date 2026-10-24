@@ -104,6 +104,20 @@ describe('popupReducer', () => {
     expect(s.visible?.expiresAt).toBe(9000)
   })
 
+  it('a known person with one unknown story shows now with only the known chip; the rest appear in place later', () => {
+    const partial = { ...ctx, stories: ctx.stories.filter((x) => x.id === 's_cake') }
+    const s = run([recallAt(r1, 0)], partial)
+    expect(s.visible?.personId).toBe('p_kevin')
+    expect(s.pending).toEqual([])
+    expect(visibleChips(s.visible!, partial.stories).map((c) => c.id)).toEqual(['s_cake'])
+    expect(visibleChips(s.visible!, ctx.stories).map((c) => c.id)).toEqual(['s_cake', 's_airport', 's_landlord'])
+  })
+
+  it('a recall whose stories are all known but not missed is dropped, not pending', () => {
+    const none = { ...ctx, self: { ...taylor, joinedAtSeq: 99 } }
+    expect(run([recallAt(r1, 0)], none)).toEqual(initialPopupState)
+  })
+
   it('a pending recall is dropped after 6000 ms', () => {
     const empty = { ...ctx, stories: [], people: [] }
     const pending = run([recallAt(r1, 0)], empty)

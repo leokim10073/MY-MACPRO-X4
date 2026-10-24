@@ -35,11 +35,12 @@ export type PopupInput =
 
 export const initialPopupState: PopupState = { visible: null, closedAt: {}, pending: [] }
 
-function known(recall: Recall, ctx: PopupContext): boolean {
-  return (
-    ctx.people.some((p) => p.id === recall.personId) &&
-    recall.storyIds.every((id) => ctx.stories.some((s) => s.id === id))
-  )
+function personKnown(recall: Recall, ctx: PopupContext): boolean {
+  return ctx.people.some((p) => p.id === recall.personId)
+}
+
+function allStoriesKnown(recall: Recall, ctx: PopupContext): boolean {
+  return recall.storyIds.every((id) => ctx.stories.some((s) => s.id === id))
 }
 
 function close(state: PopupState, now: number): PopupState {
@@ -87,11 +88,13 @@ export function popupReducer(state: PopupState, input: PopupInput, ctx: PopupCon
     case 'recall': {
       const { recall, now } = input
       if (recall.confidence < RECALL_MIN_CONFIDENCE) return state
-      if (!known(recall, ctx)) {
+      if (personKnown(recall, ctx) && shouldShowRecall(ctx.self, recall, ctx.stories)) {
+        return present(state, recall, now, ctx)
+      }
+      if (!personKnown(recall, ctx) || !allStoriesKnown(recall, ctx)) {
         return { ...state, pending: [...state.pending, { recall, receivedAt: now }] }
       }
-      if (!shouldShowRecall(ctx.self, recall, ctx.stories)) return state
-      return present(state, recall, now, ctx)
+      return state
     }
     case 'tick': {
       const { now } = input
@@ -101,8 +104,8 @@ export function popupReducer(state: PopupState, input: PopupInput, ctx: PopupCon
       const ready: Recall[] = []
       for (const entry of next.pending) {
         if (now - entry.receivedAt >= RECALL_PENDING_MS) continue
-        if (known(entry.recall, ctx)) {
-          if (shouldShowRecall(ctx.self, entry.recall, ctx.stories)) ready.push(entry.recall)
+        if (personKnown(entry.recall, ctx) && shouldShowRecall(ctx.self, entry.recall, ctx.stories)) {
+          ready.push(entry.recall)
         } else {
           stillPending.push(entry)
         }
