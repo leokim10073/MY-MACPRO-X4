@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
+import BurnButton from '../components/BurnButton'
 import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
@@ -14,9 +15,10 @@ interface Props {
   state: RoomState
   self: Member
   room: Room
+  onBurn: () => void
 }
 
-export default function RoomScreen({ state, self }: Props) {
+export default function RoomScreen({ state, self, room, onBurn }: Props) {
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
   const [recapDismissed, setRecapDismissed] = useState(false)
@@ -29,6 +31,7 @@ export default function RoomScreen({ state, self }: Props) {
       <header className="room-header">
         <h1>Gossip Window</h1>
         <ListeningIndicator />
+        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
       </header>
       <div className="room-banner">
         {!recapDismissed && (

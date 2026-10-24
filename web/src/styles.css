@@ -368,3 +368,25 @@ button.primary {
   margin-top: 12px;
   padding: 0 16px;
 }
+
+.burn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #e03131;
+  border-radius: 8px;
+  background: transparent;
+  color: #e03131;
+  font-size: 14px;
+}
+
+.burn-armed {
+  background: #e03131;
+  color: #fff;
+}
+
+.burned {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 48px 16px;
+  text-align: center;
+}

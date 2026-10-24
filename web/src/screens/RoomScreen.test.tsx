@@ -17,7 +17,7 @@ const room: Room = {
 function setup() {
   const state = fixtureEvents().reduce(roomReducer, initialRoomState)
   const self = state.members.find((m) => m.id === 'm_taylor')!
-  return render(<RoomScreen state={state} self={self} room={room} />)
+  return render(<RoomScreen state={state} self={self} room={room} onBurn={() => {}} />)
 }
 
 afterEach(cleanup)
@@ -57,6 +57,7 @@ describe('RoomScreen', () => {
         state={state}
         self={{ id: 'm', roomId: 'r1', name: 'A', joinedAtSeq: 0, joinedAt: 0 }}
         room={room}
+        onBurn={() => {}}
       />,
     )
     expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
@@ -66,7 +67,9 @@ describe('RoomScreen', () => {
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)
     const taylor = state.members.find((m) => m.id === 'm_taylor')!
     const recap = state.recaps.find((r) => r.uptoSeq === taylor.joinedAtSeq)!
-    const { unmount } = render(<RoomScreen state={state} self={taylor} room={room} />)
+    const { unmount } = render(
+      <RoomScreen state={state} self={taylor} room={room} onBurn={() => {}} />,
+    )
     expect(screen.getByRole('region', { name: 'Catch-up' })).toBeTruthy()
     expect(screen.getByText(recap.text)).toBeTruthy()
     unmount()
@@ -75,6 +78,7 @@ describe('RoomScreen', () => {
         state={state}
         self={{ ...taylor, id: 'm_alex', joinedAtSeq: 0 }}
         room={room}
+        onBurn={() => {}}
       />,
     )
     expect(screen.queryByRole('region', { name: 'Catch-up' })).toBeNull()

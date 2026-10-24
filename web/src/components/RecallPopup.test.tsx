@@ -19,7 +19,7 @@ function setup() {
   // Only the cake-focused recall (r2), so the focus is deterministic.
   const state = { ...full, recalls: full.recalls.filter((r) => r.id === 'r2') }
   const self = state.members.find((m) => m.id === 'm_taylor')!
-  return render(<RoomScreen state={state} self={self} room={room} />)
+  return render(<RoomScreen state={state} self={self} room={room} onBurn={() => {}} />)
 }
 
 afterEach(cleanup)
