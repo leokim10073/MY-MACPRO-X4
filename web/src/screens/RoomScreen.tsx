@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
-import BurnIgnition from '../components/BurnIgnition'
+import LastSipClosing from '../components/LastSipClosing'
 import EntryRitual from '../components/EntryRitual'
 import LastSipCup from '../components/art/LastSipCup'
 import WindowLogo from '../components/art/WindowLogo'
@@ -19,8 +19,7 @@ import RoomStage from '../components/RoomStage'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
 import type { ConnectionStatus, VoiceTransport } from '../room/RoomClient'
-import BurnOverlay from '../components/BurnOverlay'
-import { BURN_DURATION_MS, BURN_START_MS, type ClosingPhase } from '../room/closing'
+import type { ClosingPhase } from '../room/closing'
 import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
@@ -126,6 +125,9 @@ export default function RoomScreen({
   const [exitDone, setExitDone] = useState(false)
   if (!entered && !ritualSeen) setRitualSeen(true)
   const isHost = room.hostMemberId === self.id
+  // Who ended the room, from data already here (the frozen state's members during closing).
+  const hostName = state.members.find((m) => m.id === room.hostMemberId)?.name
+  const endedBy = isHost ? 'You ended the room.' : hostName ? `${hostName} ended the room.` : 'The host ended the room.'
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
   const [replayStarted, setReplayStarted] = useState(false)
@@ -215,7 +217,7 @@ export default function RoomScreen({
             Invite: <a href={inviteUrl}>{inviteUrl}</a>
           </p>
         )}
-        <div className="room-board">
+        <div className={isClosing ? 'room-board is-closing' : 'room-board'}>
           <div className="room-banner">
             {!recapDismissed && !isClosing && (
               <RecapBanner
@@ -261,15 +263,7 @@ export default function RoomScreen({
               )
             )}
           </div>
-          {closing && (
-            <BurnOverlay
-              startAt={closing.startedAt + BURN_START_MS}
-              durationMs={BURN_DURATION_MS}
-              seed={closing.seed}
-              reducedMotion={!motion}
-            />
-          )}
-          <BurnIgnition animated={motion} active={closing?.phase === 'ignite'} />
+          <LastSipClosing active={isClosing} animated={motion} endedBy={endedBy} />
         </div>
         <div className="room-dock">
           {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}

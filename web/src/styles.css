@@ -1185,83 +1185,225 @@ button.primary {
   margin-bottom: -8px;
 }
 
+/* The speaking control once the room is closing: visibly deactivated. */
 .ptt:disabled {
-  background: var(--gw-color-ink);
-  color: var(--gw-color-ink-muted);
+  border-color: var(--gw-color-ink-muted);
+  background: var(--gw-color-disabled);
+  color: var(--gw-color-on-disabled);
+  box-shadow: none;
+  transform: translateY(5px);
 }
 
-.burn-ignition {
+/*
+ * Last Sip closing over the board. One 2.9 s choreography that starts when the closing layer mounts (the existing
+ * closing window: useClosing swaps to the final screen at DONE_MS = 2900 ms). The spec's 3.2 s beats are scaled
+ * to fit: wash 0–230 ms · cup rises 230–590 · board gathers into strokes 590–1180 · strokes spiral in and the tea
+ * drains 950–1720 · cup tips 1720–2220 · lands with a 6px then 2px settle 2220–2580 · hold 2580–2900.
+ */
+.lsc-closing-layer {
   position: absolute;
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  background: rgba(17, 17, 20, 0);
-  transition: background-color 180ms ease-out;
 }
 
-/* Dim the board behind the icon and line so they don't clash with the transcript. */
-.burn-ignition-active {
-  background: rgba(17, 17, 20, 0.78);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .burn-ignition {
-    transition: none;
-  }
-}
-
-.burn-ignition-copy {
-  position: absolute;
-  top: 18%;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: var(--gw-color-card);
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.burn-ember {
-  position: absolute;
-  left: 50%;
-  top: 98.5%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: var(--gw-color-yellow);
-  box-shadow: 0 0 0 6px rgba(255, 118, 46, 0.22);
-}
-
-.burn-ember-drop {
-  top: 23%;
-  animation: burn-ember-drop 0.5s ease-in 0.1s forwards;
-}
-
-@keyframes burn-ember-drop {
-  to {
-    top: 98.5%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .burn-ember-drop {
-    top: 98.5%;
-    animation: none;
-  }
-}
-
-.burn-overlay {
+.lsc-closing {
   position: absolute;
   inset: 0;
-  z-index: 5;
+}
+
+.lsc-closing-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--gw-wash);
+}
+
+.lsc-closing-stage {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.lsc-closing-cup {
+  display: block;
+  overflow: visible;
+}
+
+.lsc-closing .lsc-cup {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.lsc-strokes {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  overflow: visible;
+}
+
+.lsc-stroke {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-dasharray: 600;
+}
+
+.lsc-stroke--lavender {
+  stroke: var(--gw-color-lavender);
+}
+
+.lsc-stroke--peach {
+  stroke: var(--gw-accent-last-sip);
+}
+
+.lsc-stroke--ink {
+  stroke: var(--gw-color-ink);
+  stroke-width: 6;
+}
+
+/* Status, bound to the closing state: "Room ended." and who ended it. */
+.lsc-closing-status {
+  position: absolute;
+  left: var(--gw-space-4);
+  right: var(--gw-space-4);
+  bottom: var(--gw-space-5);
+  z-index: 1;
+  text-align: center;
+}
+
+.lsc-closing-status strong {
   display: block;
-  pointer-events: none;
+  font: 600 24px var(--gw-font-display);
+}
+
+.lsc-closing-status span {
+  color: var(--gw-text-muted);
+  font-size: 15px;
+}
+
+/* Animated choreography */
+.lsc-closing.is-animated .lsc-closing-wash {
+  animation: lsc-wash 2900ms linear both;
+}
+
+.lsc-closing.is-animated .lsc-closing-cup {
+  animation: lsc-rise 2900ms var(--gw-ease-out) both;
+}
+
+.lsc-closing.is-animated .lsc-cup {
+  animation: lsc-tip 2900ms ease-in-out both;
+}
+
+.lsc-closing.is-animated .lsc-tea {
+  animation: lsc-drain 2900ms ease-in both;
+}
+
+.lsc-closing.is-animated .lsc-surface {
+  animation: lsc-surface 2900ms ease-in both;
+}
+
+.lsc-closing.is-animated .lsc-steam {
+  animation: lsc-steam 2900ms linear both;
+}
+
+.lsc-closing.is-animated .lsc-strokes {
+  transform-origin: 50% 44%;
+  animation: lsc-spiral 2900ms ease-in both;
+}
+
+.lsc-closing.is-animated .lsc-stroke {
+  animation: lsc-draw 2900ms ease-out both;
+}
+
+/* The board's own content (stage, transcript, cards) gathers away under the strokes; avatars are not pulled in. */
+.room-board.is-closing > :not(.lsc-closing-layer) {
+  animation: lsc-gather 2900ms ease-in both;
+}
+
+.room-board.is-closing .room-stage {
+  box-shadow: none;
+}
+
+@keyframes lsc-wash {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  41% { opacity: 1; }
+  60%, 100% { opacity: 0.4; }
+}
+
+@keyframes lsc-rise {
+  0%, 8% { opacity: 0; transform: translateY(48px); }
+  20% { opacity: 1; transform: translateY(-4px); }
+  24%, 100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lsc-gather {
+  0%, 20% { opacity: 1; transform: none; }
+  41%, 100% { opacity: 0; transform: scale(0.94); }
+}
+
+@keyframes lsc-draw {
+  0%, 20% { opacity: 0; stroke-dashoffset: 600; }
+  41% { opacity: 1; stroke-dashoffset: 0; }
+  100% { opacity: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes lsc-spiral {
+  0%, 33% { opacity: 1; transform: rotate(0) scale(1); }
+  59% { opacity: 0; transform: rotate(300deg) scale(0.12); }
+  100% { opacity: 0; transform: rotate(300deg) scale(0.12); }
+}
+
+@keyframes lsc-drain {
+  0%, 33% { transform: translateY(0); }
+  59%, 100% { transform: translateY(72px); }
+}
+
+@keyframes lsc-surface {
+  0%, 33% { fill: var(--gw-tea-liquid); }
+  59%, 100% { fill: var(--gw-surface-sunken); }
+}
+
+@keyframes lsc-steam {
+  0%, 59% { opacity: 0.55; }
+  76%, 100% { opacity: 0; }
+}
+
+@keyframes lsc-tip {
+  0%, 59% { transform: none; }
+  76% { transform: rotate(-28deg); }
+  82% { transform: rotate(0) translateY(-6px); }
+  85% { transform: translateY(0); }
+  87% { transform: translateY(-2px); }
+  89%, 100% { transform: none; }
+}
+
+/* Reduced motion: a ~200 ms crossfade to the empty cup; same status. */
+.lsc-closing:not(.is-animated) {
+  animation: lsc-crossfade 200ms ease-out both;
+}
+
+@keyframes lsc-crossfade {
+  from { opacity: 0; }
+}
+
+@media (min-width: 760px) {
+  .lsc-closing-cup {
+    width: 180px;
+    height: 158px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-board.is-closing > :not(.lsc-closing-layer) {
+    animation: lsc-crossfade-out 200ms ease-out both;
+  }
+}
+
+@keyframes lsc-crossfade-out {
+  to { opacity: 0; }
 }
 
 /* Burning Room: clean slate */

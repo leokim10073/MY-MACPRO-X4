@@ -71,10 +71,10 @@ async function tapBurn() {
   })
 }
 
-/** "That's between us." shows only while igniting (the first 600 ms). */
-function expectClosingOverFrozenRoom(igniting = false) {
+/** "Room ended." shows for the whole closing, over the frozen room. */
+function expectClosingOverFrozenRoom() {
   expect(hasRoomClosed()).toBe(true)
-  expect(screen.queryByText("That's between us.") !== null).toBe(igniting)
+  expect(screen.getByText('Room ended.')).toBeTruthy()
   expect(text()).toContain('Kevin')
   expect(text()).not.toContain(BURNED)
 }
@@ -94,7 +94,7 @@ describe('Burn flow in the app', () => {
     expect(text()).toContain('Kevin')
 
     await tapBurn()
-    expectClosingOverFrozenRoom(true)
+    expectClosingOverFrozenRoom()
 
     await advance(2899)
     expectClosingOverFrozenRoom()
@@ -111,7 +111,7 @@ describe('Burn flow in the app', () => {
     expect(screen.queryByRole('button', { name: 'Last Sip…' })).toBeNull()
 
     emit({ type: 'room_burned', roomId: 'demo' })
-    expectClosingOverFrozenRoom(true)
+    expectClosingOverFrozenRoom()
     await advance(2900)
     expectCleanSlate()
   })
@@ -128,7 +128,7 @@ describe('Burn flow in the app', () => {
     await tapBurn()
     expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
     expect(hasRoomClosed()).toBe(false)
-    expect(screen.queryByText("That's between us.")).toBeNull()
+    expect(screen.queryByText('Room ended.')).toBeNull()
 
     await advance(3000)
     expect(hasRoomClosed()).toBe(false)
@@ -145,7 +145,7 @@ describe('Burn flow in the app', () => {
     for (const e of fixtureEvents()) emit(e)
 
     await tapBurn()
-    expectClosingOverFrozenRoom(true)
+    expectClosingOverFrozenRoom()
     await advance(1500)
     emit({ type: 'room_burned', roomId: 'demo' })
     expectClosingOverFrozenRoom()
@@ -163,7 +163,7 @@ describe('Burn flow in the app', () => {
     expect(text()).toContain('Kevin')
 
     await tapBurn()
-    expectClosingOverFrozenRoom(true)
+    expectClosingOverFrozenRoom()
     await advance(2900)
     expectCleanSlate()
     expect(document.body.innerHTML).not.toContain('Kevin')
@@ -179,12 +179,12 @@ describe('Burn flow in the app', () => {
     emit({ type: 'room_burned', roomId: 'demo' })
     expect(screen.queryByRole('button', { name: 'Enter room' })).toBeNull()
     expect(screen.queryByText("Your seat's ready.")).toBeNull()
-    expectClosingOverFrozenRoom(true)
+    expectClosingOverFrozenRoom()
     await advance(2900)
     expectCleanSlate()
   })
 
-  it('reduced motion still reaches the clean slate at 2900 ms, with the overlay told to reduce (Review Focus 4)', async () => {
+  it('reduced motion still reaches the clean slate at 2900 ms, with the plain crossfade (Review Focus 4)', async () => {
     vi.stubGlobal('matchMedia', (query: string) => ({
       matches: query.includes('prefers-reduced-motion'),
       media: query,
@@ -198,8 +198,9 @@ describe('Burn flow in the app', () => {
       for (const e of fixtureEvents()) emit(e)
 
       await tapBurn()
-      expectClosingOverFrozenRoom(true)
-      expect(document.querySelector('canvas.burn-overlay')?.getAttribute('data-reduced')).toBe('true')
+      expectClosingOverFrozenRoom()
+      expect(document.querySelector('.lsc-closing.is-animated')).toBeNull()
+      expect(document.querySelector('.lsc-closing .lsc--empty')).toBeTruthy()
       await advance(2899)
       expectClosingOverFrozenRoom()
       await advance(1)

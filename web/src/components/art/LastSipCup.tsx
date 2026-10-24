@@ -38,7 +38,16 @@ export default function LastSipCup({ size = 120, mood = 'waiting', className }: 
               <rect className="lsc-tea" x="28" y="48" width="96" height="70" fill="var(--gw-tea-liquid)" />
             </g>
           )}
-          <ellipse cx="76" cy="46" rx="48" ry="7" fill={hasTea ? 'var(--gw-tea-liquid)' : 'var(--gw-surface-sunken)'} stroke={INK} strokeWidth="4" />
+          <ellipse
+            className="lsc-surface"
+            cx="76"
+            cy="46"
+            rx="48"
+            ry="7"
+            fill={hasTea ? 'var(--gw-tea-liquid)' : 'var(--gw-surface-sunken)'}
+            stroke={INK}
+            strokeWidth="4"
+          />
           <circle cx="62" cy="80" r="4" fill={INK} />
           <circle cx="90" cy="80" r="4" fill={INK} />
           {mood === 'waiting' && <path className="lsc-brow" d="M83 69 q7 -6 14 -2" fill="none" stroke={INK} strokeWidth="3.5" />}
