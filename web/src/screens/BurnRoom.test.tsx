@@ -62,6 +62,23 @@ describe('Burn button', () => {
     expect(onBurn).not.toHaveBeenCalled()
   })
 
+  it('returns focus to Burn room… when the sheet closes by Keep talking, Escape or the scrim', () => {
+    renderRoom('m_taylor')
+    const control = screen.getByRole('button', { name: 'Burn room…' })
+    const closers: Array<() => void> = [
+      () => fireEvent.click(screen.getByRole('button', { name: 'Keep talking' })),
+      () => fireEvent.keyDown(document, { key: 'Escape' }),
+      () => fireEvent.click(document.querySelector('.burn-scrim')!),
+    ]
+    for (const close of closers) {
+      fireEvent.click(control)
+      expect(document.activeElement).not.toBe(control)
+      close()
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(control)
+    }
+  })
+
   it('closes the sheet and shows the error when a burn fails', () => {
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)
     const self = state.members.find((m) => m.id === 'm_taylor')!

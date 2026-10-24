@@ -454,11 +454,6 @@ button.primary {
   font-size: 14px;
 }
 
-.burn-armed {
-  background: #e03131;
-  color: #fff;
-}
-
 .burned {
   max-width: 480px;
   margin: 0 auto;

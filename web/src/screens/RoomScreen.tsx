@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
 import ConnectionBanner from '../components/ConnectionBanner'
@@ -71,6 +71,7 @@ export default function RoomScreen({
   const voice = useVoice(transport, room, self, state)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmBurn, setConfirmBurn] = useState(false)
+  const burnControl = useRef<HTMLButtonElement>(null)
   // A failed burn closes the sheet so the error line underneath shows; a successful one ends this screen anyway.
   const [wasBurning, setWasBurning] = useState(false)
   if (wasBurning !== (pending === 'burn')) {
@@ -105,7 +106,7 @@ export default function RoomScreen({
         {(isHost || onLeave) && (
           <div className="room-actions">
             {isHost && (
-              <button type="button" className="burn" onClick={() => setConfirmBurn(true)}>
+              <button type="button" className="burn" ref={burnControl} onClick={() => setConfirmBurn(true)}>
                 <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
                   <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
                 </svg>
@@ -131,7 +132,10 @@ export default function RoomScreen({
         <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
       )}
       {isHost && confirmBurn && (
-        <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={() => setConfirmBurn(false)} />
+        <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={() => {
+            setConfirmBurn(false)
+            burnControl.current?.focus()
+          }} />
       )}
       {showReplay && onStartReplay && !replayStarted && isHost && (
         <button

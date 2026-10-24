@@ -57,4 +57,37 @@ describe('BurnConfirm', () => {
     fireEvent.click(burning)
     expect(onBurn).toHaveBeenCalledTimes(1)
   })
+
+  it('latches: two clicks on the enabled button with no rerender call onBurn once', () => {
+    const { onBurn } = setup()
+    const button = screen.getByRole('button', { name: 'Burn room' })
+    fireEvent.click(button)
+    fireEvent.click(button)
+    expect(onBurn).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-arms the latch when pending goes back to false', () => {
+    const onBurn = vi.fn()
+    const onKeep = vi.fn()
+    const { rerender } = render(<BurnConfirm pending={false} onBurn={onBurn} onKeep={onKeep} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    rerender(<BurnConfirm pending={true} onBurn={onBurn} onKeep={onKeep} />)
+    rerender(<BurnConfirm pending={false} onBurn={onBurn} onKeep={onKeep} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    expect(onBurn).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps Tab and Shift+Tab inside the sheet', () => {
+    setup()
+    const keep = screen.getByRole('button', { name: 'Keep talking' })
+    const burn = screen.getByRole('button', { name: 'Burn room' })
+    expect(document.activeElement).toBe(keep)
+    fireEvent.keyDown(keep, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(burn)
+    fireEvent.keyDown(burn, { key: 'Tab' })
+    expect(document.activeElement).toBe(keep)
+    ;(document.activeElement as HTMLElement).blur()
+    fireEvent.keyDown(document.body, { key: 'Tab' })
+    expect(document.activeElement).toBe(keep)
+  })
 })
