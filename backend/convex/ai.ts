@@ -1,9 +1,9 @@
-// Wiring between the backend and the AI. The backend side is done here: what
-// goes in, when it runs, and how results are saved (dropped after a burn, never
-// overwriting a newer story state).
+// Wiring between the backend and the AI in ai/: what goes in, when it runs, and
+// how results are saved (dropped after a burn, never overwriting a newer story state).
 //
-// The AI calls themselves are stubs. The AI owner replaces the three functions
-// marked STUB with real Claude calls (keep API keys in Convex env vars, not git).
+// The AI runs only when the deployment has a key:
+//   npx convex env set ANTHROPIC_API_KEY sk-ant-...
+// Without one the room still works: no recalls or story state, and a placeholder recap.
 
 import { v } from "convex/values";
 import type { Infer } from "convex/values";
@@ -11,9 +11,18 @@ import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { buildStoryState, detectRecalls, writeRecap as writeRecapWithAi } from "../../ai/index";
 import { RECAP_MAX_WORDS } from "../../shared/schema";
-import type { StoryState, TranscriptLine } from "../../shared/schema";
-import { appendEvent, isRoomClosed, toLine, toRecall, toRecap, toStoryState } from "./lib";
+import type { Recall, StoryState, TranscriptLine } from "../../shared/schema";
+import {
+  appendEvent,
+  isRoomClosed,
+  toLine,
+  toMember,
+  toRecall,
+  toRecap,
+  toStoryState,
+} from "./lib";
 import { openQuestion, person, story } from "./schema";
 
 const newRecall = v.object({
@@ -36,25 +45,28 @@ const newStoryState = v.object({
 type NewRecall = Infer<typeof newRecall>;
 type NewStoryState = Infer<typeof newStoryState>;
 
-// ---------------------------------------------------------------------------
-// STUBS: the AI owner fills these in
-// ---------------------------------------------------------------------------
-
-/** STUB. Fast path (Claude Haiku, under 2 s): who did this line mention again? */
-async function findRecalls(_line: TranscriptLine, _state: StoryState | null): Promise<NewRecall[]> {
-  return [];
+function aiEnabled() {
+  return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-/** STUB. Slow path (Claude Sonnet): rebuild people, stories, reactions and topic from the transcript. */
-async function buildStoryState(
-  _lines: TranscriptLine[],
-  _previous: StoryState | null,
-): Promise<NewStoryState | null> {
-  return null;
+/** Recalls from ai/ carry ids the backend assigns itself; keep only what the model decided. */
+function toNewRecall({ personId, storyIds, focusStoryId, matchedText, confidence }: Recall): NewRecall {
+  return { personId, storyIds, focusStoryId, matchedText, confidence };
 }
 
-/** STUB. Recap of everything up to the latecomer's joinedAtSeq, at most RECAP_MAX_WORDS words. */
-async function writeRecapText(lines: TranscriptLine[], _state: StoryState | null): Promise<string> {
+/** StoryState from ai/ minus the fields the backend fills in (roomId, updatedAt). */
+function toNewStoryState(state: StoryState): NewStoryState {
+  return {
+    uptoSeq: state.uptoSeq,
+    people: state.people.map(({ roomId: _roomId, ...person }) => person),
+    stories: state.stories.map(({ roomId: _roomId, ...story }) => story),
+    currentTopic: state.currentTopic,
+    openQuestions: state.openQuestions,
+  } as NewStoryState;
+}
+
+/** Used when there is no API key or the AI call fails, so a latecomer always gets something. */
+function placeholderRecap(lines: TranscriptLine[]): string {
   const speakers = [...new Set(lines.map((l) => l.speakerName))];
   const text = `You joined after ${lines.length} lines. ${speakers.join(", ")} have been talking.`;
   return text.split(/\s+/).slice(0, RECAP_MAX_WORDS).join(" ");
@@ -67,11 +79,16 @@ async function writeRecapText(lines: TranscriptLine[], _state: StoryState | null
 export const fastPath = internalAction({
   args: { lineId: v.id("transcriptLines") },
   handler: async (ctx, { lineId }) => {
+    if (!aiEnabled()) return;
     const input = await ctx.runQuery(internal.ai.fastPathInput, { lineId });
     if (!input) return;
-    const recalls = await findRecalls(input.line, input.storyState);
+    const recalls = await detectRecalls({
+      line: input.line,
+      state: input.storyState,
+      recentLines: input.recentLines,
+    });
     if (recalls.length > 0) {
-      await ctx.runMutation(internal.ai.saveRecalls, { lineId, recalls });
+      await ctx.runMutation(internal.ai.saveRecalls, { lineId, recalls: recalls.map(toNewRecall) });
     }
   },
 });
@@ -82,7 +99,17 @@ export const fastPathInput = internalQuery({
     const line = await ctx.db.get(lineId);
     if (!line || (await isRoomClosed(ctx, line.roomId))) return null;
     const state = await latestStoryState(ctx, line.roomId);
-    return { line: toLine(line), storyState: state && toStoryState(state) };
+    // A few lines before this one help resolve "he" and "that guy".
+    const recent = await ctx.db
+      .query("transcriptLines")
+      .withIndex("by_room_seq", (q) => q.eq("roomId", line.roomId).lt("seq", line.seq))
+      .order("desc")
+      .take(6);
+    return {
+      line: toLine(line),
+      recentLines: recent.reverse().map(toLine),
+      storyState: state && toStoryState(state),
+    };
   },
 });
 
@@ -109,9 +136,14 @@ export const slowPath = internalAction({
   args: { roomId: v.id("rooms") },
   handler: async (ctx, { roomId }) => {
     const input = await ctx.runMutation(internal.ai.beginSlowPath, { roomId });
-    if (!input) return;
-    const next = await buildStoryState(input.lines, input.storyState);
-    if (next) await ctx.runMutation(internal.ai.saveStoryState, { roomId, state: next });
+    if (!input || !aiEnabled() || input.lines.length === 0) return;
+    const next = await buildStoryState({
+      roomId,
+      lines: input.lines,
+      members: input.members,
+      previous: input.storyState,
+    });
+    await ctx.runMutation(internal.ai.saveStoryState, { roomId, state: toNewStoryState(next) });
   },
 });
 
@@ -126,8 +158,16 @@ export const beginSlowPath = internalMutation({
       .query("transcriptLines")
       .withIndex("by_room_seq", (q) => q.eq("roomId", roomId))
       .collect();
+    const members = await ctx.db
+      .query("members")
+      .withIndex("by_room", (q) => q.eq("roomId", roomId))
+      .collect();
     const state = await latestStoryState(ctx, roomId);
-    return { lines: lines.map(toLine), storyState: state && toStoryState(state) };
+    return {
+      lines: lines.map(toLine),
+      members: members.map(toMember),
+      storyState: state && toStoryState(state),
+    };
   },
 });
 
@@ -157,7 +197,21 @@ export const writeRecap = internalAction({
   handler: async (ctx, { memberId }) => {
     const input = await ctx.runQuery(internal.ai.recapInput, { memberId });
     if (!input) return;
-    const text = await writeRecapText(input.lines, input.storyState);
+    let text = placeholderRecap(input.lines);
+    if (aiEnabled()) {
+      try {
+        const recap = await writeRecapWithAi({
+          roomId: input.roomId,
+          lines: input.lines,
+          state: input.storyState,
+          uptoSeq: input.uptoSeq,
+          joinerName: input.joinerName,
+        });
+        text = recap.text;
+      } catch (error) {
+        console.error("AI recap failed, using the placeholder", error);
+      }
+    }
     // TODO(voice): turn `text` into audio with Cartesia Sonic and patch audioUrl.
     await ctx.runMutation(internal.ai.saveRecap, { memberId, uptoSeq: input.uptoSeq, text });
   },
@@ -174,6 +228,8 @@ export const recapInput = internalQuery({
       .collect();
     const state = await latestStoryState(ctx, member.roomId);
     return {
+      roomId: member.roomId,
+      joinerName: member.name,
       uptoSeq: member.joinedAtSeq,
       lines: lines.map(toLine),
       storyState: state && toStoryState(state),

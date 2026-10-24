@@ -53,7 +53,13 @@ A recap belongs to the member whose `joinedAtSeq` equals its `uptoSeq`.
 
 Testing with the web app: create a room in the browser, then run `npx convex run replay:startLatest` to replay the Kevin script into the newest room.
 
-The AI calls in `convex/ai.ts` are stubs marked `STUB`. Everything around them (scheduling, burn checks, the `uptoSeq` guard) is done. Abandoned rooms burn after 12 hours.
+`convex/ai.ts` calls `detectRecalls`, `buildStoryState` and `writeRecap` from [../ai](../ai/README.md). Run `npm install` in `ai/` too, since Convex bundles that code. The AI runs only when the deployment has a key:
+
+```sh
+npx convex env set ANTHROPIC_API_KEY sk-ant-...
+```
+
+Without a key the room still works: no recalls or story state, and a placeholder recap. If the AI recap call fails, the placeholder is used too. Abandoned rooms burn after 12 hours.
 
 ## Notes
 
