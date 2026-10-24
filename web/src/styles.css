@@ -1018,6 +1018,19 @@ button.primary {
   inset: 0;
   z-index: 10;
   pointer-events: none;
+  background: rgba(17, 17, 20, 0);
+  transition: background-color 180ms ease-out;
+}
+
+/* Dim the board behind the icon and line so they don't clash with the transcript. */
+.burn-ignition-active {
+  background: rgba(17, 17, 20, 0.78);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burn-ignition {
+    transition: none;
+  }
 }
 
 .burn-ignition-copy {

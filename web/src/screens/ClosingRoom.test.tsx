@@ -129,11 +129,14 @@ describe('closing room', () => {
     const region = container.querySelector('.burn-ignition')!
     expect(region.getAttribute('role')).toBe('status')
     expect(region.textContent).toBe('')
+    expect(region.classList.contains('burn-ignition-active')).toBe(false)
     rerender(view(base, ignite))
     expect(container.querySelector('.burn-ignition')).toBe(region)
     expect(region.textContent).toContain("That's between us.")
+    expect(region.classList.contains('burn-ignition-active')).toBe(true)
     rerender(view(base, { ...ignite, phase: 'burning' }))
     expect(region.textContent).toBe('')
+    expect(region.classList.contains('burn-ignition-active')).toBe(false)
   })
 
   it('drops the ember only when animated', () => {

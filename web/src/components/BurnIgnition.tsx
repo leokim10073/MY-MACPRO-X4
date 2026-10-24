@@ -10,7 +10,7 @@ interface Props {
 // The first beat of a burn: the Shhh icon, one line, and a single ember that drops to the bottom of the board.
 export default function BurnIgnition({ animated, active = true }: Props) {
   return (
-    <div className="burn-ignition" role="status">
+    <div className={active ? 'burn-ignition burn-ignition-active' : 'burn-ignition'} role="status">
       {active && (
         <>
           <div className="burn-ignition-copy">
