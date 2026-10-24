@@ -23,7 +23,7 @@ describe('Phase 1 checkpoint', () => {
     render(<App {...mock("?room=demo&speed=10")} />)
     fireEvent.change(screen.getByLabelText(/nickname/i), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Join room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
       await vi.advanceTimersByTimeAsync(0)
     })
 
