@@ -321,6 +321,27 @@ describe('OpenMic', () => {
     expect(s.mic.getState().live).toEqual({})
   })
 
+  it('mic restart resets the gate', async () => {
+    const s = await inCall()
+    s.last().serverSend({ type: 'turn.start' })
+    for (let i = 0; i < 40; i++) s.call.emit(1600, 3277) // -20 dB for 4 s
+    s.last().serverSend({ type: 'turn.end', transcript: 'Loud and clear.' })
+    expect(s.mic.getState().debug.gateDb).toBeGreaterThan(-55)
+    s.call.events!.onMicRestarted()
+    expect(s.mic.getState().debug.gateDb).toBe(-55)
+    expect(s.mic.getState().debug.speechDb).toBeNull()
+  })
+
+  it('needsTap mirrors the call and resume forwards', async () => {
+    const s = await inCall()
+    s.call.events!.onNeedsTap(true)
+    expect(s.mic.getState().needsTap).toBe(true)
+    await s.mic.resume()
+    expect(s.call.resumed).toBe(1)
+    s.call.events!.onNeedsTap(false)
+    expect(s.mic.getState().needsTap).toBe(false)
+  })
+
   it('a cut-off turn is sent and flagged', async () => {
     const s = await inCall()
     s.last().serverSend({ type: 'turn.start' })

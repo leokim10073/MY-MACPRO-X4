@@ -166,6 +166,8 @@ $('start-threshold').addEventListener('change', (e) => {
   openMic?.setStartThreshold(value)
 })
 
+$('tap-resume').addEventListener('click', () => void openMic?.resume())
+
 $('leave-call').addEventListener('click', () => void openMic?.leave())
 
 $('mute').addEventListener('click', () => {
@@ -179,6 +181,8 @@ function renderCall() {
   $('join-call').hidden = inCall || s.status === 'joining'
   $('leave-call').hidden = !inCall
   $('mute').hidden = !inCall
+  $('keep-on').hidden = !inCall
+  $('tap-resume').hidden = !s.needsTap
   $('mute').textContent = s.muted ? 'Unmute' : 'Mute'
   $('mute').setAttribute('aria-pressed', String(s.muted))
   $('call-sending').classList.toggle('on', s.isListening)

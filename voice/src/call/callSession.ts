@@ -100,6 +100,16 @@ export class CallSession implements CallLike {
   private readonly sinks = document.createElement('div')
   private source: TrackSource | null = null
   private readonly frameListeners = new Set<(frame: Int16Array) => void>()
+  private kind: NoiseFilterKind = 'browser'
+  private wakeLock: WakeLockSentinel | null = null
+  private recovering: Promise<void> | null = null
+  private needsTap = false
+  private readonly onVisibility = () => {
+    if (document.visibilityState !== 'visible' || !this.room || this.leaving) return
+    void this.keepAwake()
+    void this.recover()
+  }
+  private readonly onTrackEnded = () => void this.recover()
 
   constructor(private readonly opts: { krispDebugLogs?: boolean; onBufferDrop?: () => void } = {}) {
     this.sinks.hidden = true
@@ -143,15 +153,19 @@ export class CallSession implements CallLike {
         kind = 'browser'
       }
     }
-    const forInk = (kind === 'krisp' && filter.processor?.processedTrack) || published.mediaStreamTrack
     if (kind === 'krisp' && !filter.processor?.processedTrack) kind = 'browser'
+    this.kind = kind
 
     this.source = new TrackSource(ctx)
     this.source.onFrame((frame) => {
       for (const l of this.frameListeners) l(frame)
     })
-    await this.source.attach(forInk)
+    await this.source.attach(this.inkTrack())
+    this.watchTracks()
     document.body.append(this.sinks)
+    document.addEventListener('visibilitychange', this.onVisibility)
+    void this.keepAwake()
+    this.updateNeedsTap()
     this.emitParticipants()
     return kind
   }
@@ -180,13 +194,20 @@ export class CallSession implements CallLike {
     for (const p of this.room?.remoteParticipants.values() ?? []) p.setVolume(volume)
   }
 
+  /** From a tap: restarts audio, and the mic too if the system stopped it. */
   async resume(): Promise<void> {
-    await this.ctx?.resume()
-    await this.room?.startAudio()
+    await this.ctx?.resume().catch(() => {})
+    await this.room?.startAudio().catch(() => {})
+    await this.recover()
+    this.updateNeedsTap()
   }
 
   async leave(): Promise<void> {
     this.leaving = true
+    document.removeEventListener('visibilitychange', this.onVisibility)
+    this.unwatchTracks()
+    void this.wakeLock?.release().catch(() => {})
+    this.wakeLock = null
     this.source?.detach()
     this.source = null
     await this.room?.disconnect().catch(() => {})
@@ -197,6 +218,94 @@ export class CallSession implements CallLike {
     await this.ctx?.close().catch(() => {})
     this.room = this.published = this.raw = this.ctx = null
     this.speaking.clear()
+    this.needsTap = false
+  }
+
+  /** Ink gets what friends hear: Krisp's output when it runs, else the published mic. */
+  private inkTrack(): MediaStreamTrack {
+    const published = this.published!
+    return (this.kind === 'krisp' && published.getProcessor()?.processedTrack) || published.mediaStreamTrack
+  }
+
+  private watchTracks(): void {
+    this.raw?.addEventListener('ended', this.onTrackEnded)
+    this.published?.mediaStreamTrack.addEventListener('ended', this.onTrackEnded)
+  }
+
+  private unwatchTracks(): void {
+    this.raw?.removeEventListener('ended', this.onTrackEnded)
+    this.published?.mediaStreamTrack.removeEventListener('ended', this.onTrackEnded)
+  }
+
+  /** The screen staying on keeps iOS from pausing the mic. Not every browser has it. */
+  private async keepAwake(): Promise<void> {
+    if (this.wakeLock && !this.wakeLock.released) return
+    try {
+      this.wakeLock = (await navigator.wakeLock?.request('screen')) ?? null
+    } catch {
+      // Denied, or the page isn't visible. The test page asks to keep the screen on.
+    }
+  }
+
+  /**
+   * After a lock screen, app switch or phone call (design 6.8): resumes the audio context, and
+   * if the system stopped the mic, gets a new one and swaps it in under the same published track.
+   * LiveKit restarts Krisp on the new track and keeps the mute state.
+   */
+  private recover(): Promise<void> {
+    if (!this.recovering) {
+      this.recovering = this.doRecover().finally(() => {
+        this.recovering = null
+      })
+    }
+    return this.recovering
+  }
+
+  private async doRecover(): Promise<void> {
+    const ctx = this.ctx
+    const published = this.published
+    if (!ctx || !published || this.leaving) return
+    if (ctx.state !== 'running') await ctx.resume().catch(() => {})
+    const micEnded =
+      this.raw?.readyState === 'ended' ||
+      published.mediaStreamTrack.readyState === 'ended' ||
+      this.inkTrack().readyState === 'ended'
+    if (micEnded) {
+      let stream: MediaStream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS })
+      } catch {
+        // iOS may only allow this from a tap: ask for one, and resume() tries again.
+        this.setNeedsTap(true)
+        return
+      }
+      if (this.leaving || this.published !== published) {
+        stream.getTracks().forEach((t) => t.stop())
+        return
+      }
+      this.unwatchTracks()
+      this.raw?.stop()
+      this.raw = stream.getAudioTracks()[0]
+      const old = published.mediaStreamTrack
+      await published.replaceTrack(this.raw.clone(), true)
+      // We provided it, so LiveKit leaves stopping the old one to us.
+      old.stop()
+      this.watchTracks()
+      await this.source?.attach(this.inkTrack())
+      this.events?.onMicRestarted()
+    }
+    this.updateNeedsTap()
+  }
+
+  private updateNeedsTap(): void {
+    const blocked = this.ctx?.state !== 'running' || this.room?.canPlaybackAudio === false
+    this.setNeedsTap(!!this.room && blocked)
+  }
+
+  private setNeedsTap(needed: boolean): void {
+    if (needed === this.needsTap) return
+    this.needsTap = needed
+    this.events?.onNeedsTap(needed)
   }
 
   private watch(room: Room): void {
@@ -229,6 +338,7 @@ export class CallSession implements CallLike {
       const live = decodeLive(payload)
       if (live) this.events?.onLive(participant.identity, live)
     })
+    room.on(RoomEvent.AudioPlaybackStatusChanged, () => this.updateNeedsTap())
     room.on(RoomEvent.Reconnecting, () => this.events?.onReconnecting(true))
     room.on(RoomEvent.Reconnected, () => this.events?.onReconnecting(false))
     room.on(RoomEvent.Disconnected, () => {
