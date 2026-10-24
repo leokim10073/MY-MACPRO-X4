@@ -159,7 +159,10 @@ async function burnRoom(ctx: MutationCtx, roomId: Id<"rooms">) {
       .query("recaps")
       .withIndex("by_member", (q) => q.eq("memberId", member._id))
       .collect();
-    for (const recap of recaps) await ctx.db.delete(recap._id);
+    for (const recap of recaps) {
+      if (recap.audioStorageId) await ctx.storage.delete(recap.audioStorageId);
+      await ctx.db.delete(recap._id);
+    }
     await ctx.db.patch(member._id, { token: undefined });
   }
 }

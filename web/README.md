@@ -35,6 +35,8 @@ Without `VITE_CONVEX_URL` the app runs on the mock. To use the backend in `backe
 3. Create a room in one tab. The host sees an invite link; open it in another tab or phone to join.
 4. From `backend/`: `npx convex run replay:startLatest` plays the Kevin script into the newest room.
 
+Push-to-talk and the narrated recap work only against the backend (it needs `CARTESIA_API_KEY`, see `backend/README.md`); on the mock the talk button just animates. The mic needs HTTPS, which the dev server already uses.
+
 Add `?mock` to the URL to use the mock anyway. Tests always use the mock. `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
 
 Phones on the Wi-Fi can't reach a local backend on `127.0.0.1`; use a cloud dev deployment (`npx convex login`, then `npx convex dev`) for phones.

@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     host: true,
-    // Serve this app (".") plus the shared contract; nothing else in the repo is exposed on the LAN.
-    fs: { allow: ['.', '../shared'] },
+    // Serve this app ("."), the shared contract and the voice code it imports; nothing else in the repo is exposed on the LAN.
+    fs: { allow: ['.', '../shared', '../voice'] },
   },
   test: {
     environment: 'jsdom',

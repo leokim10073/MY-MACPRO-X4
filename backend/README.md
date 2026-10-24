@@ -47,6 +47,7 @@ Every change is also written to an append-only `events` table, one `RoomEvent` p
 | `rooms.burn({ roomId, sessionToken })` | web, host only | Deletes the conversation, ends the room on every phone |
 | `lines.add({ sessionToken, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
 | `replay.start({ sessionToken, script? })` | host only | Plays `kevin.replay.json` into the room |
+| `voice.sttToken({ sessionToken })` | voice (web) | A 120 s Cartesia speech-to-text token, for members of an active room only |
 | `rooms.get`, `lines.list`, `story.state`, `story.recalls`, `story.myRecap` | anyone (subscribe) | The same data as plain state queries, handy from the CLI |
 
 A recap belongs to the member whose `joinedAtSeq` equals its `uptoSeq`.
@@ -60,6 +61,14 @@ npx convex env set ANTHROPIC_API_KEY sk-ant-...
 ```
 
 Without a key the room still works: no recalls or story state, and a placeholder recap. If the AI recap call fails, the placeholder is used too. Abandoned rooms burn after 12 hours.
+
+`convex/voice.ts` uses [../voice](../voice/README.md) for push-to-talk tokens and the narrated recap. Both need the Cartesia key, which never reaches the browser:
+
+```sh
+npx convex env set CARTESIA_API_KEY sk_car_...
+```
+
+After the recap text is saved, Sonic reads it aloud; the MP3 goes into Convex file storage, the recap gets an `audioUrl`, and `recap_ready` is sent again. Burn deletes the file, and audio that finishes after a burn is thrown away. Without the key, push-to-talk is refused and recaps stay text-only.
 
 ## Notes
 

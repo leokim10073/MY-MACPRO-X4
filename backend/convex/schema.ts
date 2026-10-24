@@ -125,5 +125,7 @@ export default defineSchema({
     uptoSeq: v.number(),
     text: v.string(),
     audioUrl: v.optional(v.string()),
+    // The narrated MP3 in Convex file storage, deleted on burn.
+    audioStorageId: v.optional(v.id("_storage")),
   }).index("by_member", ["memberId"]),
 });
