@@ -5,6 +5,7 @@ import type { VoiceTransport } from '../room/RoomClient'
 import { initialRoomState, roomReducer, type RoomState } from '../room/state'
 import { fixtureEvents } from '../room/testFixtures'
 import * as useVoiceModule from '../voice/useVoice'
+import BurnIgnition from '../components/BurnIgnition'
 import RoomScreen from './RoomScreen'
 
 type Closing = { phase: 'ignite' | 'burning' | 'settle' | 'done'; startedAt: number; seed: number }
@@ -96,6 +97,50 @@ describe('closing room', () => {
     expect(spy.mock.calls.at(-1)![0]).toBe(transport)
     rerender(view(base, ignite, { voice: transport }))
     expect(spy.mock.calls.at(-1)![0]).toBeUndefined()
+  })
+
+  it('turns the mic indicator off while closing', () => {
+    const live = { status: 'talking', isListening: true, preview: '', sending: 0, failed: [], error: null } as const
+    vi.spyOn(useVoiceModule, 'useVoice').mockReturnValue({ state: live, press: () => {} })
+    const { rerender } = render(view(base))
+    expect(screen.getByText('Listening · mic on')).toBeTruthy()
+    rerender(view(base, ignite))
+    expect(screen.queryByText('Listening · mic on')).toBeNull()
+    expect(screen.getByText('Listening')).toBeTruthy()
+  })
+
+  it('highlights no speaker while closing', () => {
+    const { rerender } = render(view(base, null, { speaking: { speakerId: 'm_taylor' } }))
+    expect(screen.getByLabelText(/, speaking$/)).toBeTruthy()
+    rerender(view(base, ignite, { speaking: { speakerId: 'm_taylor' } }))
+    expect(screen.queryByLabelText(/, speaking$/)).toBeNull()
+  })
+
+  it('hides the recap banner while closing', () => {
+    const { container, rerender } = render(view(base))
+    expect(container.querySelector('.recap-banner')).toBeTruthy()
+    rerender(view(base, ignite))
+    expect(container.querySelector('.recap-banner')).toBeNull()
+  })
+
+  it('keeps the ignition live region mounted and fills it only while igniting', () => {
+    const { container, rerender } = render(view(base))
+    const region = container.querySelector('.burn-ignition')!
+    expect(region.getAttribute('role')).toBe('status')
+    expect(region.textContent).toBe('')
+    rerender(view(base, ignite))
+    expect(container.querySelector('.burn-ignition')).toBe(region)
+    expect(region.textContent).toContain("That's between us.")
+    rerender(view(base, { ...ignite, phase: 'burning' }))
+    expect(region.textContent).toBe('')
+  })
+
+  it('drops the ember only when animated', () => {
+    const { container, rerender } = render(<BurnIgnition animated />)
+    expect(container.querySelector('.burn-ember-drop')).toBeTruthy()
+    rerender(<BurnIgnition animated={false} />)
+    expect(container.querySelector('.burn-ember')).toBeTruthy()
+    expect(container.querySelector('.burn-ember-drop')).toBeNull()
   })
 
   it('keeps the header and banner outside the board, and the transcript and pop-up slot inside', () => {

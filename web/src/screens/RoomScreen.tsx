@@ -234,7 +234,7 @@ export default function RoomScreen({
             )
           )}
         </div>
-        {closing?.phase === 'ignite' && <BurnIgnition animated={motionOk()} />}
+        <BurnIgnition animated={motionOk()} active={closing?.phase === 'ignite'} />
       </div>
       <div className="room-dock">
         {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}

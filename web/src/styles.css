@@ -1006,20 +1006,22 @@ button.primary {
 .room-board {
   position: relative;
   flex: 1;
-  min-height: 0;
+  /* min-height stays auto: the board's floor is banner + stage + the transcript's 5rem + the slot,
+     so content that does not fit pushes the dock as it did before the board existed. */
   display: flex;
   flex-direction: column;
+}
+
+/* The transcript counts as only its 5rem floor toward the board's minimum height; without this its
+   whole line list would, and the board would never shrink. */
+.room-board > .room-transcript {
+  contain: size;
 }
 
 /* The pop-up slot moved out of the dock into the board; keep its old inset and spacing. */
 .room-popup-slot {
   padding: 8px 16px 0;
   margin-bottom: -8px;
-}
-
-.room-popup-slot:empty {
-  padding: 0;
-  margin: 0;
 }
 
 .ptt:disabled {
