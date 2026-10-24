@@ -1,5 +1,7 @@
-// The one place that chooses the room client: ?client=convex for the real
-// backend, anything else (including no param and the legacy ?mock) for the mock.
+// The one place that chooses the room client. The real backend is used whenever
+// VITE_CONVEX_URL is set; ?mock or ?client=mock forces the mock (and wins over
+// everything else); ?client=convex asks for the backend explicitly. With no URL
+// set, the mock is used.
 import { readMockOptions } from '../config'
 import { ConvexRoomClient } from './convex/ConvexRoomClient'
 import { MockRoomClient } from './mock/MockRoomClient'
@@ -15,10 +17,13 @@ export interface ClientChoice {
 export class ClientConfigError extends Error {}
 
 export function createRoomClient(search: string, env: { VITE_CONVEX_URL?: string }): ClientChoice {
-  if (new URLSearchParams(search).get('client') === 'convex') {
-    if (!env.VITE_CONVEX_URL) throw new ClientConfigError('VITE_CONVEX_URL is not set')
-    return { kind: 'convex', client: new ConvexRoomClient(env.VITE_CONVEX_URL) }
+  const params = new URLSearchParams(search)
+  const forceMock = params.has('mock') || params.get('client') === 'mock'
+  const url = env.VITE_CONVEX_URL
+  if (!forceMock && params.get('client') === 'convex' && !url) {
+    throw new ClientConfigError('VITE_CONVEX_URL is not set')
   }
+  if (!forceMock && url) return { kind: 'convex', client: new ConvexRoomClient(url) }
   return { kind: 'mock', client: new MockRoomClient(readMockOptions(search)) }
 }
 

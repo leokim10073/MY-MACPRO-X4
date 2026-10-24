@@ -28,18 +28,18 @@ Someone who has never seen the app joins late on a phone, hears the recap, taps 
 
 ## Running against the real backend
 
-The mock is the default. Add `?client=convex` to use the backend in `backend/`. It needs `VITE_CONVEX_URL` in `web/.env.local`; without it the page says "Backend not configured" and links to the offline demo.
+The app uses the backend in `backend/` whenever `VITE_CONVEX_URL` is set in `web/.env.local`, and the mock when it isn't. Add `?mock` or `?client=mock` to force the mock anyway. `?client=convex` asks for the backend explicitly; without a URL it shows "Backend not configured" and links to the offline demo.
 
 1. In `backend/`: `npx convex dev` (phones need a cloud dev deployment; they can't reach `127.0.0.1`).
 2. In `web/`: put `VITE_CONVEX_URL=<url>` in `web/.env.local` (never commit it), then `npm run dev`. The dev server is HTTPS (self-signed): open the `https://<LAN IP>:5173` address it prints and accept the certificate once on each phone.
-3. Create a room at `/?client=convex`. The invite link carries `client=convex&room=<token>`.
+3. Create a room at `/`. The invite link carries `client=convex&room=<token>`.
 4. From `backend/`: `npx convex run replay:startLatest` replays the Kevin script into the newest room.
 
 Extras for Convex: `?type=1` shows a "Type a line" box; `?replay=1` shows a host-only "Start Kevin replay" button.
 
 Push-to-talk and the narrated recap work only against the backend (it needs `CARTESIA_API_KEY`, see `backend/README.md`); on the mock the talk button just animates. The mic needs HTTPS, which the dev server already uses.
 
-`?client=mock`, the legacy `?mock`, an unknown value or no param all give the mock. `?client=convex&mock` is still Convex. Tests build their client explicitly (the mock). `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
+With `VITE_CONVEX_URL` set, no param or an unknown `?client=` value gives Convex. `?mock` and `?client=mock` always give the mock, even combined with `?client=convex`. Tests build their client explicitly (the mock), so a local `.env.local` doesn't affect them. `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
 
 For the stage setup, bookmarks, rollback to the mock and the pre-flight checklist, see [docs/demo-runbook.md](docs/demo-runbook.md).
 

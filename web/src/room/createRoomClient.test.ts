@@ -15,17 +15,32 @@ import { MockRoomClient } from './mock/MockRoomClient'
 const URL = 'https://example.convex.cloud'
 
 describe('createRoomClient', () => {
-  it.each(['', '?client=mock', '?mock', '?client=bogus'])('gives the mock for %j', (search) => {
+  it.each(['', '?room=abc', '?client=bogus'])('gives Convex by default when VITE_CONVEX_URL is set (%j)', (search) => {
     const choice = createRoomClient(search, { VITE_CONVEX_URL: URL })
-    expect(choice.kind).toBe('mock')
-    expect(choice.client).toBeInstanceOf(MockRoomClient)
+    expect(choice.kind).toBe('convex')
+    expect(choice.client).toBeInstanceOf(ConvexRoomClient)
+    expect(ConvexClient).toHaveBeenCalledWith(URL)
   })
+
+  it.each(['?mock', '?client=mock', '?client=convex&mock', '?mock&room=demo'])(
+    'gives the mock for %j even when VITE_CONVEX_URL is set',
+    (search) => {
+      const choice = createRoomClient(search, { VITE_CONVEX_URL: URL })
+      expect(choice.kind).toBe('mock')
+      expect(choice.client).toBeInstanceOf(MockRoomClient)
+    },
+  )
 
   it('gives Convex for ?client=convex with a URL', () => {
     const choice = createRoomClient('?client=convex', { VITE_CONVEX_URL: URL })
     expect(choice.kind).toBe('convex')
     expect(choice.client).toBeInstanceOf(ConvexRoomClient)
-    expect(ConvexClient).toHaveBeenCalledWith(URL)
+  })
+
+  it.each(['', '?mock', '?client=mock', '?room=demo'])('gives the mock for %j when VITE_CONVEX_URL is not set', (search) => {
+    const choice = createRoomClient(search, {})
+    expect(choice.kind).toBe('mock')
+    expect(choice.client).toBeInstanceOf(MockRoomClient)
   })
 
   it('throws ClientConfigError for ?client=convex without a URL', () => {

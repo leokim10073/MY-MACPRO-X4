@@ -30,7 +30,7 @@
 
 ## Global Constraints
 - Don't edit `backend/` or `shared/schema.ts`. Needed changes go to the backend owner as proposals (bottom of this file).
-- The client is chosen in exactly one place, from `?client=mock|convex`. **Mock is the default** (decided).
+- The client is chosen in exactly one place, from `?client=mock|convex`. **Mock is the default** (decided). *Reversed on 2026-10-24 after this plan shipped: Convex is used whenever `VITE_CONVEX_URL` is set, and `?mock` or `?client=mock` forces the mock. See `createRoomClient.ts`.*
 - The Convex URL comes only from `import.meta.env.VITE_CONVEX_URL` (`web/.env.local`, git-ignored). Never hard-code it.
 - No conversation text in browser storage or logs. The existing ESLint ban and `privacy.test.tsx` must stay green with the Convex client too.
 - The reducer (`roomReducer`), `popupReducer` and the screens' props stay as they are. New UI only for connection state and errors.
@@ -382,4 +382,4 @@ P1–P4 from Phase 1 were **not adopted**; `shared/schema.ts` is unchanged since
 ## Decisions marked NEEDS DECISION in this plan
 - **D2:** survive a reload (`sessionStorage` token) vs. rejoin as a new member. Recommended: rejoin.
 - **D3:** web-local backend API types vs. requiring `backend/node_modules` to build web. Recommended: web-local.
-- **D1, already decided by you, flagged because it changes a teammate's behavior:** on `main` today the app uses Convex automatically whenever `VITE_CONVEX_URL` is set, and `?mock` forces the mock. This plan makes the mock the default, and Convex needs `?client=convex`. Tell khris1120, whose README section and invite link assume the old behavior.
+- **D1, already decided by you, flagged because it changes a teammate's behavior:** on `main` today the app uses Convex automatically whenever `VITE_CONVEX_URL` is set, and `?mock` forces the mock. This plan makes the mock the default, and Convex needs `?client=convex`. Tell khris1120, whose README section and invite link assume the old behavior. *Reversed on 2026-10-24: khris1120's behavior is restored (Convex when `VITE_CONVEX_URL` is set; `?mock` or `?client=mock` forces the mock).*
