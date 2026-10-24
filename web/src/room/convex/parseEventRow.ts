@@ -80,6 +80,9 @@ function checkEvent(event: unknown): string | null {
   if (type === 'room_burned') {
     return typeof event.roomId === 'string' ? null : 'room_burned: roomId is not a string'
   }
+  if (type === 'member_left') {
+    return typeof event.memberId === 'string' ? null : 'member_left: memberId is not a string'
+  }
   if (!Object.prototype.hasOwnProperty.call(PAYLOADS, type)) return 'unknown event type'
   const { key, fields } = PAYLOADS[type]
   const payload = event[key]

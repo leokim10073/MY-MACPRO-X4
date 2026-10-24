@@ -1,4 +1,5 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { getFunctionName } from 'convex/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Room } from '../../../shared/schema'
 import App from '../App'
@@ -136,7 +137,7 @@ describe('Leave in the app', () => {
     expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
   })
 
-  it('with the Convex client: closes the connection and never calls rooms:burn', async () => {
+  it('with the Convex client: tells the backend, closes the connection and never calls rooms:burn', async () => {
     const self: Member = { id: 'm1', roomId: 'r1', name: 'Leo', joinedAtSeq: 0, joinedAt: 0 }
     const convex = {
       onUpdate: vi.fn(() => () => {}),
@@ -149,9 +150,11 @@ describe('Leave in the app', () => {
     }
     const first = new ConvexRoomClient(convex as never)
     await createAndLeave(first, () => new MockRoomClient())
-    expect(convex.close).toHaveBeenCalledTimes(1)
-    const calledNames = convex.mutation.mock.calls.map((c) => JSON.stringify(c[0]))
-    expect(calledNames.some((n) => n.includes('burn'))).toBe(false)
+    // The connection closes once rooms:leave has gone out, so other phones drop this member.
+    await waitFor(() => expect(convex.close).toHaveBeenCalledTimes(1))
+    const calledNames = convex.mutation.mock.calls.map((c) => getFunctionName(c[0] as never))
+    expect(calledNames).toContain('rooms:leave')
+    expect(calledNames).not.toContain('rooms:burn')
     expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
   })
 })

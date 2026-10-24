@@ -104,6 +104,13 @@ export class ConvexRoomClient implements RoomClient {
     await callBackend(() => this.convex.mutation(api.replay.start, { sessionToken: session.sessionToken }))
   }
 
+  /** Leave (not burn): the backend drops this member and tells the other phones. */
+  async leave(): Promise<void> {
+    const session = this.session
+    if (!session || this.burned) return
+    await callBackend(() => this.convex.mutation(api.rooms.leave, { sessionToken: session.sessionToken }))
+  }
+
   dispose(): void {
     this.stopSubscription()
     this.stopConnectionState?.()

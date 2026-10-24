@@ -2,7 +2,7 @@
 import type { Id, Member, TranscriptLine } from '../../../shared/schema'
 import type { RoomState } from './state'
 
-/** Everyone in room state. Until the backend has member_left, people who left still count. */
+/** Everyone still in the room; member_left removes people who tapped Leave. */
 export function peopleCount(state: RoomState): number {
   return state.members.length
 }

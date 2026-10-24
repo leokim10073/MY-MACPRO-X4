@@ -15,6 +15,7 @@ export const backendApi = {
     create: makeFunctionReference<'mutation', { name: string }, Joined>('rooms:create'),
     join: makeFunctionReference<'mutation', { inviteToken: string; name: string }, Joined>('rooms:join'),
     burn: makeFunctionReference<'mutation', { roomId?: string; sessionToken: string }, null>('rooms:burn'),
+    leave: makeFunctionReference<'mutation', { sessionToken: string }, null>('rooms:leave'),
   },
   events: {
     listAfter: makeFunctionReference<

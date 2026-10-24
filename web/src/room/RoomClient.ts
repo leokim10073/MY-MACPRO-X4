@@ -25,6 +25,8 @@ export interface RoomClient {
   addLine(text: string, at: number): Promise<void>
   /** Starts the scripted Kevin replay (host only). Absent on the mock. */
   startReplay?(): Promise<void>
+  /** Tells the backend this phone left, so other phones' people count drops. Absent on the mock. */
+  leave?(): Promise<void>
   dispose(): void
   /** Calls the listener with the current status at once, then on each change. Optional: the mock has none. */
   onConnectionChange?(listener: (status: ConnectionStatus) => void): () => void

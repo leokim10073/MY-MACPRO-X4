@@ -139,7 +139,6 @@ function draft(over: Partial<RecallDraft> = {}): RecallDraft {
     focusStoryId: "",
     reference: "name",
     onlyOneFits: true,
-    continuesCurrentStory: false,
     ...over,
   };
 }
@@ -152,20 +151,26 @@ test("scoreRecall: confidence comes from fixed rules, not from the model", () =>
   assert.equal(scoreRecall(draft({ reference: "pronoun" }), kevinPerson), 0.8);
   // Could mean more than one known person: kept below the 0.7 pop-up threshold.
   assert.equal(scoreRecall(draft({ reference: "name", onlyOneFits: false }), kevinPerson), 0.5);
-  // Not a recall at all.
-  assert.equal(scoreRecall(draft({ continuesCurrentStory: true }), kevinPerson), null);
+  // Someone in the room: not a recall at all.
   assert.equal(scoreRecall(draft(), { ...kevinPerson, memberId: "m_kevin" }), null);
 });
 
-test("assembleRecalls drops lines about people in the room and lines continuing the current story", () => {
+test("assembleRecalls drops lines about people in the room", () => {
   const state = kevin.expected.storyState;
   const line = kevin.lines[18];
   const inRoom = { ...state, people: state.people.map((p) => ({ ...p, memberId: "m_kevin" })) };
   assert.deepEqual(assembleRecalls([draft({ matchedText: "the cake thing" })], line, inRoom), []);
-  assert.deepEqual(
-    assembleRecalls([draft({ matchedText: "the cake thing", continuesCurrentStory: true })], line, state),
-    [],
+});
+
+test("mentions inside the story being told right now are recalls too", () => {
+  // l5 "NO WAY he ate the entire cake." reacts to the cake story while it's being told.
+  const recalls = assembleRecalls(
+    [draft({ matchedText: "he", reference: "pronoun", focusStoryId: "s_cake" })],
+    kevin.lines[4],
+    kevin.expected.storyState,
   );
+  assert.equal(recalls.length, 1);
+  assert.equal(recalls[0].confidence, 0.8);
 });
 
 test("recap word limit", () => {
