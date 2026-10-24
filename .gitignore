@@ -22,3 +22,9 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# Graphify output
+graphify-out/
+
+# Claude Code plugin state
+.omc/

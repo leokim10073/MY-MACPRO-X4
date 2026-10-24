@@ -26,6 +26,19 @@ Someone who has never seen the app joins late on a phone, hears the recap, taps 
 - Design for phones first. The pop-up has to work while the user is holding push-to-talk.
 - Don't store conversation content in `localStorage`.
 
+## Running against the real backend
+
+Without `VITE_CONVEX_URL` the app runs on the mock. To use the backend in `backend/`:
+
+1. In `backend/`: `npx convex dev` (or `CONVEX_AGENT_MODE=anonymous npx convex dev` for a local backend at http://127.0.0.1:3210).
+2. In `web/`: put `VITE_CONVEX_URL=<the CONVEX_URL from backend/.env.local>` in `web/.env.local`, then `npm run dev`.
+3. Create a room in one tab. The host sees an invite link; open it in another tab or phone to join.
+4. From `backend/`: `npx convex run replay:startLatest` plays the Kevin script into the newest room.
+
+Add `?mock` to the URL to use the mock anyway. Tests always use the mock. `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
+
+Phones on the Wi-Fi can't reach a local backend on `127.0.0.1`; use a cloud dev deployment (`npx convex login`, then `npx convex dev`) for phones.
+
 ## Demo and submission (also this owner)
 
 Demo script, pitch, Devpost page, backup video and the five-person latecomer test. See [../TEAM.md](../TEAM.md).

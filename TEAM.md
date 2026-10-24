@@ -23,8 +23,8 @@ The frontend & demo owner has the most work. Voice and backend owners move over 
 
 ## Stack (decide on Friday night)
 
-- [ ] Realtime backend: **Convex** (TypeScript, also a sponsor track), or SpacetimeDB if someone already knows it
-- [ ] Web app framework: ___
+- [x] Realtime backend: **Convex** (TypeScript, also a sponsor track). Picked over SpacetimeDB: AI and voice calls run as Convex actions, so there's no separate server
+- [x] Web app framework: **Vite + React + TypeScript**, mobile-first, tests with Vitest. Imports types straight from `shared/schema.ts`
 - [ ] Audio between remote friends: none (everyone in person), LiveKit or Daily
 - [ ] Push-to-talk or headset mics
 - [ ] Models: Claude Haiku (fast path), Claude Sonnet (slow path and recap), Cartesia Ink (speech-to-text), Cartesia Sonic (text-to-speech)
