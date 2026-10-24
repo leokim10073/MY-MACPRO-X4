@@ -22,6 +22,39 @@ Rooms, ordering, storage and realtime updates. Also owns integration: decides wh
 
 Three phones join one room, all receive the same live updates, and all get cleared when the host burns it.
 
+## Running it
+
+Built on Convex. From this folder:
+
+```sh
+npm install
+npx convex dev   # logs in, creates a dev deployment, writes CONVEX_URL to .env.local, watches convex/
+```
+
+No account yet? `CONVEX_AGENT_MODE=anonymous npx convex dev` runs a local backend at http://127.0.0.1:3210.
+
+`npm test` runs the backend tests in memory (no server needed, timers run instantly). Run it before merging into `main`.
+
+Phones keep the `sessionToken` from `rooms.create` or `rooms.join` and pass it to every call. The server checks it every time.
+
+Every change is also written to an append-only `events` table, one `RoomEvent` per row with a per-room `eventSeq`, in the same mutation as the change. The web app subscribes to `events.listAfter` and feeds each event to its reducer (see `web/docs/design.md`, issue 4).
+
+| Function | Who calls it | Does |
+| --- | --- | --- |
+| `rooms.create({ name })` | web | New room with the caller as host. Returns `{ room, member, sessionToken }` |
+| `rooms.join({ inviteToken, name })` | web | Join with a nickname. Same return. Late joiners get a recap written |
+| `events.listAfter({ roomId, sessionToken, afterEventSeq })` | web (subscribe) | `{ status, events }`. `status: "burned"` with no events once the room ends |
+| `rooms.burn({ roomId, sessionToken })` | web, host only | Deletes the conversation, ends the room on every phone |
+| `lines.add({ sessionToken, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
+| `replay.start({ sessionToken, script? })` | host only | Plays `kevin.replay.json` into the room |
+| `rooms.get`, `lines.list`, `story.state`, `story.recalls`, `story.myRecap` | anyone (subscribe) | The same data as plain state queries, handy from the CLI |
+
+A recap belongs to the member whose `joinedAtSeq` equals its `uptoSeq`.
+
+Testing with the web app: create a room in the browser, then run `npx convex run replay:startLatest` to replay the Kevin script into the newest room.
+
+The AI calls in `convex/ai.ts` are stubs marked `STUB`. Everything around them (scheduling, burn checks, the `uptoSeq` guard) is done. Abandoned rooms burn after 12 hours.
+
 ## Notes
 
 - Check membership on the server for every read and write. Hiding buttons isn't security.

@@ -25,3 +25,6 @@ npm-debug.log*
 
 # Graphify output
 graphify-out/
+
+# Claude Code plugin state
+.omc/
