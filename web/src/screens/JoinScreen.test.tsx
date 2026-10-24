@@ -62,6 +62,6 @@ describe('JoinScreen', () => {
     await user.type(screen.getByLabelText('Nickname'), '  Leo ')
     await user.click(screen.getByRole('button', { name: 'Join room' }))
     expect(client.joinRoom).toHaveBeenCalledWith('demo', 'Leo')
-    expect(await screen.findByRole('heading', { name: 'Room' })).toBeTruthy()
+    expect(await screen.findByRole('status')).toBeTruthy()
   })
 })
