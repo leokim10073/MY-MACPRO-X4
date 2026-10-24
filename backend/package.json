@@ -1,0 +1,20 @@
+{
+  "name": "gossip-window-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "typecheck": "tsc -p convex --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "convex": "^1.48.0"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "convex-test": "^0.0.65",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

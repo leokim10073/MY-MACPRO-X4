@@ -23,7 +23,7 @@ The frontend & demo owner has the most work. Voice and backend owners move over 
 
 ## Stack (decide on Friday night)
 
-- [ ] Realtime backend: **Convex** (TypeScript, also a sponsor track), or SpacetimeDB if someone already knows it
+- [x] Realtime backend: **Convex** (TypeScript, also a sponsor track). Picked over SpacetimeDB: AI and voice calls run as Convex actions, so there's no separate server
 - [ ] Web app framework: ___
 - [ ] Audio between remote friends: none (everyone in person), LiveKit or Daily
 - [ ] Push-to-talk or headset mics

@@ -22,6 +22,36 @@ Rooms, ordering, storage and realtime updates. Also owns integration: decides wh
 
 Three phones join one room, all receive the same live updates, and all get cleared when the host burns it.
 
+## Running it
+
+Built on Convex. From this folder:
+
+```sh
+npm install
+npx convex dev   # logs in, creates a dev deployment, writes CONVEX_URL to .env.local, watches convex/
+```
+
+No account yet? `CONVEX_AGENT_MODE=anonymous npx convex dev` runs a local backend at http://127.0.0.1:3210.
+
+`npm test` runs the backend tests in memory (no server needed, timers run instantly). Run it before merging into `main`.
+
+Phones keep the `token` from `rooms.create` or `rooms.join` and pass it to every call. The server checks it every time.
+
+| Function | Who calls it | Does |
+| --- | --- | --- |
+| `rooms.create({ name })` | web | New room with the caller as host. Returns `token`, `inviteToken` |
+| `rooms.join({ inviteToken, name })` | web | Join with a nickname. Late joiners get a recap written |
+| `rooms.get({ token })` | web (subscribe) | Room, me and members. `null` means the room ended |
+| `rooms.burn({ token })` | web, host only | Deletes the conversation, ends the room on every phone |
+| `lines.add({ token, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
+| `lines.list({ token })` | web (subscribe) | Transcript in order |
+| `story.state({ token })` | web (subscribe) | Latest `StoryState`, or `null` |
+| `story.recalls({ token, afterSeq })` | web (subscribe) | Recalls after a seq |
+| `story.myRecap({ token })` | web (subscribe) | The caller's recap, or `null` |
+| `replay.start({ token, script? })` | web, host only | Plays `kevin.replay.json` into the room |
+
+The AI calls in `convex/ai.ts` are stubs marked `STUB`. Everything around them (scheduling, burn checks, the `uptoSeq` guard) is done. Abandoned rooms burn after 12 hours.
+
 ## Notes
 
 - Check membership on the server for every read and write. Hiding buttons isn't security.
