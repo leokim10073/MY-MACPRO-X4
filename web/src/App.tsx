@@ -47,6 +47,8 @@ interface SessionProps {
 function RoomSession({ client, kind, search, onLeave }: SessionProps) {
   const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
   const params = new URLSearchParams(search)
+  // The entry ritual is in memory only: a new session (Leave) remounts this and shows it again.
+  const [entered, setEntered] = useState(false)
 
   if (!self) {
     return (
@@ -82,6 +84,8 @@ function RoomSession({ client, kind, search, onLeave }: SessionProps) {
       onStartReplay={startReplay}
       voice={client.voice}
       onLeave={onLeave}
+      entered={entered}
+      onEnter={() => setEntered(true)}
     />
   )
 }

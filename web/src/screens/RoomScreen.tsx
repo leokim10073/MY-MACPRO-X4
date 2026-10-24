@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
+import EntryRitual from '../components/EntryRitual'
+import ShhhIcon from '../components/ShhhIcon'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
@@ -46,6 +48,9 @@ interface Props {
   speaking?: SpeakingSignal
   /** Leave this phone's session (not a burn). Without it there's no Leave button. */
   onLeave?: () => void
+  /** False shows the entry ritual over the room. Defaults to true so the room renders directly. */
+  entered?: boolean
+  onEnter?: () => void
 }
 
 const noop = () => {}
@@ -67,6 +72,8 @@ export default function RoomScreen({
   voice: transport,
   speaking,
   onLeave,
+  entered = true,
+  onEnter = noop,
 }: Props) {
   const voice = useVoice(transport, room, self, state)
   const [confirmLeave, setConfirmLeave] = useState(false)
@@ -78,6 +85,10 @@ export default function RoomScreen({
     setWasBurning(pending === 'burn')
     if (wasBurning && error) setConfirmBurn(false)
   }
+  // After Enter, a decorative icon shrinks toward the badge once, then goes away.
+  const [ritualSeen, setRitualSeen] = useState(!entered)
+  const [exitDone, setExitDone] = useState(false)
+  if (!entered && !ritualSeen) setRitualSeen(true)
   const isHost = room.hostMemberId === self.id
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
@@ -98,7 +109,8 @@ export default function RoomScreen({
     state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
 
   return (
-    <main className="room">
+    <>
+    <main className="room" aria-hidden={entered ? undefined : true} inert={!entered}>
       <header className="room-header">
         <ShhhBadge />
         <h1>Gossip Window</h1>
@@ -217,5 +229,12 @@ export default function RoomScreen({
         </div>
       </div>
     </main>
+    {!entered && <EntryRitual onEnter={onEnter} />}
+    {entered && ritualSeen && !exitDone && (
+      <div className="entry-ritual-exit" aria-hidden="true" onAnimationEnd={() => setExitDone(true)}>
+        <ShhhIcon size={96} />
+      </div>
+    )}
+    </>
   )
 }

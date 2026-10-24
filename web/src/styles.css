@@ -917,3 +917,88 @@ button.primary {
   outline: 2px solid var(--br-ember);
   outline-offset: 2px;
 }
+
+.entry-ritual {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  text-align: center;
+}
+
+.entry-ritual h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.entry-ritual ul {
+  max-width: 340px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.entry-ritual li:first-child {
+  color: var(--br-gold);
+}
+
+.entry-ritual-enter {
+  min-width: 200px;
+  min-height: 52px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--br-ember);
+  color: var(--br-charcoal);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entry-ritual-enter:focus-visible {
+  outline: 2px solid var(--br-gold);
+  outline-offset: 3px;
+}
+
+.entry-ritual-exit {
+  position: fixed;
+  z-index: 30;
+  top: 38%;
+  left: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  pointer-events: none;
+  transform-origin: center;
+  animation: entry-ritual-shrink 250ms ease-in forwards;
+}
+
+@keyframes entry-ritual-shrink {
+  to {
+    top: 34px;
+    left: 40px;
+    transform: scale(0.4);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-ritual-exit {
+    display: none;
+  }
+}

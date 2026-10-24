@@ -36,6 +36,7 @@ async function joinViaUi(joinAs: { room: Room; member: Member }) {
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Join room' }))
   })
+  fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
   const sub = fake.subscriptions[0]
   const push = (v: { status: 'active' | 'burned'; events: Row[] }) =>
     act(async () => {
