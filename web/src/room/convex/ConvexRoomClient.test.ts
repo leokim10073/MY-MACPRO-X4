@@ -1,19 +1,9 @@
-import { getFunctionName } from 'convex/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Member, Room, RoomEvent, TranscriptLine } from '../../../../shared/schema'
 import type { ConnectionStatus } from '../RoomClient'
+import type { RoomEvent, TranscriptLine } from '../../../../shared/schema'
 import { initialRoomState, roomReducer } from '../state'
-import { ConvexRoomClient } from './ConvexRoomClient'
+import { alex, room, setup } from '../../test/fakeConvex'
 
-const room: Room = {
-  id: 'room1',
-  hostMemberId: 'm1',
-  status: 'active',
-  inviteToken: 'invite1',
-  createdAt: 0,
-  expiresAt: 1,
-}
-const alex: Member = { id: 'm1', roomId: 'room1', name: 'Alex', joinedAtSeq: 0, joinedAt: 0 }
 const line = (seq: number): TranscriptLine => ({
   id: `l${seq}`,
   roomId: 'room1',
@@ -23,70 +13,6 @@ const line = (seq: number): TranscriptLine => ({
   seq,
   at: seq,
 })
-
-/** Stands in for ConvexClient: records calls and lets the test push query results. */
-function fakeConvex() {
-  const calls: Array<{ name: string; args: unknown }> = []
-  const subscriptions: Array<{
-    name: string
-    args: unknown
-    push: (v: unknown) => void
-    fail: (e: Error) => void
-    stopped: boolean
-  }> = []
-  const convex = {
-    mutation: vi.fn(async (ref: unknown, args: unknown) => {
-      const name = getFunctionName(ref as never)
-      calls.push({ name, args })
-      if (name === 'rooms:create' || name === 'rooms:join') return { room, member: alex, sessionToken: 'secret' }
-      return null
-    }),
-    onUpdate: vi.fn((ref: unknown, args: unknown, callback: (v: unknown) => void, onError?: (e: Error) => void) => {
-      const sub = {
-        name: getFunctionName(ref as never),
-        args,
-        push: callback,
-        fail: (e: Error) => onError?.(e),
-        stopped: false,
-      }
-      subscriptions.push(sub)
-      return () => {
-        sub.stopped = true
-      }
-    }),
-    close: vi.fn(async () => {}),
-  }
-  return { convex, calls, subscriptions }
-}
-
-interface ConnState {
-  isWebSocketConnected: boolean
-  hasEverConnected: boolean
-}
-
-/** `withConnectionState` adds a fake `subscribeToConnectionState` the test drives with `setConnection`. */
-function setup({ withConnectionState = false } = {}) {
-  const fake = fakeConvex()
-  const connection = { listeners: [] as Array<(s: ConnState) => void>, unsubscribed: 0 }
-  const convex = withConnectionState
-    ? {
-        ...fake.convex,
-        subscribeToConnectionState: vi.fn((cb: (s: ConnState) => void) => {
-          connection.listeners.push(cb)
-          return () => {
-            connection.unsubscribed += 1
-            connection.listeners = connection.listeners.filter((l) => l !== cb)
-          }
-        }),
-      }
-    : fake.convex
-  const client = new ConvexRoomClient(convex as never)
-  const events: RoomEvent[] = []
-  client.subscribe((e) => events.push(e))
-  const statuses: ConnectionStatus[] = []
-  const setConnection = (s: ConnState) => [...connection.listeners].forEach((l) => l(s))
-  return { ...fake, client, events, statuses, connection, setConnection }
-}
 
 const lines = (from: number, to: number): Array<[number, RoomEvent]> =>
   Array.from({ length: to - from + 1 }, (_, i) => [from + i, { type: 'line_added', line: line(from + i) }])
