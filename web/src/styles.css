@@ -585,12 +585,17 @@ button.primary {
     margin-top: 0;
   }
 
-  .room-stage .stage-count {
+  .room-stage:not(.compact) .stage-count {
     display: inline;
   }
 
   .room-stage .avatar-you {
     display: none;
+  }
+
+  /* With the stage added, recap + pop-up + hold-to-talk must still fit on an iPhone SE (568px). */
+  .room-banner {
+    max-height: 22dvh;
   }
 }
 
