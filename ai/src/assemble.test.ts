@@ -84,6 +84,25 @@ test("assembleStoryState rejects invented quotes, multi-word keywords and bad so
   assert.deepEqual(state.people.map((p) => p.id), ["p_kevin"]);
 });
 
+test("assembleStoryState keeps summaries short and names the teller once", () => {
+  const rambling =
+    "Alex says Kevin ate Alex's whole birthday cake. Alex says it was a huge chocolate cake bought for the party. " +
+    "Alex says the box was empty when Alex went to get it before the party. Alex says Kevin claimed it was shared " +
+    "fridge food, and Alex says nobody believed him.";
+  const draft: StoryStateDraft = { ...goodDraft, stories: [{ ...goodDraft.stories[0], summary: rambling }] };
+  const { state, problems } = assembleStoryState(draft, ctx);
+  assert.ok(problems.some((p) => p.includes("words")), "reports the length");
+  assert.ok(problems.some((p) => p.includes("teller once")), "reports the repeated attribution");
+  // Whatever comes back is cut to the limit at a sentence boundary.
+  assert.ok(countWords(state.stories[0].summary) <= 35);
+  assert.ok(state.stories[0].summary.endsWith("."));
+
+  const tidy = "Alex says Kevin ate the whole birthday cake and blamed shared fridge food.";
+  const ok = assembleStoryState({ ...goodDraft, stories: [{ ...goodDraft.stories[0], summary: tidy }] }, ctx);
+  assert.equal(ok.problems.length, 0);
+  assert.equal(ok.state.stories[0].summary, tidy);
+});
+
 test("assembleStoryState keeps previous ids and never drops old stories", () => {
   const first = assembleStoryState(goodDraft, ctx).state;
   const next: StoryStateDraft = {
