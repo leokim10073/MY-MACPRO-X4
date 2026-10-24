@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnButton from '../components/BurnButton'
+import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
@@ -23,9 +24,13 @@ interface Props {
   inviteUrl?: string
   /** A real "who is speaking" signal (e.g. push-to-talk). Without it, the speaker of each new line is shown. */
   speaking?: SpeakingSignal
+  /** Leave this phone's session (not a burn). Without it there's no Leave button. */
+  onLeave?: () => void
 }
 
-export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speaking }: Props) {
+export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speaking, onLeave }: Props) {
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const isHost = room.hostMemberId === self.id
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
@@ -45,8 +50,21 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speak
       <header className="room-header">
         <h1>Gossip Window</h1>
         <ListeningIndicator />
-        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
+        {(isHost || onLeave) && (
+          <div className="room-actions">
+            {isHost && <BurnButton onBurn={onBurn} />}
+            {isHost && onLeave && <span className="actions-divider" aria-hidden="true" />}
+            {onLeave && (
+              <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
+                Leave
+              </button>
+            )}
+          </div>
+        )}
       </header>
+      {confirmLeave && onLeave && (
+        <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
+      )}
       {inviteUrl && room.hostMemberId === self.id && (
         <p className="room-invite">
           Invite: <a href={inviteUrl}>{inviteUrl}</a>

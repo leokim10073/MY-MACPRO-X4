@@ -14,7 +14,11 @@ try {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {choice ? (
-      <App client={choice.client} kind={choice.kind} />
+      <App
+        client={choice.client}
+        kind={choice.kind}
+        makeClient={() => createRoomClient(window.location.search, import.meta.env).client}
+      />
     ) : (
       <main>
         <h1>Backend not configured</h1>

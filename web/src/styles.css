@@ -599,3 +599,81 @@ button.primary {
     transition: none;
   }
 }
+
+/* Header actions: neutral Leave on the right for everyone; the host's red Burn sits apart, behind a divider. */
+.room-header {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.room-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.actions-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(127, 127, 127, 0.45);
+}
+
+.burn {
+  font-weight: 600;
+}
+
+.leave {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+}
+
+.leave-confirm {
+  flex: none;
+  margin: 0 16px 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(127, 127, 127, 0.45);
+  background: Canvas;
+  color: CanvasText;
+  font-size: 15px;
+}
+
+.leave-confirm p {
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
+
+.leave-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.leave-confirm-actions button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  background: transparent;
+  color: inherit;
+  font-size: 15px;
+}
+
+.leave-confirm-actions .leave-go {
+  border-color: CanvasText;
+  font-weight: 600;
+}
+
+.link-button {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  font-size: 15px;
+}
