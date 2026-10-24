@@ -13,7 +13,8 @@ interface Props {
 }
 
 export default function App({ client, kind, search = window.location.search }: Props) {
-  const { state, self, room, error, connection, create, join, burn } = useRoom(client)
+  const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
+  const params = new URLSearchParams(search)
 
   if (!self) {
     return (
@@ -22,6 +23,8 @@ export default function App({ client, kind, search = window.location.search }: P
         onCreate={(name) => void create(name)}
         onJoin={(token, name) => void join(token, name)}
         error={error}
+        pending={pending === 'create' || pending === 'join'}
+        offlineDemoHref={kind === 'convex' ? '?client=mock' : undefined}
       />
     )
   }
@@ -39,6 +42,12 @@ export default function App({ client, kind, search = window.location.search }: P
       inviteUrl={invite}
       connection={connection}
       onRejoin={() => window.location.reload()}
+      pending={pending}
+      error={error}
+      showTypeLine={params.get('type') === '1'}
+      onAddLine={addLine}
+      showReplay={params.get('replay') === '1' && !!startReplay}
+      onStartReplay={startReplay}
     />
   )
 }

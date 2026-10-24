@@ -371,4 +371,44 @@ describe('ConvexRoomClient connection status', () => {
     client.dispose()
     expect(connection.unsubscribed).toBe(1)
   })
+
+  it('addLine calls lines:add with the session token, text and time', async () => {
+    const { client, calls } = setup()
+    await client.createRoom('Alex')
+    await client.addLine('hello', 42)
+    expect(calls.at(-1)).toEqual({ name: 'lines:add', args: { sessionToken: 'secret', text: 'hello', at: 42 } })
+  })
+
+  it('addLine and startReplay do nothing before a join', async () => {
+    const { client, calls } = setup()
+    await client.addLine('hello', 1)
+    await client.startReplay()
+    expect(calls).toEqual([])
+  })
+
+  it('startReplay calls replay:start with the session token', async () => {
+    const { client, calls } = setup()
+    await client.createRoom('Alex')
+    await client.startReplay()
+    expect(calls.at(-1)).toEqual({ name: 'replay:start', args: { sessionToken: 'secret' } })
+  })
+
+  it('maps a backend rejection to a BackendError', async () => {
+    const { client, convex } = setup()
+    convex.mutation.mockRejectedValueOnce(new Error('This room has ended'))
+    await expect(client.joinRoom('x', 'Sam')).rejects.toMatchObject({ kind: 'room_ended' })
+  })
+
+  it('a mutation that never answers rejects as unreachable after 10 s', async () => {
+    vi.useFakeTimers()
+    try {
+      const { client, convex } = setup()
+      convex.mutation.mockImplementationOnce(() => new Promise<never>(() => {}))
+      const p = client.createRoom('Alex').catch((e: unknown) => e)
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(await p).toMatchObject({ kind: 'unreachable' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

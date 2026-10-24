@@ -13,6 +13,9 @@ export class MockRoomClient implements RoomClient {
   private listeners: Array<(event: RoomEvent) => void> = []
   private timers: ReturnType<typeof setTimeout>[] = []
   private started = false
+  private burned = false
+  private selfName = ''
+  private typedCount = 0
   private roomId = fixture.roomId
   private readonly opts: Omit<TimelineOptions, 'self'>
 
@@ -37,7 +40,27 @@ export class MockRoomClient implements RoomClient {
     return this.start(name, 'latecomer')
   }
 
+  async addLine(text: string, at: number): Promise<void> {
+    if (!this.started || this.burned) return
+    this.typedCount += 1
+    // Seqs from 1001 stay clear of the replay's 1-21.
+    const seq = 1000 + this.typedCount
+    this.emit({
+      type: 'line_added',
+      line: {
+        id: `typed-${this.typedCount}`,
+        roomId: this.roomId,
+        speakerId: 'm_self',
+        speakerName: this.selfName,
+        text,
+        seq,
+        at,
+      },
+    })
+  }
+
   async burn(): Promise<void> {
+    this.burned = true
     this.clearTimers()
     this.emit({ type: 'room_burned', roomId: this.roomId })
   }
@@ -50,6 +73,7 @@ export class MockRoomClient implements RoomClient {
   private start(name: string, mode: 'host' | 'latecomer'): Promise<JoinResult> {
     if (this.started) return Promise.reject(new Error('MockRoomClient: room already started'))
     this.started = true
+    this.selfName = name
     const timeline = buildReplayTimeline(script, fixture, { ...this.opts, self: { name, mode } })
     let self: Member | undefined
     for (const { event } of timeline) {

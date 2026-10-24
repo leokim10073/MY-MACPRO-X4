@@ -14,6 +14,10 @@ export interface RoomClient {
   createRoom(name: string): Promise<JoinResult>
   joinRoom(inviteToken: string, name: string): Promise<JoinResult>
   burn(): Promise<void>
+  /** Adds a typed line to the room. A no-op before a join or after a burn. */
+  addLine(text: string, at: number): Promise<void>
+  /** Starts the scripted Kevin replay (host only). Absent on the mock. */
+  startReplay?(): Promise<void>
   dispose(): void
   /** Calls the listener with the current status at once, then on each change. Optional: the mock has none. */
   onConnectionChange?(listener: (status: ConnectionStatus) => void): () => void

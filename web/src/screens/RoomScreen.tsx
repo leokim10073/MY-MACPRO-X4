@@ -6,6 +6,7 @@ import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import Transcript from '../components/Transcript'
+import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
 import { visibleChips } from '../recall/popup'
@@ -23,6 +24,16 @@ interface Props {
   /** Only the Convex client reports this; null or absent shows nothing. */
   connection?: ConnectionStatus | null
   onRejoin?: () => void
+  /** The pending action; only 'burn' matters here. */
+  pending?: 'create' | 'join' | 'burn' | null
+  /** The last action's error, shown here only as a failed burn. */
+  error?: { kind: string; message: string } | null
+  /** Dev-only typed line (?type=1). */
+  showTypeLine?: boolean
+  onAddLine?: (text: string, at: number) => Promise<void>
+  /** Host-only "Start Kevin replay" (?replay=1, Convex). */
+  showReplay?: boolean
+  onStartReplay?: () => Promise<void>
 }
 
 const noop = () => {}
@@ -35,11 +46,18 @@ export default function RoomScreen({
   inviteUrl,
   connection = null,
   onRejoin = noop,
+  pending = null,
+  error = null,
+  showTypeLine = false,
+  onAddLine,
+  showReplay = false,
+  onStartReplay,
 }: Props) {
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
+  const [replayStarted, setReplayStarted] = useState(false)
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
   const openStory = openStoryId ? storiesById(state).get(openStoryId) : undefined
@@ -49,9 +67,26 @@ export default function RoomScreen({
       <header className="room-header">
         <h1>Gossip Window</h1>
         <ListeningIndicator />
-        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
+        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} pending={pending === 'burn'} />}
       </header>
       <ConnectionBanner status={connection} onRejoin={onRejoin} />
+      {error && (
+        <p role="alert" className="error">
+          {error.message}
+        </p>
+      )}
+      {showReplay && onStartReplay && !replayStarted && room.hostMemberId === self.id && (
+        <button
+          type="button"
+          className="replay"
+          onClick={() => {
+            setReplayStarted(true)
+            void onStartReplay().catch(() => setReplayStarted(false))
+          }}
+        >
+          Start Kevin replay
+        </button>
+      )}
       {inviteUrl && room.hostMemberId === self.id && (
         <p className="room-invite">
           Invite: <a href={inviteUrl}>{inviteUrl}</a>
@@ -95,6 +130,7 @@ export default function RoomScreen({
             )
           )}
         </div>
+        {showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}
         <div className="room-talk">
           <PushToTalkButton onPressChange={setTalking} />
         </div>

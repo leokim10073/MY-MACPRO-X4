@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 const CONFIRM_MS = 4000
 
 // Two taps to burn: the first arms it, the second (within 4 s) fires.
-export default function BurnButton({ onBurn }: { onBurn: () => void }) {
+export default function BurnButton({ onBurn, pending = false }: { onBurn: () => void; pending?: boolean }) {
   const [armed, setArmed] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -21,8 +21,8 @@ export default function BurnButton({ onBurn }: { onBurn: () => void }) {
   }
 
   return (
-    <button type="button" className={armed ? 'burn burn-armed' : 'burn'} onClick={tap}>
-      {armed ? 'Tap again to burn' : 'Burn room'}
+    <button type="button" className={armed ? 'burn burn-armed' : 'burn'} onClick={tap} disabled={pending}>
+      {pending ? 'Burning…' : armed ? 'Tap again to burn' : 'Burn room'}
     </button>
   )
 }

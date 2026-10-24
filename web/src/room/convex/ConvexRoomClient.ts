@@ -6,6 +6,7 @@ import { ConvexClient } from 'convex/browser'
 import type { RoomEvent } from '../../../../shared/schema'
 import type { ConnectionStatus, JoinResult, RoomClient } from '../RoomClient'
 import { backendApi as api } from './backendApi'
+import { callBackend } from './callBackend'
 import { follow, type FollowerState } from './logFollower'
 
 type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'close'> &
@@ -62,20 +63,32 @@ export class ConvexRoomClient implements RoomClient {
   }
 
   async createRoom(name: string): Promise<JoinResult> {
-    return this.start(await this.convex.mutation(api.rooms.create, { name }))
+    return this.start(await callBackend(() => this.convex.mutation(api.rooms.create, { name })))
   }
 
   async joinRoom(inviteToken: string, name: string): Promise<JoinResult> {
-    return this.start(await this.convex.mutation(api.rooms.join, { inviteToken, name }))
+    return this.start(await callBackend(() => this.convex.mutation(api.rooms.join, { inviteToken, name })))
   }
 
   /** The event log reports the burn back, which ends the room on this phone and every other one. */
   async burn(): Promise<void> {
-    if (!this.session) return
-    await this.convex.mutation(api.rooms.burn, {
-      roomId: this.session.roomId,
-      sessionToken: this.session.sessionToken,
-    })
+    const session = this.session
+    if (!session) return
+    await callBackend(() =>
+      this.convex.mutation(api.rooms.burn, { roomId: session.roomId, sessionToken: session.sessionToken }),
+    )
+  }
+
+  async addLine(text: string, at: number): Promise<void> {
+    const session = this.session
+    if (!session || this.burned) return
+    await callBackend(() => this.convex.mutation(api.lines.add, { sessionToken: session.sessionToken, text, at }))
+  }
+
+  async startReplay(): Promise<void> {
+    const session = this.session
+    if (!session || this.burned) return
+    await callBackend(() => this.convex.mutation(api.replay.start, { sessionToken: session.sessionToken }))
   }
 
   dispose(): void {

@@ -79,6 +79,7 @@ describe('Burned screen', () => {
       createRoom: vi.fn().mockResolvedValue(result),
       joinRoom: vi.fn().mockResolvedValue(result),
       burn: vi.fn().mockResolvedValue(undefined),
+    addLine: vi.fn().mockResolvedValue(undefined),
       dispose: vi.fn(),
     }
     render(<App client={client} kind="mock" search="?room=demo" />)
