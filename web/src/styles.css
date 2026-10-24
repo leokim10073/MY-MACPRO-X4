@@ -1002,3 +1002,78 @@ button.primary {
     display: none;
   }
 }
+
+.room-board {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The pop-up slot moved out of the dock into the board; keep its old inset and spacing. */
+.room-popup-slot {
+  padding: 8px 16px 0;
+  margin-bottom: -8px;
+}
+
+.room-popup-slot:empty {
+  padding: 0;
+  margin: 0;
+}
+
+.ptt:disabled {
+  background: var(--br-char);
+  color: var(--br-ash);
+}
+
+.burn-ignition {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.burn-ignition-copy {
+  position: absolute;
+  top: 18%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--br-ivory);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.burn-ember {
+  position: absolute;
+  left: 50%;
+  top: 98.5%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--br-gold);
+  box-shadow: 0 0 0 6px rgba(255, 118, 46, 0.22);
+}
+
+.burn-ember-drop {
+  top: 23%;
+  animation: burn-ember-drop 0.5s ease-in 0.1s forwards;
+}
+
+@keyframes burn-ember-drop {
+  to {
+    top: 98.5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burn-ember-drop {
+    top: 98.5%;
+    animation: none;
+  }
+}
