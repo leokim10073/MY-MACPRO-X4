@@ -342,6 +342,49 @@ describe('OpenMic', () => {
     expect(s.mic.getState().needsTap).toBe(false)
   })
 
+  it('remote speaking splits the open turn', async () => {
+    const s = await inCall()
+    s.setTime(1000)
+    s.last().serverSend({ type: 'turn.start' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'So Kevin walks into the kitchen' })
+    s.setTime(4000)
+    s.call.events!.onRemoteSpeakingStarted('m_sam')
+    await flush()
+    s.setTime(7000)
+    s.last().serverSend({ type: 'turn.end', transcript: 'So Kevin walks into the kitchen and eats the whole cake' })
+    await flush()
+    expect(s.lines.map((l) => [l.text, l.at])).toEqual([
+      ['So Kevin walks into the kitchen', 1000],
+      ['and eats the whole cake', 4000],
+    ])
+  })
+
+  it('noteLine from someone else splits; my own line does not', async () => {
+    const s = await inCall()
+    const line = (speakerId: string) => ({ id: 'x', roomId: 'room1', speakerId, speakerName: '', text: 'Hm.', seq: 1, at: 1 })
+    s.setTime(1000)
+    s.last().serverSend({ type: 'turn.start' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Wait so' })
+    s.setTime(3000)
+    s.mic.noteLine(line('m_alex'))
+    await flush()
+    expect(s.lines).toEqual([])
+    s.mic.noteLine(line('m_sam'))
+    await flush()
+    expect(s.lines.map((l) => l.text)).toEqual(['Wait so'])
+  })
+
+  it('no split while muted', async () => {
+    const s = await inCall({ endOnClose: null })
+    s.last().serverSend({ type: 'turn.start' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Wait so' })
+    await s.mic.setMuted(true)
+    s.lines.length = 0
+    s.call.events!.onRemoteSpeakingStarted('m_sam')
+    await flush()
+    expect(s.lines).toEqual([])
+  })
+
   it('a cut-off turn is sent and flagged', async () => {
     const s = await inCall()
     s.last().serverSend({ type: 'turn.start' })

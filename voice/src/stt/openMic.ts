@@ -9,6 +9,7 @@ import { LineSender, type FailedLine } from './lineSender'
 import { openBrowserSocket, type OpenSocket } from './socket'
 import { buildTurnsUrl } from './turns'
 import { TurnSession } from './turnSession'
+import { TurnSplitter } from './turnSplitter'
 
 export type OpenMicStatus = 'idle' | 'joining' | 'in_call' | 'reconnecting' | 'left' | 'stopped' | 'error'
 
@@ -98,6 +99,8 @@ export class OpenMic {
   private call: CallLike | null = null
   private unsubscribeFrames: (() => void) | null = null
   private session: TurnSession | null = null
+  /** The current connection's splitter; a connection still draining after mute keeps its own. */
+  private splitter: TurnSplitter | null = null
   private joining: Promise<void> | null = null
   private wantLeave = false
   private stopped = false
@@ -150,6 +153,7 @@ export class OpenMic {
     if (muted) {
       const session = this.session
       this.session = null
+      this.splitter = null
       this.inkReconnecting = false
       this.update({ isListening: false, preview: '' })
       this.refreshStatus()
@@ -179,6 +183,7 @@ export class OpenMic {
     this.stopped = true
     this.session?.abort()
     this.session = null
+    this.splitter = null
     this.unsubscribeFrames?.()
     this.unsubscribeFrames = null
     // Still joining: finishJoin leaves once the call is up.
@@ -202,7 +207,10 @@ export class OpenMic {
 
   /** Every line_added from the backend. Used to split my open turn when someone cuts in. */
   noteLine = (line: TranscriptLine): void => {
-    if (line.speakerId in this.state.live) this.clearLive(line.speakerId)
+    // A friend's split part arrives while they're still talking: keep showing their live text.
+    if (this.state.live[line.speakerId]?.final) this.clearLive(line.speakerId)
+    // Backup trigger: LiveKit's speaking event may have been missed or come late.
+    if (line.speakerId !== this.opts.speakerId) this.split()
   }
 
   /** Ink's turn_start_threshold, applied live. */
@@ -241,9 +249,9 @@ export class OpenMic {
   }
 
   private startTurns(): void {
-    // Each connection keeps its own turn start time, so a connection still draining after a
-    // quick mute and unmute sends its line with the right `at` and leaves the new one alone.
-    let at = 0
+    // Each connection keeps its own turn (start time, what a split already sent), so one still
+    // draining after a quick mute and unmute sends its line right and leaves the new one alone.
+    const splitter = new TurnSplitter(this.now)
     const session: TurnSession = new TurnSession(
       async (threshold) => {
         const token = await this.opts.getSttToken()
@@ -251,25 +259,29 @@ export class OpenMic {
       },
       {
         onStart: () => {
-          at = this.now()
+          splitter.start(this.now())
           this.gate.turnStarted()
         },
         onUpdate: (text) => {
+          splitter.update(text)
           if (this.session !== session) return
-          this.update({ preview: text })
-          if (text !== this.lastSentLive) {
-            this.lastSentLive = text
-            this.call?.sendLive({ text, final: false })
+          // After a split, the part already sent is a line of its own.
+          const rest = splitter.unsent(text)
+          this.update({ preview: rest })
+          if (rest !== this.lastSentLive) {
+            this.lastSentLive = rest
+            this.call?.sendLive({ text: rest, final: false })
           }
         },
         onEnd: (text, complete) => {
           this.gate.turnEnded()
           this.updateDebug()
           if (this.stopped) return
+          // A turn.end without a turn.start is still a line.
+          const part = splitter.open ? splitter.end(text) : text.trim() ? { text, at: this.now() } : null
           this.lastSentLive = ''
-          this.call?.sendLive({ text, final: true })
-          this.sender.submit({ roomId: this.opts.roomId, speakerId: this.opts.speakerId, text, at: at || this.now() })
-          at = 0
+          this.call?.sendLive({ text: part?.text ?? '', final: true })
+          if (part) this.submit(part)
           if (!complete) this.update({ error: MAYBE_MISSING })
           if (this.session === session) this.update({ preview: '' })
         },
@@ -285,6 +297,7 @@ export class OpenMic {
       { startThreshold: this.startThreshold },
     )
     this.session = session
+    this.splitter = splitter
     session.start()
     this.update({ isListening: true })
     this.refreshStatus()
@@ -298,7 +311,7 @@ export class OpenMic {
         for (const id of Object.keys(this.state.live)) if (!here.has(id)) this.clearLive(id)
       },
       onLive: (id, live) => this.showLive(id, live),
-      onRemoteSpeakingStarted: () => {},
+      onRemoteSpeakingStarted: () => this.split(),
       onReconnecting: (reconnecting) => {
         this.callReconnecting = reconnecting
         this.refreshStatus()
@@ -318,6 +331,7 @@ export class OpenMic {
     const session = this.session
     this.call = null
     this.session = null
+    this.splitter = null
     this.unsubscribeFrames?.()
     this.unsubscribeFrames = null
     this.callReconnecting = this.inkReconnecting = false
@@ -325,6 +339,17 @@ export class OpenMic {
     this.update({ status, isListening: false, preview: '', participants: [], needsTap: false, error })
     await session?.close()
     await call?.leave().catch(() => {})
+  }
+
+  /** Someone cut in: what I've said so far in this turn becomes a line now. */
+  private split(): void {
+    if (this.stopped || this.state.muted || !this.session || !this.splitter) return
+    const part = this.splitter.split()
+    if (part) this.submit(part)
+  }
+
+  private submit(part: { text: string; at: number }): void {
+    this.sender.submit({ roomId: this.opts.roomId, speakerId: this.opts.speakerId, ...part })
   }
 
   private showLive(id: Id, live: LiveText): void {
