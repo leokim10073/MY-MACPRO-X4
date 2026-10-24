@@ -142,10 +142,17 @@ export class ConvexRoomClient implements RoomClient {
     }
     this.follower = out.next
     for (const event of out.events) this.emit(event)
-    // A fresh subscription from the seq this one started at would show the same rows, so skip it.
-    if (out.resubscribeFrom !== undefined && out.resubscribeFrom !== this.subscribedFrom) {
+    if (out.resubscribeFrom === undefined) return
+    // Loop guard: a fresh subscription from the seq this one started at runs the identical query.
+    // (A server ignoring afterEventSeq costs one resubscribe per new event; this guard stops it looping.)
+    if (out.resubscribeFrom !== this.subscribedFrom) {
       this.subscribeFrom(out.resubscribeFrom)
+    } else if (out.kind === 'gap') {
+      // R4/R5: the gap survives a resubscribe (or is on the first one), so rows are really missing.
+      this.setStatus('lost')
+      this.stopSubscription()
     }
+    // A guarded window result (nothing new in an oversized update) is harmless: keep listening.
   }
 
   private readonly onVisibilityChange = (): void => {

@@ -58,6 +58,7 @@ export function follow(
   }
 
   const next = { lastEventSeq: last, dropped }
+  // A server ignoring afterEventSeq would trigger this on every update (one resubscribe per event); the client's loop guard stops repeats.
   return log.events.length > WINDOW_SIZE
     ? { kind: 'events', events, next, resubscribeFrom: last }
     : { kind: 'events', events, next }

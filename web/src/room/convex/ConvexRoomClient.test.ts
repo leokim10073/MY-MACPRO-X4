@@ -186,6 +186,8 @@ describe('ConvexRoomClient following the log', () => {
   afterEach(() => {
     vi.useRealTimers()
     vi.restoreAllMocks()
+    // setVisibility shadows jsdom's prototype getter with an own property; removing it restores the default.
+    delete (document as { visibilityState?: unknown }).visibilityState
   })
 
   it('on a gap, emits the prefix, resubscribes from the last seq and stops the old subscription', async () => {
@@ -206,14 +208,41 @@ describe('ConvexRoomClient following the log', () => {
     expect(events.map((e) => e.type === 'line_added' && e.line.seq)).toEqual([1, 2, 3, 4, 5])
   })
 
-  it('does not resubscribe again for a gap a fresh subscription from the same seq still shows', async () => {
-    const { client, subscriptions } = setup()
+  it('a gap that persists after one resubscribe from the same seq ends in lost (R4)', async () => {
+    const { client, subscriptions, statuses } = setup()
+    client.onConnectionChange((s) => statuses.push(s))
     await client.createRoom('Alex')
     subscriptions[0].push(log(...lines(1, 2), ...lines(5, 5)))
     expect(subscriptions).toHaveLength(2)
     subscriptions[1].push(log(...lines(5, 5)))
     expect(subscriptions).toHaveLength(2)
+    expect(subscriptions[1].stopped).toBe(true)
+    expect(statuses.at(-1)).toBe('lost')
+  })
+
+  it('a gap on the very first subscription goes straight to lost (R5)', async () => {
+    const { client, subscriptions, statuses, events } = setup()
+    client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(5, 6)))
+    expect(events).toEqual([])
+    expect(subscriptions).toHaveLength(1)
+    expect(subscriptions[0].stopped).toBe(true)
+    expect(statuses.at(-1)).toBe('lost')
+  })
+
+  it('a window update skipped by the guard stays harmless: no lost, subscription kept', async () => {
+    const { client, subscriptions, statuses, events } = setup()
+    client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 201)))
+    expect(afterSeq(subscriptions[1])).toBe(201)
+    // A server ignoring afterEventSeq resends 201 old rows: window-sized, nothing new.
+    subscriptions[1].push(log(...lines(1, 201)))
+    expect(subscriptions).toHaveLength(2)
     expect(subscriptions[1].stopped).toBe(false)
+    expect(statuses).not.toContain('lost')
+    expect(events).toHaveLength(201)
   })
 
   it('on a window-sized update, emits everything then resubscribes from the last seq', async () => {
