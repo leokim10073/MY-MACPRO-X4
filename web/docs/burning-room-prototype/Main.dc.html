@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Burning Room prototype</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#FFE6AF}a:hover{color:#FF762E}
+button:focus-visible,a:focus-visible{outline:2px solid #FF762E;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 900px; height: 844px; box-sizing: border-box; display: flex; background: #0B0B0D; color: #F5EFE7; font-family: Inter, system-ui, sans-serif">
+<div style="width: 390px; height: 844px; flex: none; overflow: hidden; position: relative">
+<dc-import name="Room" phase="{{phase}}" burn-start="{{burnStart}}" force-motion="{{forceMotion}}" on-enter="{{enter}}" on-burn="{{openConfirm}}" on-keep="{{keep}}" on-confirm="{{confirm}}" on-retry="{{confirm}}" on-dismiss-error="{{dismissError}}" on-home="{{reset}}" on-new-room="{{reset}}" hint-size="390px,844px"></dc-import>
+</div>
+<div style="flex: 1; min-width: 0; box-sizing: border-box; padding: 40px 36px; display: flex; flex-direction: column; gap: 26px; border-left: 1px solid rgba(245,239,231,0.08)">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 20px; font-weight: 600">Prototype controls</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #B9B2AA">These stand in for the server. The burn only starts once the server confirms it (room_burned). If the burn fails, nothing animates and the room stays open.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 14px; background: #151518; border: 1px solid rgba(245,239,231,0.08)">
+<span style="font-size: 12px; color: #B9B2AA">Room state</span>
+<strong style="font-size: 18px; font-weight: 600">{{stateLabel}}</strong>
+<span style="font-size: 13px; line-height: 1.5; color: #D9D2C9">{{log}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 500">When the host burns, the server…</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{m.pressed}}" onClick="{{m.pick}}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid {{m.border}}; background: {{m.bg}}; color: {{m.fg}}">{{m.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 500">Motion</span>
+<button type="button" aria-pressed="{{forcePressed}}" onClick="{{toggleForce}}" style="align-self: flex-start; min-height: 44px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid {{forceBorder}}; background: {{forceBg}}; color: {{forceFg}}">{{forceLabel}}</button>
+<span style="font-size: 13px; line-height: 1.5; color: #D9D2C9">{{motionNote}}</span>
+</div>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+<button type="button" onClick="{{reset}}" style="align-self: flex-start; min-height: 44px; padding: 0 16px; border-radius: 10px; font: inherit; font-size: 14px; cursor: pointer; border: 1px solid rgba(245,239,231,0.22); background: transparent; color: #F5EFE7">Reset room</button>
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #B9B2AA">Try: Enter room → Burn room… → Burn room. Tap the Shhh badge in the room header for the privacy line. Switch the server to “Fails” to see the error path.</p>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":900,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.timers = [];
+    this.setState({ phase: 'entry', serverMode: 'deleted', burnStart: 0, forceMotion: false, log: 'Waiting on the entry screen.' });
+  }
+  componentWillUnmount() {
+    this.clearTimers();
+  }
+  clearTimers() {
+    (this.timers || []).forEach((t) => clearTimeout(t));
+    this.timers = [];
+  }
+  later(ms, fn) {
+    this.timers = this.timers || [];
+    this.timers.push(setTimeout(fn, ms));
+  }
+  serverBurned() {
+    const t = Date.now();
+    this.clearTimers();
+    // The ember lands about 0.6 s in; the burn starts a beat before, so the edge lights up as it touches.
+    this.setState({ phase: 'ignite', burnStart: t + 560, log: 'Server: burn confirmed and deleted (room_burned sent to everyone). Input closed.' });
+    this.later(600, () => this.setState({ phase: 'burning', log: 'Burning the conversation board…' }));
+    this.later(600 + 2400, () => this.setState({ phase: 'deleted', log: 'Burn finished. Showing the confirmed result.' }));
+  }
+  confirmBurn() {
+    this.clearTimers();
+    this.setState({ phase: 'requesting', log: 'Sent rooms.burn. Waiting for the server…' });
+    this.later(700, () => {
+      if ((this.state || {}).serverMode === 'error') {
+        this.setState({ phase: 'error', log: 'Server: burn failed (network). The room stays open; nothing was deleted.' });
+      } else {
+        this.serverBurned();
+      }
+    });
+  }
+  resetRoom() {
+    this.clearTimers();
+    this.setState({ phase: 'entry', burnStart: 0, log: 'Waiting on the entry screen.' });
+  }
+  renderVals() {
+    const s = this.state || {};
+    const phase = s.phase || 'entry';
+    const mode = s.serverMode || 'deleted';
+    const force = !!s.forceMotion;
+    const deviceReduces = typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const labels = {
+      entry: 'Entry ritual',
+      live: 'Live',
+      confirming: 'Confirming burn',
+      requesting: 'Waiting for the server',
+      error: 'Burn failed, room still open',
+      ignite: 'Closing · ignition',
+      burning: 'Closing · burning',
+      deleted: 'Burned · deleted'
+    };
+    const modes = [
+      { id: 'deleted', label: 'Burns and deletes' },
+      { id: 'error', label: 'Fails' }
+    ].map((m) => {
+      const on = m.id === mode;
+      return {
+        label: m.label,
+        pressed: on ? 'true' : 'false',
+        border: on ? '#FF762E' : 'rgba(245,239,231,0.22)',
+        bg: on ? 'rgba(255,118,46,0.14)' : 'transparent',
+        fg: on ? '#FFE6AF' : '#F5EFE7',
+        pick: () => this.setState({ serverMode: m.id })
+      };
+    });
+    return {
+      phase,
+      burnStart: s.burnStart || 0,
+      forceMotion: force,
+      stateLabel: labels[phase] || phase,
+      log: s.log || '',
+      modes,
+      forcePressed: force ? 'true' : 'false',
+      forceLabel: force ? 'Preview full animation: on' : 'Preview full animation: off',
+      forceBorder: force ? '#FF762E' : 'rgba(245,239,231,0.22)',
+      forceBg: force ? 'rgba(255,118,46,0.14)' : 'transparent',
+      forceFg: force ? '#FFE6AF' : '#F5EFE7',
+      toggleForce: () => this.setState({ forceMotion: !(this.state || {}).forceMotion }),
+      motionNote: deviceReduces
+        ? (force
+          ? 'This device asks for reduced motion. The full burn plays anyway because the preview is on.'
+          : 'This device asks for reduced motion, so the burn plays as a short fade. Turn the preview on to see flames and ash.')
+        : 'This device doesn’t ask for reduced motion, so the full burn plays.',
+      enter: () => this.setState({ phase: 'live', log: 'Entered the room.' }),
+      openConfirm: () => this.setState({ phase: 'confirming', log: 'Host opened the burn confirmation. Nothing sent yet.' }),
+      keep: () => this.setState({ phase: 'live', log: 'Host chose Keep talking.' }),
+      confirm: () => this.confirmBurn(),
+      dismissError: () => this.setState({ phase: 'live', log: 'Back to the room.' }),
+      reset: () => this.resetRoom()
+    };
+  }
+}
+</script>
+</body>
+</html>
