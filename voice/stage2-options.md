@@ -246,3 +246,13 @@ Also ask LiveKit whether BVC is billed as voice isolation minutes.
 - [WebKit Bug 239602](https://bugs.webkit.org/show_bug.cgi?id=239602)
 - [WebKit Bug 241400](https://bugs.webkit.org/show_bug.cgi?id=241400)
 - [Daily × Krisp](https://www.daily.co/partners/krisp)
+
+---
+
+## Results (stage 2 build)
+
+Phone checks from [stage2-plan.md](stage2-plan.md), in order.
+
+| Milestone | Date | Result |
+| --- | --- | --- |
+| M1: the call | 2026-10-24 | **Pass.** Two phones with headsets hear each other, the participant list is correct, speaking lights up, Leave works |
