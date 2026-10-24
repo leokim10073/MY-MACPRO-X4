@@ -34,7 +34,7 @@ async function joinViaUi(joinAs: { room: Room; member: Member }) {
   render(<App client={client} kind="convex" search="?room=invite1" />)
   fireEvent.change(screen.getByLabelText(/nickname/i), { target: { value: 'Taylor' } })
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Join room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
   })
   const sub = fake.subscriptions[0]
   const push = (v: { status: 'active' | 'burned'; events: Row[] }) =>

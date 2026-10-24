@@ -1,0 +1,77 @@
+/*
+ * Gossip Window design tokens ("Tea Party" style). One place for colors, type, radii,
+ * spacing, shadows and motion, so other screens can adopt the style later.
+ * Contrast (WCAG AA, measured): ink on surfaces 13.6-14.7:1 and on accents 6.5:1 (coral) to
+ * 11.2:1 (lavender); white on violet 6.25:1; muted ink on card, room and cream 8.3-9:1;
+ * disabled label 7.1:1; danger ink on its tint 7.7:1.
+ */
+:root {
+  /* Surfaces */
+  --gw-color-cream: #fff4d8;
+  --gw-color-card: #fffef8;
+  --gw-color-room: #fffbea;
+
+  /* Ink */
+  --gw-color-ink: #29243d;
+  --gw-color-ink-muted: #4b4560;
+
+  /* Actions */
+  --gw-color-violet: #6941d9;
+  --gw-color-violet-ink: #4a2bb0;
+  --gw-color-on-violet: #ffffff;
+  --gw-color-disabled: #e7e1f7;
+  --gw-color-on-disabled: #4b4560;
+
+  /* Accents (always paired with ink text, never white) */
+  --gw-color-coral: #ff8a7a;
+  --gw-color-pink: #ffb3c4;
+  --gw-color-mint: #8ee3c8;
+  --gw-color-yellow: #ffd166;
+  --gw-color-lavender: #e4dbff;
+  --gw-color-peach: #ffc49b;
+  --gw-color-lilac: #b9a6f5;
+  --gw-color-tea: #e8a54b;
+
+  /* Feedback */
+  --gw-color-danger-ink: #8a1c12;
+  --gw-color-danger-tint: #ffe3e0;
+
+  /* Type */
+  --gw-font-display: 'Fredoka', 'Baloo 2', ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --gw-font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Radii */
+  --gw-radius-sm: 10px;
+  --gw-radius-md: 14px;
+  --gw-radius-lg: 24px;
+  --gw-radius-pill: 999px;
+
+  /* Lines and shadows */
+  --gw-border: 3px solid var(--gw-color-ink);
+  --gw-shadow-card: 6px 6px 0 var(--gw-color-ink);
+  --gw-shadow-button: 0 5px 0 var(--gw-color-ink);
+  --gw-focus-ring: 0 0 0 3px var(--gw-color-card), 0 0 0 6px var(--gw-color-violet);
+
+  /* Spacing */
+  --gw-space-1: 4px;
+  --gw-space-2: 8px;
+  --gw-space-3: 12px;
+  --gw-space-4: 16px;
+  --gw-space-5: 20px;
+  --gw-space-6: 24px;
+  --gw-space-8: 32px;
+  --gw-space-10: 40px;
+  --gw-space-14: 56px;
+
+  /* Layout */
+  --gw-page-max: 1160px;
+  --gw-console-width: 440px;
+  --gw-gutter-mobile: 20px;
+
+  /* Motion */
+  --gw-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --gw-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --gw-dur-press: 90ms;
+  --gw-dur-pop: 260ms;
+  --gw-dur-settle: 460ms;
+}

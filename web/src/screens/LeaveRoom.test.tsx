@@ -87,7 +87,7 @@ describe('Leave in the app', () => {
     render(<App client={first} kind="mock" search="" makeClient={makeClient} />)
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
     fireEvent.click(await screen.findByRole('button', { name: 'Leave' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave room' }))
@@ -112,7 +112,7 @@ describe('Leave in the app', () => {
     render(<App client={first} kind="mock" search="" makeClient={makeClient} />)
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
     await act(async () => vi.advanceTimersByTimeAsync(60_000))
     expect(document.body.textContent).toContain('Kevin')
@@ -123,13 +123,13 @@ describe('Leave in the app', () => {
     expect(dispose).toHaveBeenCalledTimes(1)
     expect(burn).not.toHaveBeenCalled()
     expect(makeClient).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start the party' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
 
     // Joining again starts from an empty room on the fresh client.
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
     expect(await screen.findByRole('button', { name: 'Leave' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
@@ -152,7 +152,7 @@ describe('Leave in the app', () => {
     expect(convex.close).toHaveBeenCalledTimes(1)
     const calledNames = convex.mutation.mock.calls.map((c) => JSON.stringify(c[0]))
     expect(calledNames.some((n) => n.includes('burn'))).toBe(false)
-    expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start the party' })).toBeTruthy()
   })
 })
 
@@ -163,7 +163,7 @@ describe('Join screen after leaving an invite link', () => {
     render(<JoinScreen inviteToken="demo" onJoin={onJoin} onCreate={onCreate} />)
     fireEvent.click(screen.getByRole('button', { name: 'Create a new room instead' }))
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     expect(onCreate).toHaveBeenCalledWith('Leo')
     expect(onJoin).not.toHaveBeenCalled()
   })
