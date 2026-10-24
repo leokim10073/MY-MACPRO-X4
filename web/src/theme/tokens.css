@@ -74,4 +74,24 @@
   --gw-dur-press: 90ms;
   --gw-dur-pop: 260ms;
   --gw-dur-settle: 460ms;
+
+  /*
+   * Semantic roles for the whole flow (Join → room → Last Sip → final screen).
+   * They point at the palette above, so every stage shares one colour source.
+   */
+  --gw-surface-page: var(--gw-color-cream); /* main background of every stage */
+  --gw-surface-raised: var(--gw-color-card); /* boards, cards, dialogs */
+  --gw-surface-secondary: var(--gw-color-lavender); /* catch-up card, quiet panels */
+  --gw-surface-sunken: var(--gw-color-room); /* transcript rows, insets */
+  --gw-text: var(--gw-color-ink);
+  --gw-text-muted: var(--gw-color-ink-muted);
+  --gw-action-primary: var(--gw-color-violet);
+  --gw-action-on-primary: var(--gw-color-on-violet);
+  --gw-accent-last-sip: var(--gw-color-peach); /* the host's Last Sip control and closing strokes */
+  --gw-accent-presence: var(--gw-color-mint); /* who is speaking */
+  --gw-tea-liquid: var(--gw-color-tea); /* the tea in the Last Sip cup */
+  --gw-border-sm: 2px solid var(--gw-color-ink); /* smaller components: chips, inputs, small buttons */
+  --gw-shadow-sm: 3px 3px 0 var(--gw-color-ink); /* small raised controls */
+  --gw-scrim: color-mix(in srgb, var(--gw-color-ink) 32%, transparent); /* behind dialogs */
+  --gw-wash: color-mix(in srgb, var(--gw-color-lavender) 60%, transparent); /* closing wash over the board */
 }

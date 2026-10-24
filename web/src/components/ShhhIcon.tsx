@@ -12,7 +12,7 @@ export default function ShhhIcon({ size, animated = false }: Props) {
       width={size}
       height={size}
       fill="none"
-      stroke="var(--br-ivory)"
+      stroke="var(--gw-color-card)"
       strokeWidth={size > 60 ? 1.6 : 2.4}
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -22,8 +22,8 @@ export default function ShhhIcon({ size, animated = false }: Props) {
       <path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39" />
       <path d="M17 39 Q32 49 47 39" />
       <g className="shhh-finger">
-        <path d="M28 52 V20.5 a4 4 0 0 1 8 0 V52" fill="var(--br-charcoal)" />
-        <path d="M29.4 18.8 a2.8 2.8 0 0 1 5.2 0" stroke="var(--br-ember)" strokeWidth="3" />
+        <path d="M28 52 V20.5 a4 4 0 0 1 8 0 V52" fill="var(--gw-color-ink)" />
+        <path d="M29.4 18.8 a2.8 2.8 0 0 1 5.2 0" stroke="var(--gw-color-coral)" strokeWidth="3" />
       </g>
     </svg>
   )

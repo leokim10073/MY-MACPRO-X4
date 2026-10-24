@@ -1,7 +1,16 @@
+/* The whole flow stays warm and light whatever the OS colour scheme is. */
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+  font-family: var(--gw-font-body);
   line-height: 1.4;
+  color: var(--gw-text);
+  background: var(--gw-surface-page);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--gw-font-display);
 }
 
 * {
@@ -724,17 +733,7 @@ button.primary {
   font-size: 15px;
 }
 
-/* Burning Room */
-:root {
-  --br-charcoal: #111114;
-  --br-ivory: #f5efe7;
-  --br-ember: #ff762e;
-  --br-gold: #ffe6af;
-  --br-red: #ad3527;
-  --br-char: #241c1a;
-  --br-ash: #8d8580;
-}
-
+/* Room ending (Last Sip) and room chrome added by the Burning Room work; colours from theme/tokens.css. */
 .shhh-badge {
   position: relative;
   display: inline-flex;
@@ -747,7 +746,7 @@ button.primary {
   padding: 5px;
   border: 0;
   border-radius: 50%;
-  background: var(--br-charcoal);
+  background: var(--gw-color-ink);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -762,7 +761,7 @@ button.primary {
 }
 
 .shhh-badge-button:focus-visible {
-  outline: 2px solid var(--br-ember);
+  outline: 2px solid var(--gw-color-coral);
   outline-offset: 2px;
 }
 
@@ -775,10 +774,10 @@ button.primary {
   max-width: min(260px, 80vw);
   margin: 6px 0 0;
   padding: 10px 12px;
-  border: 1px solid var(--br-ash);
+  border: 1px solid var(--gw-color-ink-muted);
   border-radius: 12px;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-card);
   font-size: 14px;
   line-height: 1.4;
 }
@@ -814,17 +813,17 @@ button.primary {
   gap: 7px;
   min-height: 44px;
   padding: 0 14px;
-  border: 1px solid var(--br-ember);
+  border: 1px solid var(--gw-color-coral);
   border-radius: 12px;
   /* Charcoal fill like the badge: the gold label then holds contrast on a light or dark room. */
-  background: var(--br-charcoal);
-  color: var(--br-gold);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-yellow);
   font-size: 14px;
   font-weight: 500;
 }
 
 .room-actions .burn svg path {
-  fill: var(--br-ember);
+  fill: var(--gw-color-coral);
 }
 
 .burn-scrim {
@@ -847,8 +846,8 @@ button.primary {
   padding: 24px 20px 26px;
   border-top: 1px solid rgba(255, 118, 46, 0.4);
   border-radius: 22px 22px 0 0;
-  background: var(--br-char);
-  color: var(--br-ivory);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-card);
 }
 
 .burn-sheet h2 {
@@ -880,25 +879,25 @@ button.primary {
 .burn-keep {
   border: 1px solid rgba(245, 239, 231, 0.25);
   background: transparent;
-  color: var(--br-ivory);
+  color: var(--gw-color-card);
 }
 
 .burn-go {
   border: 0;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
+  background: var(--gw-color-coral);
+  color: var(--gw-color-ink);
   font-weight: 600;
 }
 
 .burn-go:disabled {
-  background: var(--br-red);
-  color: var(--br-ivory);
+  background: var(--gw-color-danger-ink);
+  color: var(--gw-color-card);
   cursor: default;
 }
 
 .room-actions .burn:focus-visible,
 .burn-sheet-actions button:focus-visible {
-  outline: 2px solid var(--br-ember);
+  outline: 2px solid var(--gw-color-coral);
   outline-offset: 2px;
 }
 
@@ -913,8 +912,8 @@ button.primary {
   gap: 18px;
   padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
   overflow-y: auto;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-card);
   text-align: center;
 }
 
@@ -937,7 +936,7 @@ button.primary {
 }
 
 .entry-ritual li:first-child {
-  color: var(--br-gold);
+  color: var(--gw-color-yellow);
 }
 
 .entry-ritual-enter {
@@ -946,8 +945,8 @@ button.primary {
   padding: 0 28px;
   border: 0;
   border-radius: 14px;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
+  background: var(--gw-color-coral);
+  color: var(--gw-color-ink);
   font: inherit;
   font-size: 17px;
   font-weight: 600;
@@ -955,7 +954,7 @@ button.primary {
 }
 
 .entry-ritual-enter:focus-visible {
-  outline: 2px solid var(--br-gold);
+  outline: 2px solid var(--gw-color-yellow);
   outline-offset: 3px;
 }
 
@@ -1009,8 +1008,8 @@ button.primary {
 }
 
 .ptt:disabled {
-  background: var(--br-char);
-  color: var(--br-ash);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-ink-muted);
 }
 
 .burn-ignition {
@@ -1042,7 +1041,7 @@ button.primary {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: var(--br-ivory);
+  color: var(--gw-color-card);
   font-size: 17px;
   font-weight: 500;
 }
@@ -1055,7 +1054,7 @@ button.primary {
   height: 6px;
   margin: -3px 0 0 -3px;
   border-radius: 50%;
-  background: var(--br-gold);
+  background: var(--gw-color-yellow);
   box-shadow: 0 0 0 6px rgba(255, 118, 46, 0.22);
 }
 
@@ -1097,8 +1096,8 @@ button.primary {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
+  background: var(--gw-color-ink);
+  color: var(--gw-color-card);
   text-align: center;
 }
 
@@ -1115,7 +1114,7 @@ button.primary {
 .burned-note {
   max-width: 320px;
   margin: 0 0 32px;
-  color: var(--br-ash);
+  color: var(--gw-color-ink-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1139,20 +1138,20 @@ button.primary {
 
 .burned-primary {
   border: 0;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
+  background: var(--gw-color-coral);
+  color: var(--gw-color-ink);
   font-weight: 600;
 }
 
 .burned-secondary {
-  border: 1px solid var(--br-ash);
+  border: 1px solid var(--gw-color-ink-muted);
   background: transparent;
-  color: var(--br-ivory);
+  color: var(--gw-color-card);
 }
 
 .burned-primary:focus-visible,
 .burned-secondary:focus-visible {
-  outline: 3px solid var(--br-gold);
+  outline: 3px solid var(--gw-color-yellow);
   outline-offset: 2px;
 }
 
