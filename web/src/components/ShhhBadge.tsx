@@ -14,7 +14,7 @@ export default function ShhhBadge() {
       >
         <ShhhIcon size={34} />
       </button>
-      {open && <p role="status">This room stays private until the host burns it.</p>}
+      <p role="status">{open ? 'This room stays private until the host burns it.' : ''}</p>
     </span>
   )
 }

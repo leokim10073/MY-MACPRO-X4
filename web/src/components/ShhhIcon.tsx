@@ -18,7 +18,7 @@ export default function ShhhIcon({ size, animated = false }: Props) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle className="shhh-ring" cx="32" cy="32" r="29.5" strokeOpacity="0.5" />
+      <circle className="shhh-ring" cx="32" cy="32" r="30" strokeOpacity="0.5" />
       <path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39" />
       <path d="M17 39 Q32 49 47 39" />
       <g className="shhh-finger">

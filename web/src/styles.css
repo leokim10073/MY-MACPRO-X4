@@ -780,6 +780,13 @@ button.primary {
   justify-content: center;
 }
 
+.shhh-badge p:empty {
+  /* Stays in the accessibility tree (live region) but draws nothing. */
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
 .shhh-badge-button:focus-visible {
   outline: 2px solid var(--br-ember);
   outline-offset: 2px;

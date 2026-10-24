@@ -16,6 +16,7 @@ describe('ShhhBadge', () => {
     const button = screen.getByRole('button', { name: 'About this room' })
     expect(button.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByText(LINE)).toBeNull()
+    expect(screen.getByRole('status').textContent).toBe('')
   })
 
   it('shows the line on one click and hides it on the second', () => {
@@ -26,6 +27,7 @@ describe('ShhhBadge', () => {
     expect(button.getAttribute('aria-expanded')).toBe('true')
     fireEvent.click(button)
     expect(screen.queryByText(LINE)).toBeNull()
+    expect(screen.getByRole('status').textContent).toBe('')
     expect(button.getAttribute('aria-expanded')).toBe('false')
   })
 
