@@ -1,0 +1,28 @@
+{
+  "title": "Kevin the roommate (fictional demo story)",
+  "speakers": ["Alex", "Sam", "Jamie", "Taylor"],
+  "lateJoiner": { "name": "Taylor", "afterLine": 16 },
+  "lines": [
+    { "delayMs": 0, "speakerName": "Alex", "text": "Okay, I have to tell you about Kevin, my old roommate." },
+    { "delayMs": 2500, "speakerName": "Sam", "text": "The guy with the cat?" },
+    { "delayMs": 2500, "speakerName": "Alex", "text": "No, that's Kevin from work. Roommate Kevin. So for my birthday I bought this huge chocolate cake." },
+    { "delayMs": 3500, "speakerName": "Alex", "text": "I go to grab it before the party and the box is empty. He ate the whole thing." },
+    { "delayMs": 2500, "speakerName": "Sam", "text": "NO WAY he ate the entire cake." },
+    { "delayMs": 2000, "speakerName": "Jamie", "text": "Honestly that's kind of impressive." },
+    { "delayMs": 3000, "speakerName": "Alex", "text": "And his excuse was that he thought it was shared fridge food." },
+    { "delayMs": 3500, "speakerName": "Alex", "text": "Then last spring he's flying to Seattle for his sister's wedding." },
+    { "delayMs": 3000, "speakerName": "Alex", "text": "He goes to the Oakland airport. His flight was out of SFO." },
+    { "delayMs": 2000, "speakerName": "Jamie", "text": "How do you even do that?" },
+    { "delayMs": 2000, "speakerName": "Sam", "text": "Did he make it?" },
+    { "delayMs": 2500, "speakerName": "Alex", "text": "He made the reception. Missed the whole ceremony." },
+    { "delayMs": 3500, "speakerName": "Alex", "text": "Oh, and he once got into a full shouting match with our landlord over a parking spot." },
+    { "delayMs": 2000, "speakerName": "Jamie", "text": "Over a parking spot?" },
+    { "delayMs": 2000, "speakerName": "Alex", "text": "He doesn't even own a car." },
+    { "delayMs": 3000, "speakerName": "Sam", "text": "That is the most Kevin thing I've heard, and I only know him from this call." },
+    { "delayMs": 6000, "speakerName": "Alex", "text": "Anyway, he just texted asking if he can come to the reunion." },
+    { "delayMs": 2500, "speakerName": "Jamie", "text": "I'd invite him. He sounds fun." },
+    { "delayMs": 2500, "speakerName": "Sam", "text": "After the cake thing? He's lucky anyone still talks to him." },
+    { "delayMs": 3000, "speakerName": "Alex", "text": "Also he'd definitely show up at the wrong restaurant." },
+    { "delayMs": 3000, "speakerName": "Taylor", "text": "Wait, the whole cake?" }
+  ]
+}

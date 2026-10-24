@@ -1,0 +1,117 @@
+{
+  "roomId": "demo",
+  "members": [
+    { "id": "m_alex", "roomId": "demo", "name": "Alex", "joinedAtSeq": 0, "joinedAt": 0 },
+    { "id": "m_sam", "roomId": "demo", "name": "Sam", "joinedAtSeq": 0, "joinedAt": 0 },
+    { "id": "m_jamie", "roomId": "demo", "name": "Jamie", "joinedAtSeq": 0, "joinedAt": 0 },
+    { "id": "m_taylor", "roomId": "demo", "name": "Taylor", "joinedAtSeq": 16, "joinedAt": 0 }
+  ],
+  "storyState": {
+    "roomId": "demo",
+    "uptoSeq": 21,
+    "people": [
+      {
+        "id": "p_kevin",
+        "roomId": "demo",
+        "name": "Kevin",
+        "aliases": ["Roommate Kevin", "Alex's old roommate"],
+        "storyIds": ["s_cake", "s_airport", "s_landlord"]
+      }
+    ],
+    "stories": [
+      {
+        "id": "s_cake",
+        "roomId": "demo",
+        "personIds": ["p_kevin"],
+        "keyword": "Cake",
+        "summary": "Alex says Kevin ate their entire birthday cake before the party, claiming he thought it was shared fridge food.",
+        "tellerId": "m_alex",
+        "reactions": [
+          { "memberId": "m_sam", "memberName": "Sam", "quote": "NO WAY he ate the entire cake.", "lineId": "l5" },
+          { "memberId": "m_jamie", "memberName": "Jamie", "quote": "Honestly that's kind of impressive.", "lineId": "l6" }
+        ],
+        "speculation": [],
+        "sourceLineIds": ["l3", "l4", "l7"],
+        "firstSeq": 3,
+        "lastSeq": 7
+      },
+      {
+        "id": "s_airport",
+        "roomId": "demo",
+        "personIds": ["p_kevin"],
+        "keyword": "Airport",
+        "summary": "Alex says Kevin went to the Oakland airport for a flight that left from SFO, so he missed his sister's wedding ceremony and only made the reception.",
+        "tellerId": "m_alex",
+        "reactions": [
+          { "memberId": "m_jamie", "memberName": "Jamie", "quote": "How do you even do that?", "lineId": "l10" }
+        ],
+        "speculation": [],
+        "sourceLineIds": ["l8", "l9", "l12"],
+        "firstSeq": 8,
+        "lastSeq": 12
+      },
+      {
+        "id": "s_landlord",
+        "roomId": "demo",
+        "personIds": ["p_kevin"],
+        "keyword": "Landlord",
+        "summary": "Alex says Kevin got into a shouting match with their landlord over a parking spot, even though he doesn't own a car.",
+        "tellerId": "m_alex",
+        "reactions": [
+          { "memberId": "m_jamie", "memberName": "Jamie", "quote": "Over a parking spot?", "lineId": "l14" },
+          { "memberId": "m_sam", "memberName": "Sam", "quote": "That is the most Kevin thing I've heard, and I only know him from this call.", "lineId": "l16" }
+        ],
+        "speculation": [],
+        "sourceLineIds": ["l13", "l15"],
+        "firstSeq": 13,
+        "lastSeq": 16
+      }
+    ],
+    "currentTopic": "Whether to invite Kevin to the reunion: Jamie says yes, Sam brings up the cake.",
+    "openQuestions": [
+      { "text": "Should Kevin come to the reunion?", "lineIds": ["l17", "l18", "l19"] }
+    ],
+    "updatedAt": 0
+  },
+  "recalls": [
+    {
+      "id": "r1",
+      "roomId": "demo",
+      "lineId": "l17",
+      "seq": 17,
+      "personId": "p_kevin",
+      "storyIds": ["s_cake", "s_airport", "s_landlord"],
+      "matchedText": "he just texted",
+      "confidence": 0.85
+    },
+    {
+      "id": "r2",
+      "roomId": "demo",
+      "lineId": "l19",
+      "seq": 19,
+      "personId": "p_kevin",
+      "storyIds": ["s_cake", "s_airport", "s_landlord"],
+      "focusStoryId": "s_cake",
+      "matchedText": "the cake thing",
+      "confidence": 0.95
+    },
+    {
+      "id": "r3",
+      "roomId": "demo",
+      "lineId": "l20",
+      "seq": 20,
+      "personId": "p_kevin",
+      "storyIds": ["s_cake", "s_airport", "s_landlord"],
+      "focusStoryId": "s_airport",
+      "matchedText": "show up at the wrong restaurant",
+      "confidence": 0.75
+    }
+  ],
+  "recap": {
+    "id": "recap_16",
+    "roomId": "demo",
+    "uptoSeq": 16,
+    "text": "Alex has been telling stories about Kevin, their old roommate. Kevin ate Alex's entire birthday cake, went to the wrong airport and missed his sister's wedding, and fought the landlord over a parking spot he doesn't need. Sam can't believe it. Jamie is weirdly impressed.",
+    "createdAt": 0
+  }
+}

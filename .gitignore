@@ -1,0 +1,24 @@
+# Secrets: API keys live in .env files that never go in git
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+.next/
+.vercel/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/
