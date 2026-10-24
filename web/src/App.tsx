@@ -41,5 +41,5 @@ export default function App({ client, search = window.location.search }: Props) 
     roomClient instanceof ConvexRoomClient && room
       ? `${window.location.origin}${window.location.pathname}?room=${room.inviteToken}`
       : undefined
-  return <RoomScreen state={state} self={self} room={room!} onBurn={() => void burn()} inviteUrl={inviteUrl} />
+  return <RoomScreen state={state} self={self} room={room!} onBurn={() => void burn()} inviteUrl={inviteUrl} voice={roomClient.voice} />
 }

@@ -6,12 +6,12 @@ import { anyApi } from 'convex/server'
 import type { api as backendApi } from '../../../../backend/convex/_generated/api'
 import type { Id as ConvexId } from '../../../../backend/convex/_generated/dataModel'
 import type { RoomEvent } from '../../../../shared/schema'
-import type { JoinResult, RoomClient } from '../RoomClient'
+import type { JoinResult, RoomClient, VoiceTransport } from '../RoomClient'
 
 // Typed references without bundling the backend's generated JS into the web app.
 const api = anyApi as unknown as typeof backendApi
 
-type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'close'>
+type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'action' | 'close'>
 interface Joined extends Omit<JoinResult, 'self'> {
   member: JoinResult['self']
   sessionToken: string
@@ -49,6 +49,13 @@ export class ConvexRoomClient implements RoomClient {
     return this.start(await this.convex.mutation(api.rooms.join, { inviteToken, name }))
   }
 
+  readonly voice: VoiceTransport = {
+    addLine: async (text, at) => {
+      await this.convex.mutation(api.lines.add, { sessionToken: this.requireSession().sessionToken, text, at })
+    },
+    sttToken: () => this.convex.action(api.voice.sttToken, { sessionToken: this.requireSession().sessionToken }),
+  }
+
   /** The event log reports the burn back, which ends the room on this phone and every other one. */
   async burn(): Promise<void> {
     if (!this.session) return
@@ -76,6 +83,11 @@ export class ConvexRoomClient implements RoomClient {
       (error) => console.error('Room event subscription failed', error),
     )
     return { room: joined.room, self: joined.member }
+  }
+
+  private requireSession() {
+    if (!this.session) throw new Error('ConvexRoomClient: not in a room')
+    return this.session
   }
 
   private apply(log: EventLog): void {

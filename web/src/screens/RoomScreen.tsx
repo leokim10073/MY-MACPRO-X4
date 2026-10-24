@@ -9,7 +9,9 @@ import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
+import type { VoiceTransport } from '../room/RoomClient'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
+import { useVoice } from '../voice/useVoice'
 
 interface Props {
   state: RoomState
@@ -18,11 +20,12 @@ interface Props {
   onBurn: () => void
   /** Shown to the host so friends can join. Only set when running against the real backend. */
   inviteUrl?: string
+  /** Push-to-talk to the backend. Absent on the mock, where the button only animates. */
+  voice?: VoiceTransport
 }
 
-export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Props) {
-  // Phase 1: only tracked; the voice owner wires the mic to this later.
-  const [, setTalking] = useState(false)
+export default function RoomScreen({ state, self, room, onBurn, inviteUrl, voice: transport }: Props) {
+  const voice = useVoice(transport, room, self, state)
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
@@ -33,7 +36,7 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Pro
     <main className="room">
       <header className="room-header">
         <h1>Gossip Window</h1>
-        <ListeningIndicator />
+        <ListeningIndicator micLive={voice?.state.isListening} />
         {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
       </header>
       {inviteUrl && room.hostMemberId === self.id && (
@@ -80,9 +83,22 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Pro
           )}
         </div>
         <div className="room-talk">
-          <PushToTalkButton onPressChange={setTalking} />
+          {voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
+          {voice?.state.error && (
+            <p role="alert" className="talk-error">
+              {voice.state.error}
+            </p>
+          )}
+          {voice?.state.failed.map((f, i) => (
+            <button key={i} type="button" className="talk-retry" onClick={f.retry}>
+              Not sent: “{f.line.text}” · tap to retry
+            </button>
+          ))}
+          <PushToTalkButton onPressChange={voice?.press ?? noop} />
         </div>
       </div>
     </main>
   )
 }
+
+function noop() {}

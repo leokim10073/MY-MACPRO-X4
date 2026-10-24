@@ -41,6 +41,10 @@ function fakeConvex() {
         sub.stopped = true
       }
     }),
+    action: vi.fn(async (ref: unknown, args: unknown) => {
+      calls.push({ name: getFunctionName(ref as never), args })
+      return { token: 'stt', expiresAt: 99 }
+    }),
     close: vi.fn(async () => {}),
   }
   return { convex, calls, subscriptions }
@@ -128,6 +132,18 @@ describe('ConvexRoomClient', () => {
     expect(states[2].members).toEqual([alex])
     expect(states[2].lines.map((l) => l.text)).toEqual(['line 1'])
     expect(states[3]).toEqual({ ...initialRoomState, status: 'burned' })
+  })
+
+  it('voice adds lines and fetches speech-to-text tokens with the session', async () => {
+    const { client, calls } = setup()
+    await expect(client.voice.addLine('hi', 1)).rejects.toThrow('not in a room')
+    await client.createRoom('Alex')
+    await client.voice.addLine('Kevin ate my cake', 42)
+    expect(await client.voice.sttToken()).toEqual({ token: 'stt', expiresAt: 99 })
+    expect(calls.slice(-2)).toEqual([
+      { name: 'lines:add', args: { sessionToken: 'secret', text: 'Kevin ate my cake', at: 42 } },
+      { name: 'voice:sttToken', args: { sessionToken: 'secret' } },
+    ])
   })
 
   it('dispose stops the subscription and closes the connection', async () => {

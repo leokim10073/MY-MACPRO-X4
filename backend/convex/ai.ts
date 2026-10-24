@@ -24,6 +24,7 @@ import {
   toStoryState,
 } from "./lib";
 import { openQuestion, person, story } from "./schema";
+import { narrateRecap } from "./voice";
 
 const newRecall = v.object({
   personId: v.string(),
@@ -212,8 +213,9 @@ export const writeRecap = internalAction({
         console.error("AI recap failed, using the placeholder", error);
       }
     }
-    // TODO(voice): turn `text` into audio with Cartesia Sonic and patch audioUrl.
-    await ctx.runMutation(internal.ai.saveRecap, { memberId, uptoSeq: input.uptoSeq, text });
+    const recapId = await ctx.runMutation(internal.ai.saveRecap, { memberId, uptoSeq: input.uptoSeq, text });
+    // The text goes out first so the phone can show it while the audio is made.
+    if (recapId) await narrateRecap(ctx, recapId, text);
   },
 });
 
@@ -241,9 +243,10 @@ export const saveRecap = internalMutation({
   args: { memberId: v.id("members"), uptoSeq: v.number(), text: v.string() },
   handler: async (ctx, { memberId, uptoSeq, text }) => {
     const member = await ctx.db.get(memberId);
-    if (!member || (await isRoomClosed(ctx, member.roomId))) return;
+    if (!member || (await isRoomClosed(ctx, member.roomId))) return null;
     const id = await ctx.db.insert("recaps", { roomId: member.roomId, memberId, uptoSeq, text });
     await appendEvent(ctx, member.roomId, { type: "recap_ready", recap: toRecap((await ctx.db.get(id))!) });
+    return id;
   },
 });
 

@@ -23,6 +23,9 @@ npm-debug.log*
 .vscode/
 .idea/
 
+# Python virtual environments
+.venv/
+
 # Graphify output
 graphify-out/
 
