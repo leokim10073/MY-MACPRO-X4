@@ -7,9 +7,12 @@ import RecapBanner from '../components/RecapBanner'
 import Transcript from '../components/Transcript'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
+import RoomStage from '../components/RoomStage'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
+import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
+import { latestLine } from '../room/derived'
 
 interface Props {
   state: RoomState
@@ -18,9 +21,11 @@ interface Props {
   onBurn: () => void
   /** Shown to the host so friends can join. Only set when running against the real backend. */
   inviteUrl?: string
+  /** A real "who is speaking" signal (e.g. push-to-talk). Without it, the speaker of each new line is shown. */
+  speaking?: SpeakingSignal
 }
 
-export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Props) {
+export default function RoomScreen({ state, self, room, onBurn, inviteUrl, speaking }: Props) {
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
@@ -28,6 +33,12 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Pro
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
   const openStory = openStoryId ? storiesById(state).get(openStoryId) : undefined
+  const lineSpeaking = useLineSpeaking(state.lines, self.joinedAtSeq)
+  const { speakerId } = speaking ?? lineSpeaking
+  const newest = latestLine(state)
+  const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
+  const nameOf = (id: string) =>
+    state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
 
   return (
     <main className="room">
@@ -52,6 +63,13 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Pro
           />
         )}
       </div>
+      <RoomStage
+        members={state.members}
+        self={self}
+        speaker={speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
+        lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
+        compact={!!openStory}
+      />
       <div className="room-transcript">
         <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
       </div>

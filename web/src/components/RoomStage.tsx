@@ -49,23 +49,24 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
         </div>
       )}
       <div className="stage-row">
-        <ul className="stage-avatars" aria-label="People in the room">
+        <div className="stage-avatars" role="group" aria-label="People in the room">
           {ordered.map((m) => {
             const me = isMe(m, self)
             const talking = m.id === speaker?.id
             const label = `${m.name}${me ? ' (you)' : ''}${talking ? ', speaking' : ''}`
             return (
-              <li
+              <span
                 key={m.id}
+                role="img"
                 aria-label={label}
                 className={['avatar', me && 'me', talking && 'speaking'].filter(Boolean).join(' ')}
               >
                 <span aria-hidden="true">{initials(m.name)}</span>
                 {me && <span className="avatar-you" aria-hidden="true">You</span>}
-              </li>
+              </span>
             )
           })}
-        </ul>
+        </div>
         {/* Shown in compact mode, and by CSS on short screens where the big tile is hidden. */}
         <span className="stage-count">{count} here</span>
       </div>

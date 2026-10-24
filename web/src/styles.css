@@ -511,7 +511,6 @@ button.primary {
   gap: 8px;
   margin: 0;
   padding: 3px 3px 8px;
-  list-style: none;
   overflow-x: auto;
   flex: 1;
   min-width: 0;

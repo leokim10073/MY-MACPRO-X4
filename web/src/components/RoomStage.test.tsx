@@ -60,9 +60,9 @@ describe('RoomStage', () => {
   it('puts every member in one scrollable row, speaker first then me', () => {
     const many = Array.from({ length: 12 }, (_, i) => member(`m${i}`, `Person ${i}`))
     render(<RoomStage members={[...many, leo]} self={leo} speaker={{ id: 'm5', name: 'Person 5' }} lastSpeaker={null} />)
-    const row = screen.getByRole('list', { name: 'People in the room' })
+    const row = screen.getByRole('group', { name: 'People in the room' })
     expect(row.className).toContain('stage-avatars')
-    const labels = Array.from(row.querySelectorAll('li')).map((li) => li.getAttribute('aria-label'))
+    const labels = Array.from(row.querySelectorAll('[role="img"]')).map((el) => el.getAttribute('aria-label'))
     expect(labels).toHaveLength(13)
     expect(labels[0]).toBe('Person 5, speaking')
     expect(labels[1]).toBe('Leo (you)')
