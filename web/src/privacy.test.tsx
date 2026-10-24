@@ -1,6 +1,9 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { fixtureLines } from './room/testFixtures'
+
+const line21 = () => fixtureLines()[20].text
 
 afterEach(() => {
   cleanup()
@@ -36,6 +39,7 @@ describe('storage guard', () => {
     const { setItem, open } = spies()
     render(<App search="?room=demo&speed=1000" />)
     await enter('Join room')
+    expect(document.body.textContent).toContain(line21())
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })
@@ -45,6 +49,7 @@ describe('storage guard', () => {
     const { setItem, open } = spies()
     render(<App search="?speed=1000" />)
     await enter('Create room')
+    expect(document.body.textContent).toContain(line21())
     fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Tap again to burn' }))

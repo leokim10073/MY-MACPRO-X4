@@ -21,6 +21,8 @@ describe('roomReducer', () => {
     const newer = fold([snapshot(21), snapshot(16)])
     expect(newer.storyState?.uptoSeq).toBe(21)
     expect(fold([snapshot(21), snapshot(21)]).storyState).toEqual(newer.storyState)
+    expect(roomReducer(newer, snapshot(21))).toBe(newer)
+    expect(roomReducer(newer, snapshot(16))).toBe(newer)
   })
 
   it('deduplicates and sorts lines', () => {

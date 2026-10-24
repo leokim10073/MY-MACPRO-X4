@@ -97,6 +97,7 @@ describe('Burned screen', () => {
     )!
     fireEvent.click(chip)
     expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(document.body.textContent).toContain('Kevin')
     await act(async () => {
       listener({ type: 'room_burned', roomId: 'demo' })
     })

@@ -114,7 +114,7 @@ describe('popupReducer', () => {
   })
 
   it('a recall whose stories are all known but not missed is dropped, not pending', () => {
-    const none = { ...ctx, self: { ...taylor, joinedAtSeq: 99 } }
+    const none = { ...ctx, self: alex }
     expect(run([recallAt(r1, 0)], none)).toEqual(initialPopupState)
   })
 
