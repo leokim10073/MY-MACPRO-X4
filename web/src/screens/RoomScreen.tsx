@@ -3,7 +3,8 @@ import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
 import BurnIgnition from '../components/BurnIgnition'
 import EntryRitual from '../components/EntryRitual'
-import ShhhIcon from '../components/ShhhIcon'
+import LastSipCup from '../components/art/LastSipCup'
+import WindowLogo from '../components/art/WindowLogo'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
@@ -148,27 +149,35 @@ export default function RoomScreen({
     <>
       <main className="room" aria-hidden={entered ? undefined : true} inert={!entered}>
         <header className="room-header">
-          <ShhhBadge />
-          <h1>Gossip Window</h1>
-          {!isClosing && <ListeningIndicator micLive={voice?.state.isListening} />}
-          {(isHost || onLeave) && (
-            <div className="room-actions">
-              {isHost && !isClosing && (
-                <button type="button" className="burn" ref={burnControl} onClick={() => setConfirmBurn(true)}>
-                  <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
-                    <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
-                  </svg>
-                  Burn room…
-                </button>
-              )}
-              {isHost && !isClosing && onLeave && <span className="actions-divider" aria-hidden="true" />}
-              {onLeave && (
-                <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
-                  Leave
-                </button>
-              )}
+          <div className="room-header-top">
+            <div className="room-brand">
+              <WindowLogo size={34} />
+              <h1>Gossip Window</h1>
             </div>
-          )}
+            {onLeave && (
+              <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
+                Leave
+              </button>
+            )}
+          </div>
+          <div className="room-header-sub">
+            <span className="room-count gw-chip">{state.members.length} here</span>
+            {!isClosing && <ListeningIndicator micLive={voice?.state.isListening} />}
+            {isHost ? (
+              !isClosing && (
+                <div className="room-actions">
+                  <button type="button" className="burn" ref={burnControl} onClick={() => setConfirmBurn(true)}>
+                    <svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true">
+                      <path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" />
+                    </svg>
+                    Burn room…
+                  </button>
+                </div>
+              )
+            ) : (
+              <ShhhBadge />
+            )}
+          </div>
         </header>
         <ConnectionBanner status={connection} onRejoin={onRejoin} />
         {error && (
@@ -282,7 +291,7 @@ export default function RoomScreen({
       {!entered && <EntryRitual onEnter={onEnter} />}
       {entered && ritualSeen && !exitDone && closing === null && (
         <div className="entry-ritual-exit" aria-hidden="true" onAnimationEnd={() => setExitDone(true)}>
-          <ShhhIcon size={96} />
+          <LastSipCup size={96} mood="waiting" />
         </div>
       )}
     </>

@@ -1,5 +1,6 @@
 import type { Id, Member } from '../../../shared/schema'
-import { initials, isMe, orderMembersForStage } from '../room/derived'
+import { isMe, orderMembersForStage } from '../room/derived'
+import Avatar, { AVATAR_CHOICES } from './art/Avatar'
 
 interface Speaker {
   id: Id
@@ -17,6 +18,14 @@ interface Props {
   compact?: boolean
 }
 
+// The avatar chosen on Join isn't reachable here (it lives only in JoinScreen state), so each person gets a
+// stable illustrated look picked from their id. Presentational only.
+function lookFor(id: string) {
+  let h = 0
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return AVATAR_CHOICES[h % AVATAR_CHOICES.length]
+}
+
 // Instagram Live-style stage: a big tile for whoever is speaking, then a row of everyone.
 export default function RoomStage({ members, self, speaker, lastSpeaker, compact = false }: Props) {
   const ordered = orderMembersForStage(members, self, speaker?.id ?? null)
@@ -28,7 +37,7 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
       {!compact && (
         <div className={speaker ? 'stage-speaker' : 'stage-speaker quiet'} data-testid="stage-speaker">
           <div className="stage-big-avatar" aria-hidden="true">
-            {shown ? initials(shown.name) : '·'}
+            {shown ? <Avatar look={lookFor(shown.id)} size={48} /> : <span className="stage-empty-seat" />}
           </div>
           <div className="stage-speaker-text">
             {shown ? (
@@ -61,7 +70,7 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
                 aria-label={label}
                 className={['avatar', me && 'me', talking && 'speaking'].filter(Boolean).join(' ')}
               >
-                <span aria-hidden="true">{initials(m.name)}</span>
+                <Avatar look={lookFor(m.id)} size={34} />
                 {me && <span className="avatar-you" aria-hidden="true">You</span>}
               </span>
             )

@@ -7,7 +7,7 @@ export default function ListeningIndicator({ micLive = false }: Props) {
   return (
     <div className={micLive ? 'listening listening-live' : 'listening'} role="status">
       <span className="listening-dot" aria-hidden="true" />
-      <span>{micLive ? 'Listening · mic on' : 'Listening'}</span>
+      <span>{micLive ? "You're speaking." : 'Listening'}</span>
     </div>
   )
 }

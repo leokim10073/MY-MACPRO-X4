@@ -178,7 +178,7 @@ describe('Burn flow in the app', () => {
 
     emit({ type: 'room_burned', roomId: 'demo' })
     expect(screen.queryByRole('button', { name: 'Enter room' })).toBeNull()
-    expect(screen.queryByText('Shhh. Keep it in the room.')).toBeNull()
+    expect(screen.queryByText("Your seat's ready.")).toBeNull()
     expectClosingOverFrozenRoom(true)
     await advance(2900)
     expectCleanSlate()

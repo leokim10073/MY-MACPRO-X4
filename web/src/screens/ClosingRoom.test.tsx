@@ -103,9 +103,9 @@ describe('closing room', () => {
     const live = { status: 'talking', isListening: true, preview: '', sending: 0, failed: [], error: null } as const
     vi.spyOn(useVoiceModule, 'useVoice').mockReturnValue({ state: live, press: () => {} })
     const { rerender } = render(view(base))
-    expect(screen.getByText('Listening · mic on')).toBeTruthy()
+    expect(screen.getByText("You're speaking.")).toBeTruthy()
     rerender(view(base, ignite))
-    expect(screen.queryByText('Listening · mic on')).toBeNull()
+    expect(screen.queryByText("You're speaking.")).toBeNull()
     expect(screen.queryByText('Listening')).toBeNull()
     expect(document.querySelector('.listening-dot')).toBeNull()
   })

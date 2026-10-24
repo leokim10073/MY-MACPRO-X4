@@ -1,20 +1,31 @@
 import { useState } from 'react'
-import ShhhIcon from './ShhhIcon'
+import LastSipCup from './art/LastSipCup'
 
+/** The non-host's "Host ends room" chip; tapping it explains who can end the room. */
 export default function ShhhBadge() {
   const [open, setOpen] = useState(false)
   return (
     <span className="shhh-badge">
       <button
         type="button"
-        className="shhh-badge-button"
+        className="shhh-badge-button gw-chip"
         aria-label="About this room"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
       >
-        <ShhhIcon size={34} />
+        <LastSipCup size={22} mood="waiting" />
+        Host ends room
       </button>
-      <p role="status">{open ? 'This room stays private until the host burns it.' : ''}</p>
+      <p role="status">
+        {open ? (
+          <>
+            <strong>The host calls the last sip.</strong> They can end this room and delete its conversation for
+            everyone.
+          </>
+        ) : (
+          ''
+        )}
+      </p>
     </span>
   )
 }
