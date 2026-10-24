@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { TranscriptLine } from '../../../shared/schema'
 
 interface Props {
@@ -17,6 +17,16 @@ export default function Transcript({ lines, fromSeq }: Props) {
     const el = ref.current
     if (el && stick.current) el.scrollTop = el.scrollHeight
   }, [visible.length])
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => {
+      if (stick.current) el.scrollTop = el.scrollHeight
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   function onScroll() {
     const el = ref.current

@@ -21,6 +21,7 @@ interface Props {
 export default function RoomScreen({ state, self, room, onBurn }: Props) {
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
+  const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
@@ -39,6 +40,8 @@ export default function RoomScreen({ state, self, room, onBurn }: Props) {
             recap={recapFor(state, self)}
             isLatecomer={self.joinedAtSeq > 0}
             onDismiss={() => setRecapDismissed(true)}
+            collapsed={!!openStory && peekedFor !== openStory.id}
+            onExpand={() => openStory && setPeekedFor(openStory.id)}
           />
         )}
       </div>

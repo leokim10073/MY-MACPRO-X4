@@ -83,4 +83,17 @@ describe('RoomScreen', () => {
     )
     expect(screen.queryByRole('region', { name: 'Catch-up' })).toBeNull()
   })
+
+  it('collapses the recap banner while a story card is open', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const taylor = state.members.find((m) => m.id === 'm_taylor')!
+    const recap = state.recaps.find((r) => r.uptoSeq === taylor.joinedAtSeq)!
+    render(<RoomScreen state={state} self={taylor} room={room} onBurn={() => {}} />)
+    expect(screen.getByText(recap.text)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
+    expect(screen.queryByText(recap.text)).toBeNull()
+    const toggle = screen.getByRole('button', { name: /Catch-up \(tap to show\)/ })
+    fireEvent.click(toggle)
+    expect(screen.getByText(recap.text)).toBeTruthy()
+  })
 })
