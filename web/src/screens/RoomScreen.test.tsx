@@ -61,4 +61,22 @@ describe('RoomScreen', () => {
     )
     expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
   })
+
+  it('shows the recap for a latecomer and none for an on-time member', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const taylor = state.members.find((m) => m.id === 'm_taylor')!
+    const recap = state.recaps.find((r) => r.uptoSeq === taylor.joinedAtSeq)!
+    const { unmount } = render(<RoomScreen state={state} self={taylor} room={room} />)
+    expect(screen.getByRole('region', { name: 'Catch-up' })).toBeTruthy()
+    expect(screen.getByText(recap.text)).toBeTruthy()
+    unmount()
+    render(
+      <RoomScreen
+        state={state}
+        self={{ ...taylor, id: 'm_alex', joinedAtSeq: 0 }}
+        room={room}
+      />,
+    )
+    expect(screen.queryByRole('region', { name: 'Catch-up' })).toBeNull()
+  })
 })

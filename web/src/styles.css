@@ -184,3 +184,52 @@ button.primary {
 .ptt[aria-pressed='true'] {
   background: #e03131;
 }
+
+/* Recap banner: compact, scrolls internally, never covers the dock */
+.room-banner {
+  flex: none;
+  max-height: 40dvh;
+  overflow-y: auto;
+}
+
+.recap-banner {
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.recap-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recap-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.recap-text {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+.recap-loading {
+  animation: recap-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes recap-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recap-loading {
+    animation: none;
+  }
+}
