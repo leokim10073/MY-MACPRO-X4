@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Stage 2 spike</title>
+    <!-- THROWAWAY spike for voice/stage2-options.md section 7 (T1–T5). Not production UI. -->
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { margin: 0; padding: 16px; max-width: 720px; margin-inline: auto; }
+      h1 { font-size: 1.2rem; margin: 0 0 4px; }
+      h2 { font-size: 1rem; margin: 16px 0 6px; }
+      .muted { opacity: 0.7; font-size: 0.85rem; }
+      .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+      input, button, select { font: inherit; padding: 6px 10px; }
+      input[type='range'] { flex: 1; min-width: 120px; padding: 0; }
+      label { display: inline-flex; gap: 6px; align-items: center; }
+      .notice { border: 1px solid #f59e0b; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; }
+      .error { color: #dc2626; }
+      .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      @media (max-width: 560px) { .lanes { grid-template-columns: 1fr; } }
+      .lane { border: 1px solid #8884; border-radius: 8px; padding: 8px; min-width: 0; }
+      .lane h3 { font-size: 0.95rem; margin: 0 0 4px; }
+      .meter { height: 10px; background: #8882; border-radius: 5px; position: relative; overflow: hidden; }
+      .meter .level { position: absolute; inset: 0 auto 0 0; background: #16a34a; width: 0; }
+      .meter .gate { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; }
+      .lane.gated .meter .level { background: #9ca3af; }
+      .stats { font: 0.75rem ui-monospace, monospace; white-space: pre-wrap; margin: 4px 0; }
+      .preview { min-height: 1.4em; font-style: italic; font-size: 0.9rem; }
+      .lane ol { margin: 0; padding-left: 20px; font-size: 0.9rem; max-height: 30vh; overflow-y: auto; }
+      #people span { padding: 2px 8px; border-radius: 999px; background: #8882; font-size: 0.85rem; }
+      #people span.speaking { background: #16a34a; color: white; }
+      #log { font: 0.72rem ui-monospace, monospace; white-space: pre-wrap; max-height: 35vh; overflow-y: auto; background: #8881; padding: 8px; border-radius: 8px; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <h1>Stage 2 spike: open mic + BVC</h1>
+    <p class="muted">Throwaway test page for T1–T5 in voice/stage2-options.md. Audio goes to LiveKit and Cartesia only and is never saved. Transcripts stay on this page until you leave.</p>
+
+    <section id="setup">
+      <div class="row"><label>Name <input id="name" autocomplete="off" required /></label></div>
+      <div class="row">
+        <label><input type="checkbox" id="bvc" checked /> Background voice cancellation (BVC)</label>
+        <label>Quality
+          <select id="quality"><option>low</option><option selected>medium</option><option>high</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Attach Krisp
+          <select id="order"><option value="after" selected>after publishing</option><option value="before">before publishing</option></select>
+        </label>
+        <label><input type="checkbox" id="compare" checked /> Also transcribe the raw mic (comparison lane)</label>
+      </div>
+      <div class="row">
+        <label>STT token lifetime (s) <input id="ttl" type="number" min="10" max="3600" value="60" style="width: 6em" /></label>
+        <label><input type="checkbox" id="reconnect" checked /> Reconnect Ink automatically</label>
+      </div>
+      <div class="row"><button id="join">Join call</button><span id="join-error" class="error"></span></div>
+    </section>
+
+    <section id="call" hidden>
+      <p class="notice">Keep this screen on. iOS stops the mic when the screen locks or you switch apps. <span id="wake"></span></p>
+      <div class="row">
+        <button id="leave">Leave</button>
+        <button id="resume" hidden>Tap to resume audio</button>
+        <button id="copy">Copy log</button>
+        <span id="people"></span>
+      </div>
+
+      <h2>Filters (apply live)</h2>
+      <div class="row">
+        <label for="gate">Loudness gate</label>
+        <input id="gate" type="range" min="-90" max="-20" step="1" value="-55" />
+        <span id="gate-value"></span>
+        <button id="calibrate">Calibrate (talk 4 s)</button>
+      </div>
+      <div class="row">
+        <label for="start">turn_start_threshold</label>
+        <input id="start" type="range" min="0.65" max="0.9" step="0.01" value="0.8" />
+        <span id="start-value"></span>
+      </div>
+
+      <div class="lanes" id="lanes"></div>
+      <div id="remote" hidden></div>
+    </section>
+
+    <h2>Log</h2>
+    <div id="log"></div>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

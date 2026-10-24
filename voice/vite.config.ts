@@ -2,13 +2,16 @@
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { defineConfig, loadEnv } from 'vite'
 import { voiceDevApi } from './devApi'
+// THROWAWAY: stage 2 spike (voice/spike). Remove this import and the plugin below with the folder.
+import { spikeApi } from './spike/spikeApi'
 
 export default defineConfig(({ mode }) => {
   // Read server-side only; no VITE_ prefix, so the key is never bundled into the page.
   const env = loadEnv(mode, process.cwd(), '')
   return {
     // HTTPS so phones on the same Wi-Fi are allowed to use the microphone.
-    plugins: [basicSsl(), voiceDevApi(env.CARTESIA_API_KEY)],
+    // spikeApi goes first: its /api/spike routes would otherwise be caught by voiceDevApi's /api.
+    plugins: [basicSsl(), spikeApi(env), voiceDevApi(env.CARTESIA_API_KEY)],
     server: {
       host: true,
       port: 5174,
