@@ -194,6 +194,8 @@ export interface Recap {
 
 export type RoomEvent =
   | { type: "member_joined"; member: Member }
+  /** Someone tapped Leave. They drop out of the people count; their lines stay. */
+  | { type: "member_left"; memberId: Id }
   | { type: "line_added"; line: TranscriptLine }
   | { type: "story_state_updated"; storyState: StoryState }
   | { type: "recall"; recall: Recall }

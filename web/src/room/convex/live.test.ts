@@ -79,7 +79,8 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     await raw.mutation(api.rooms.burn, { roomId: host.room.id, sessionToken: host.sessionToken })
     await waitFor(events, (es) => es.some((e) => e.type === 'room_burned'))
     expect(events.reduce(roomReducer, initialRoomState)).toEqual({ ...initialRoomState, status: 'burned' })
-  })
+    // The recap is written by the real AI, which can take longer than Vitest's default 5 s.
+  }, 20_000)
 
   it('push-to-talk lines and speech-to-text tokens go through the backend', async () => {
     const phone = new ConvexRoomClient(url!)

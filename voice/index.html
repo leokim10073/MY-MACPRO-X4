@@ -27,6 +27,12 @@
       #transcript b { margin-right: 6px; }
       .error { color: #dc2626; }
       .preview { min-height: 1.4em; font-style: italic; }
+      #people { list-style: none; padding: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+      #people li { padding: 4px 10px; border-radius: 999px; background: #8882; }
+      #people li.speaking { outline: 2px solid #16a34a; }
+      #call-live { list-style: none; padding: 0; margin: 0; font-style: italic; }
+      #call-live li { padding: 4px 0; }
+      #call-live b { font-style: normal; margin-right: 6px; }
       [hidden] { display: none !important; }
     </style>
   </head>
@@ -58,7 +64,36 @@
       <p class="error" id="error"></p>
       <ul id="failed"></ul>
 
+      <div class="row" role="radiogroup" aria-label="Mode">
+        <label><input type="radio" name="mode" value="ptt" checked /> Push-to-talk</label>
+        <label><input type="radio" name="mode" value="call" /> Call</label>
+      </div>
+
       <button class="ptt" id="ptt" type="button" aria-pressed="false">Hold to talk</button>
+
+      <section id="call" hidden>
+        <div class="row">
+          <button type="button" id="join-call">Join call</button>
+          <button type="button" id="leave-call" hidden>Leave</button>
+          <button type="button" id="mute" hidden aria-pressed="false">Mute</button>
+          <span class="badge" id="call-sending" title="Audio actually going to Ink"><span class="dot"></span>Transcribing</span>
+          <span class="muted" id="call-status"></span>
+        </div>
+        <p class="notice" id="keep-on" hidden>Keep this screen on during the call. Locking it or switching apps can pause your mic.</p>
+        <button type="button" id="tap-resume" hidden>Tap to resume audio</button>
+        <ul id="people"></ul>
+        <ul id="call-live" title="What friends are saying right now"></ul>
+        <p class="preview" id="call-preview"></p>
+        <p class="error" id="call-error"></p>
+        <ul id="call-failed"></ul>
+        <p class="muted" id="call-noise"></p>
+        <p class="muted" id="call-gate"></p>
+        <label class="row muted">
+          Turn start threshold
+          <input type="range" id="start-threshold" min="0.65" max="0.9" step="0.05" value="0.8" />
+          <span id="start-threshold-value">0.80</span>
+        </label>
+      </section>
 
       <details>
         <summary>Recap audio test</summary>

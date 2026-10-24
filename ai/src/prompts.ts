@@ -33,13 +33,13 @@ export function formatState(state: StoryState): string {
   );
 }
 
-export const RECALL_SYSTEM = `You watch a live conversation among friends and spot recalls: a new line that points back to \
-someone (not in the room) whose stories were already told, so a latecomer would need a reminder of who they are.
+export const RECALL_SYSTEM = `You watch a live conversation among friends and spot recalls: a new line that mentions \
+someone (not in the room) whose stories have already come up, so a latecomer would need a reminder of who they are.
 
-Fire a recall when the new line refers to a known person by name, alias, pronoun ("he just texted"), or a vague \
-reference to one of their stories ("after the cake thing", "he'd go to the wrong place again").
-Do NOT fire when the line just continues the story that is being told right now (the teller adding details, or \
-listeners reacting to what they just heard). Use the recent lines to tell the difference.
+Fire a recall whenever the new line refers to a known person by name, alias, pronoun ("he just texted"), or a vague \
+reference to one of their stories ("after the cake thing", "he'd go to the wrong place again"). This includes lines \
+inside the story being told right now: someone who joined in the middle of it needs the reminder too. The app decides \
+who sees each recall, so report every mention.
 
 For each recall:
 - personId: one of the known people.
@@ -48,8 +48,6 @@ For each recall:
 - reference: how the line points to them: "name" (their name), "alias" (one of their aliases, e.g. "the roommate"), \
 "pronoun" ("he", "him", "that guy"), or "story_reference" (one of their stories, e.g. "the cake thing").
 - onlyOneFits: true only if exactly one known person could be meant, given the recent lines. false if it could be someone else.
-- continuesCurrentStory: true if the line is part of the story being told right now (the teller adding details or \
-listeners reacting), rather than pointing back to an earlier one.
 Answer these honestly; do not score anything yourself. Return an empty list when nothing qualifies. Never guess a \
 person who is not in the known list.
 
@@ -59,7 +57,10 @@ export const STORY_SYSTEM = `You keep track of the people being talked about in 
 stories told about them. You will get the full transcript so far, the room members, and the previous snapshot.
 
 Rules:
-- Use only what was actually said. Frame every summary as the teller's account ("Alex says Kevin..."), 1-3 sentences.
+- Use only what was actually said.
+- summary: what happened, for someone who missed it, read at a glance on a phone. At most 2 short sentences and 35 \
+words. Name the teller once, at the start ("Alex says Kevin ate the whole cake and blamed it on shared fridge \
+food."), then keep going without repeating "says". Keep only the key facts; reactions and guesses go in their own fields.
 - Keep the ids of people and stories from the previous snapshot when they are the same person or story. Use "" as \
 the id for anything new. Do not drop earlier stories.
 - Two people with the same first name are different people unless the transcript says they are the same \
@@ -69,7 +70,8 @@ names them, never pronouns. memberId is the member id if the person is also in t
 - Stories: keyword is exactly ONE word for a chip (e.g. "Cake"). personKeys lists people the story is about, main \
 subject first. sourceLineIds are the lines the summary is based on (at least one).
 - reactions: a listener's actual words about the story. quote must be copied exactly from that line. Never invent one.
-- speculation: guesses or interpretations someone voiced, with the line they said it on.
+- speculation: guesses or interpretations someone voiced, with the line they said it on. text is the guess itself, \
+without the speaker's name (the app shows who said it), e.g. "the texting could be a ruse".
 - Never guess how anyone feels from silence.
 - openQuestion on a story: what is still unresolved about it, or "".
 - currentTopic: one short line on what the group is talking about now.

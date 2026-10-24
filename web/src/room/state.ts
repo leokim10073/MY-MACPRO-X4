@@ -43,6 +43,8 @@ export function roomReducer(state: RoomState, event: RoomEvent): RoomState {
   switch (event.type) {
     case 'member_joined':
       return { ...state, members: upsert(state.members, event.member) }
+    case 'member_left':
+      return { ...state, members: state.members.filter((m) => m.id !== event.memberId) }
     case 'line_added': {
       if (state.lines.some((l) => l.id === event.line.id)) return state
       return { ...state, lines: [...state.lines, event.line].sort((a, b) => a.seq - b.seq) }

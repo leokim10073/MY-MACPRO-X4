@@ -84,6 +84,25 @@ test("assembleStoryState rejects invented quotes, multi-word keywords and bad so
   assert.deepEqual(state.people.map((p) => p.id), ["p_kevin"]);
 });
 
+test("assembleStoryState keeps summaries short and names the teller once", () => {
+  const rambling =
+    "Alex says Kevin ate Alex's whole birthday cake. Alex says it was a huge chocolate cake bought for the party. " +
+    "Alex says the box was empty when Alex went to get it before the party. Alex says Kevin claimed it was shared " +
+    "fridge food, and Alex says nobody believed him.";
+  const draft: StoryStateDraft = { ...goodDraft, stories: [{ ...goodDraft.stories[0], summary: rambling }] };
+  const { state, problems } = assembleStoryState(draft, ctx);
+  assert.ok(problems.some((p) => p.includes("words")), "reports the length");
+  assert.ok(problems.some((p) => p.includes("teller once")), "reports the repeated attribution");
+  // Whatever comes back is cut to the limit at a sentence boundary.
+  assert.ok(countWords(state.stories[0].summary) <= 35);
+  assert.ok(state.stories[0].summary.endsWith("."));
+
+  const tidy = "Alex says Kevin ate the whole birthday cake and blamed shared fridge food.";
+  const ok = assembleStoryState({ ...goodDraft, stories: [{ ...goodDraft.stories[0], summary: tidy }] }, ctx);
+  assert.equal(ok.problems.length, 0);
+  assert.equal(ok.state.stories[0].summary, tidy);
+});
+
 test("assembleStoryState keeps previous ids and never drops old stories", () => {
   const first = assembleStoryState(goodDraft, ctx).state;
   const next: StoryStateDraft = {
@@ -139,7 +158,6 @@ function draft(over: Partial<RecallDraft> = {}): RecallDraft {
     focusStoryId: "",
     reference: "name",
     onlyOneFits: true,
-    continuesCurrentStory: false,
     ...over,
   };
 }
@@ -152,20 +170,26 @@ test("scoreRecall: confidence comes from fixed rules, not from the model", () =>
   assert.equal(scoreRecall(draft({ reference: "pronoun" }), kevinPerson), 0.8);
   // Could mean more than one known person: kept below the 0.7 pop-up threshold.
   assert.equal(scoreRecall(draft({ reference: "name", onlyOneFits: false }), kevinPerson), 0.5);
-  // Not a recall at all.
-  assert.equal(scoreRecall(draft({ continuesCurrentStory: true }), kevinPerson), null);
+  // Someone in the room: not a recall at all.
   assert.equal(scoreRecall(draft(), { ...kevinPerson, memberId: "m_kevin" }), null);
 });
 
-test("assembleRecalls drops lines about people in the room and lines continuing the current story", () => {
+test("assembleRecalls drops lines about people in the room", () => {
   const state = kevin.expected.storyState;
   const line = kevin.lines[18];
   const inRoom = { ...state, people: state.people.map((p) => ({ ...p, memberId: "m_kevin" })) };
   assert.deepEqual(assembleRecalls([draft({ matchedText: "the cake thing" })], line, inRoom), []);
-  assert.deepEqual(
-    assembleRecalls([draft({ matchedText: "the cake thing", continuesCurrentStory: true })], line, state),
-    [],
+});
+
+test("mentions inside the story being told right now are recalls too", () => {
+  // l5 "NO WAY he ate the entire cake." reacts to the cake story while it's being told.
+  const recalls = assembleRecalls(
+    [draft({ matchedText: "he", reference: "pronoun", focusStoryId: "s_cake" })],
+    kevin.lines[4],
+    kevin.expected.storyState,
   );
+  assert.equal(recalls.length, 1);
+  assert.equal(recalls[0].confidence, 0.8);
 });
 
 test("recap word limit", () => {
