@@ -23,5 +23,11 @@ npm-debug.log*
 .vscode/
 .idea/
 
-#environment
+# Python virtual environments
 .venv/
+
+# Graphify output
+graphify-out/
+
+# Claude Code plugin state
+.omc/
