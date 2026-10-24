@@ -1,0 +1,21 @@
+{
+  "name": "voice",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "ink:latency": "tsx --env-file=.env scripts/ink-latency.ts",
+    "tts:audition": "tsx --env-file=.env scripts/tts-audition.ts"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@vitejs/plugin-basic-ssl": "2.3.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
