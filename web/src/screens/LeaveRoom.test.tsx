@@ -67,9 +67,9 @@ describe('Leave on the room screen', () => {
     expect(screen.getByRole('alertdialog').textContent).not.toContain("You're the host")
   })
 
-  it('keeps Burn red and apart from Leave', () => {
+  it('keeps Burn and Leave as separate controls divided by a rule', () => {
     const { container } = roomScreen('m_taylor', { onLeave: () => {} })
-    const burn = screen.getByRole('button', { name: 'Burn room' })
+    const burn = screen.getByRole('button', { name: 'Burn room…' })
     const leave = screen.getByRole('button', { name: 'Leave' })
     expect(burn.className).toContain('burn')
     expect(leave.className).toContain('leave')
@@ -90,6 +90,7 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Leave' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave room' }))
   }
@@ -115,6 +116,7 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => vi.advanceTimersByTimeAsync(60_000))
     expect(document.body.textContent).toContain('Kevin')
 
@@ -132,6 +134,7 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     expect(await screen.findByRole('button', { name: 'Leave' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
     expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()

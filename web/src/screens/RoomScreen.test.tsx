@@ -34,7 +34,7 @@ describe('RoomScreen', () => {
 
   it('shows the Listening indicator while active', () => {
     setup()
-    expect(screen.getByRole('status').textContent).toContain('Listening')
+    expect(screen.getAllByRole('status').some((el) => el.textContent?.includes('Listening'))).toBe(true)
   })
 
   it('push-to-talk only releases for the pointer that pressed it', () => {

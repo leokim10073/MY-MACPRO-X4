@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Burning Room · live room</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; background: #111114; color: #F5EFE7; font-family: Inter, system-ui, sans-serif">
+
+<div style="flex: none; display: flex; align-items: center; gap: 8px; padding: 14px 16px 8px 10px">
+<button type="button" aria-label="About this room" aria-expanded="{{infoExpanded}}" onClick="{{toggleInfo}}" style="width: 44px; height: 44px; flex: none; padding: 5px; border-radius: 50%; border: 0; background: transparent; cursor: pointer">
+<svg viewBox="0 0 64 64" width="34" height="34" fill="none" stroke="#F5EFE7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="32" cy="32" r="29.5" stroke-opacity="0.5"></circle>
+<path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39"></path>
+<path d="M17 39 Q32 49 47 39"></path>
+<path d="M28 52 V20.5 a4 4 0 0 1 8 0 V52" fill="#111114"></path>
+<path d="M29.4 18.8 a2.8 2.8 0 0 1 5.2 0" stroke="#FF762E" stroke-width="3"></path>
+</svg>
+</button>
+<div style="display: flex; flex-direction: column; min-width: 0; flex: 1">
+<strong style="font-size: 15px; font-weight: 600">Kevin stories</strong>
+<span style="font-size: 12px; color: #B9B2AA">Burning Room · 4 here</span>
+</div>
+</div>
+
+<sc-if value="{{showInfo}}" hint-placeholder-val="{{ false }}">
+<p role="status" style="flex: none; margin: 0 16px 8px; padding: 10px 12px; border-radius: 10px; background: #1C1C20; border: 1px solid rgba(245,239,231,0.12); font-size: 14px; line-height: 1.4; color: #F5EFE7">This room stays private until the host burns it.</p>
+</sc-if>
+
+<div style="flex: none; display: flex; justify-content: space-between; padding: 8px 20px 10px">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 64px">
+<div aria-label="{{p.label}}" role="img" style="width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; background: {{p.bg}}; color: {{p.fg}}; box-shadow: 0 0 0 2px {{p.ring}}">{{p.initials}}</div>
+<span style="font-size: 12px; color: #D9D2C9">{{p.name}}</span>
+<sc-if value="{{p.animated}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 30 14" width="30" height="14" aria-hidden="true">
+<rect x="1" y="5" width="3" height="4" rx="1.5" fill="#FF762E"><animate attributeName="height" values="4;10;5;8;4" dur="0.9s" repeatCount="indefinite"></animate><animate attributeName="y" values="5;2;4.5;3;5" dur="0.9s" repeatCount="indefinite"></animate></rect>
+<rect x="7" y="2" width="3" height="10" rx="1.5" fill="#FF762E"><animate attributeName="height" values="10;4;12;6;10" dur="1.1s" repeatCount="indefinite"></animate><animate attributeName="y" values="2;5;1;4;2" dur="1.1s" repeatCount="indefinite"></animate></rect>
+<rect x="13" y="1" width="3" height="12" rx="1.5" fill="#FF762E"><animate attributeName="height" values="12;6;9;3;12" dur="0.8s" repeatCount="indefinite"></animate><animate attributeName="y" values="1;4;2.5;5.5;1" dur="0.8s" repeatCount="indefinite"></animate></rect>
+<rect x="19" y="3" width="3" height="8" rx="1.5" fill="#FF762E"><animate attributeName="height" values="8;12;4;10;8" dur="1s" repeatCount="indefinite"></animate><animate attributeName="y" values="3;1;5;2;3" dur="1s" repeatCount="indefinite"></animate></rect>
+<rect x="25" y="5" width="3" height="4" rx="1.5" fill="#FF762E"><animate attributeName="height" values="4;8;3;6;4" dur="0.95s" repeatCount="indefinite"></animate><animate attributeName="y" values="5;3;5.5;4;5" dur="0.95s" repeatCount="indefinite"></animate></rect>
+</svg>
+</sc-if>
+<sc-if value="{{p.staticWave}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 30 14" width="30" height="14" aria-hidden="true">
+<rect x="1" y="5" width="3" height="4" rx="1.5" fill="#FF762E"></rect>
+<rect x="7" y="2" width="3" height="10" rx="1.5" fill="#FF762E"></rect>
+<rect x="13" y="1" width="3" height="12" rx="1.5" fill="#FF762E"></rect>
+<rect x="19" y="3" width="3" height="8" rx="1.5" fill="#FF762E"></rect>
+<rect x="25" y="5" width="3" height="4" rx="1.5" fill="#FF762E"></rect>
+</svg>
+</sc-if>
+<sc-if value="{{p.flat}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 30 14" width="30" height="14" aria-hidden="true">
+<rect x="1" y="6" width="28" height="2" rx="1" fill="rgba(245,239,231,0.22)"></rect>
+</svg>
+</sc-if>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 1; min-height: 0; margin: 4px 16px 8px; position: relative; overflow: hidden; border-radius: 18px; background: {{boardBg}}; border: 1px solid {{boardBorder}}">
+<sc-if value="{{showMessages}}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; padding: 14px 12px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; gap: 10px">
+<sc-for list="{{messages}}" as="m" hint-placeholder-count="5">
+<sc-if value="{{m.isCatchup}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 12px 14px; border-radius: 14px; background: #1E1B18; border: 1px solid rgba(255,230,175,0.22); display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; font-weight: 600; color: #FFE6AF">AI catch-up</span>
+<span style="font-size: 14px; line-height: 1.45; color: #F5EFE7">{{m.text}}</span>
+</div>
+</sc-if>
+<sc-if value="{{m.isLine}}" hint-placeholder-val="{{ true }}">
+<div style="padding: 10px 12px; border-radius: 14px; background: #202024; display: flex; flex-direction: column; gap: 3px">
+<span style="font-size: 12px; font-weight: 600; color: #B9B2AA">{{m.name}}</span>
+<span style="font-size: 15px; line-height: 1.45; color: #F5EFE7">{{m.text}}</span>
+</div>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{showBurn}}" hint-placeholder-val="{{ false }}">
+<dc-import name="BurnLayer" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none" start="{{burnStart}}" progress="{{burnProgress}}" duration="{{burnDuration}}" seed="{{seed}}" backdrop="{{ false }}" fill="{{ true }}" force-motion="{{forceMotion}}" hint-size="100%,100%"></dc-import>
+</sc-if>
+
+<sc-if value="{{showIgnite}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; inset: 0; pointer-events: none">
+<div style="position: absolute; left: 0; right: 0; top: 18%; display: flex; flex-direction: column; align-items: center; gap: 12px">
+<sc-if value="{{motion}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 64 64" width="88" height="88" fill="none" stroke="#F5EFE7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="32" cy="32" r="29.5" stroke-opacity="0.55"><animate attributeName="r" values="30;26.5" dur="0.5s" fill="freeze"></animate></circle>
+<path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39"></path>
+<path d="M17 39 Q32 49 47 39"></path>
+<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -3" dur="0.5s" fill="freeze"></animateTransform>
+<path d="M28 52 V20.5 a4 4 0 0 1 8 0 V52" fill="#111114"></path>
+<path d="M29.4 18.8 a2.8 2.8 0 0 1 5.2 0" stroke="#FF762E" stroke-width="2.2"></path>
+</g>
+</svg>
+</sc-if>
+<sc-if value="{{noMotion}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 64 64" width="88" height="88" fill="none" stroke="#F5EFE7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="32" cy="32" r="27" stroke-opacity="0.55"></circle>
+<path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39"></path>
+<path d="M17 39 Q32 49 47 39"></path>
+<path d="M28 49 V17.5 a4 4 0 0 1 8 0 V49" fill="#111114"></path>
+<path d="M29.4 15.8 a2.8 2.8 0 0 1 5.2 0" stroke="#FF762E" stroke-width="2.2"></path>
+</svg>
+</sc-if>
+<span style="font-size: 17px; font-weight: 500; color: #F5EFE7">That’s between us.</span>
+</div>
+<sc-if value="{{motion}}" hint-placeholder-val="{{ false }}">
+<svg width="100%" height="100%" style="position: absolute; inset: 0" aria-hidden="true"><circle cx="50%" cy="23%" r="9" fill="#FF762E" fill-opacity="0.22"><animate attributeName="cy" values="23%;98.5%" dur="0.5s" begin="0.1s" fill="freeze"></animate></circle><circle cx="50%" cy="23%" r="3" fill="#FFE6AF"><animate attributeName="cy" values="23%;98.5%" dur="0.5s" begin="0.1s" fill="freeze"></animate></circle></svg>
+</sc-if>
+<sc-if value="{{noMotion}}" hint-placeholder-val="{{ true }}">
+<svg width="100%" height="100%" style="position: absolute; inset: 0" aria-hidden="true"><circle cx="50%" cy="98.5%" r="9" fill="#FF762E" fill-opacity="0.22"></circle><circle cx="50%" cy="98.5%" r="3" fill="#FFE6AF"></circle></svg>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{showDone}}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; box-sizing: border-box; text-align: center">
+<h2 style="margin: 0; font-size: 26px; font-weight: 600">Room burned.</h2>
+<p style="margin: 0; font-size: 17px; color: #D9D2C9">Conversation deleted.</p>
+<p style="margin: 10px 0 0; max-width: 270px; font-size: 13px; line-height: 1.5; color: #A8A19A">Deleted from Gossip Window. Screenshots or recordings people made aren’t affected.</p>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{showError}}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="flex: none; margin: 0 16px 8px; padding: 12px 14px; border-radius: 12px; background: #2A1715; border: 1px solid rgba(173,53,39,0.8); display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.45">
+<span>Couldn’t burn the room. Nothing was deleted and it’s still open.</span>
+<div style="display: flex; gap: 8px">
+<button type="button" onClick="{{retry}}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid #FF762E; background: transparent; color: #FFE6AF; font: inherit; font-size: 14px; cursor: pointer">Try again</button>
+<button type="button" onClick="{{dismissError}}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(245,239,231,0.22); background: transparent; color: #F5EFE7; font: inherit; font-size: 14px; cursor: pointer">Keep talking</button>
+</div>
+</div>
+</sc-if>
+
+<div style="flex: none; padding: 6px 16px 22px; display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{open}}" hint-placeholder-val="{{ true }}">
+<button type="button" style="min-height: 56px; border-radius: 28px; border: 0; background: #F5EFE7; color: #111114; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Hold to talk</button>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid rgba(245,239,231,0.2); background: transparent; color: #F5EFE7; font: inherit; font-size: 14px; cursor: pointer">Leave</button>
+<button type="button" onClick="{{burn}}" style="min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,118,46,0.75); background: transparent; color: #FFB48A; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px"><svg viewBox="0 0 12 11" width="12" height="11" aria-hidden="true"><path d="M6 0.6c.6 1.9 2.9 3.1 2.9 5.8A2.9 2.9 0 0 1 6 9.3a2.9 2.9 0 0 1-2.9-2.9c0-1.3.6-2.1 1.2-2.7.1 1 .5 1.5 1.1 1.7C5.2 4.2 5.4 2.3 6 .6Z" fill="#FF762E"></path></svg>Burn room…</button>
+</div>
+</sc-if>
+<sc-if value="{{closingInput}}" hint-placeholder-val="{{ false }}">
+<button type="button" disabled aria-disabled="true" style="min-height: 56px; border-radius: 28px; border: 1px solid rgba(245,239,231,0.16); background: transparent; color: #A8A19A; font: inherit; font-size: 16px">Room closed</button>
+<div style="min-height: 44px"></div>
+</sc-if>
+<sc-if value="{{finished}}" hint-placeholder-val="{{ false }}">
+<button type="button" onClick="{{newRoom}}" style="min-height: 56px; border-radius: 28px; border: 0; background: #F5EFE7; color: #111114; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Start a new room</button>
+<button type="button" onClick="{{home}}" style="min-height: 44px; border-radius: 12px; border: 1px solid rgba(245,239,231,0.2); background: transparent; color: #F5EFE7; font: inherit; font-size: 15px; cursor: pointer">Back home</button>
+</sc-if>
+</div>
+
+<sc-if value="{{showConfirm}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(5,5,7,0.62); display: flex; flex-direction: column; justify-content: flex-end">
+<div role="dialog" aria-modal="true" aria-labelledby="burn-title" style="background: #1A191C; border-top: 1px solid rgba(255,118,46,0.4); border-radius: 22px 22px 0 0; padding: 24px 20px 26px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="burn-title" style="margin: 0; font-size: 20px; font-weight: 600">Burn this room for everyone?</h2>
+<p style="margin: 0; font-size: 15px; line-height: 1.5; color: #D9D2C9">This ends the conversation for everyone and deletes its transcript, stories and catch-ups. People may still remember what was said.</p>
+<div style="display: flex; gap: 10px">
+<button type="button" onClick="{{keep}}" style="flex: 1; min-height: 52px; border-radius: 14px; border: 1px solid rgba(245,239,231,0.25); background: transparent; color: #F5EFE7; font: inherit; font-size: 16px; cursor: pointer">Keep talking</button>
+<sc-if value="{{notRequesting}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{confirm}}" style="flex: 1; min-height: 52px; border-radius: 14px; border: 0; background: #FF762E; color: #111114; font: inherit; font-size: 16px; font-weight: 600; cursor: pointer">Burn room</button>
+</sc-if>
+<sc-if value="{{requesting}}" hint-placeholder-val="{{ false }}">
+<button type="button" disabled aria-disabled="true" style="flex: 1; min-height: 52px; border-radius: 14px; border: 0; background: #8A4A2B; color: #F5EFE7; font: inherit; font-size: 16px; font-weight: 600">Burning…</button>
+</sc-if>
+</div>
+<sc-if value="{{notRequesting}}" hint-placeholder-val="{{ true }}">
+<button type="button" onPointerDown="{{holdDown}}" onPointerUp="{{holdUp}}" onPointerLeave="{{holdUp}}" onPointerCancel="{{holdUp}}" style="position: relative; overflow: hidden; min-height: 44px; border-radius: 12px; border: 1px dashed rgba(255,118,46,0.5); background: transparent; color: #FFB48A; font: inherit; font-size: 14px; cursor: pointer; touch-action: none; user-select: none">
+<span aria-hidden="true" style="position: absolute; left: 0; top: 0; bottom: 0; width: {{holdWidth}}; background: rgba(255,118,46,0.22); transition: {{holdTransition}}"></span>
+<span style="position: relative">Or press and hold to burn</span>
+</button>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showEntry}}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; background: rgba(17,17,20,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 32px 26px; box-sizing: border-box; text-align: center">
+<sc-if value="{{motion}}" hint-placeholder-val="{{ false }}">
+<svg viewBox="0 0 64 64" width="108" height="108" fill="none" stroke="#F5EFE7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="32" cy="32" r="30" stroke-opacity="0.55"><animate attributeName="r" values="30;27;30" dur="2.6s" repeatCount="indefinite"></animate></circle>
+<path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39"></path>
+<path d="M17 39 Q32 49 47 39"></path>
+<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -2.5;0 0" dur="2.6s" repeatCount="indefinite"></animateTransform>
+<path d="M28 52 V20.5 a4 4 0 0 1 8 0 V52" fill="#111114"></path>
+<path d="M29.4 18.8 a2.8 2.8 0 0 1 5.2 0" stroke="#FF762E" stroke-width="2.2"></path>
+</g>
+</svg>
+</sc-if>
+<sc-if value="{{noMotion}}" hint-placeholder-val="{{ true }}">
+<svg viewBox="0 0 64 64" width="108" height="108" fill="none" stroke="#F5EFE7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="32" cy="32" r="28.5" stroke-opacity="0.55"></circle>
+<path d="M17 39 Q24.5 34.5 32 37.5 Q39.5 34.5 47 39"></path>
+<path d="M17 39 Q32 49 47 39"></path>
+<path d="M28 50.5 V19 a4 4 0 0 1 8 0 V50.5" fill="#111114"></path>
+<path d="M29.4 17.3 a2.8 2.8 0 0 1 5.2 0" stroke="#FF762E" stroke-width="2.2"></path>
+</svg>
+</sc-if>
+<h1 style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.25">Shhh.<br>Keep it in the room.</h1>
+<ul style="list-style: none; margin: 0; padding: 16px 16px; border-radius: 14px; background: #18181B; border: 1px solid rgba(245,239,231,0.1); text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.45; color: #D9D2C9">
+<li>This room stays private until the host burns it.</li>
+<li>When it burns, the transcript, stories and catch-ups are deleted for everyone.</li>
+<li>Only text is kept while it’s open, never audio.</li>
+<li>Burning can’t reach screenshots, recordings or memories.</li>
+</ul>
+<button type="button" onClick="{{enter}}" style="align-self: stretch; min-height: 54px; border-radius: 27px; border: 0; background: #F5EFE7; color: #111114; font: inherit; font-size: 17px; font-weight: 600; cursor: pointer">Enter room</button>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"phase":{"editor":"enum","options":["entry","live","confirming","requesting","error","ignite","burning","deleted"],"default":"live"},"still":{"editor":"boolean","default":false},"forceMotion":{"editor":"boolean","default":false},"burnStart":{"editor":null},"burnProgress":{"editor":null},"onEnter":{"editor":null},"onBurn":{"editor":null},"onKeep":{"editor":null},"onConfirm":{"editor":null},"onRetry":{"editor":null},"onDismissError":{"editor":null},"onHome":{"editor":null},"onNewRoom":{"editor":null},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentWillUnmount() {
+    clearTimeout(this.holdTimer);
+  }
+  renderVals() {
+    const p = this.props;
+    const st = this.state || {};
+    const phase = p.phase ?? 'live';
+    const noop = () => {};
+    const force = !!p.forceMotion;
+    const reduced = !force && typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motion = !(p.still ?? false) && !reduced;
+    const closing = phase === 'ignite' || phase === 'burning';
+    const finished = phase === 'deleted';
+    const closed = closing || finished;
+    const open = !closed;
+    const speakers = [
+      { name: 'Alex', initials: 'A', speaking: true },
+      { name: 'Sam', initials: 'S', speaking: false },
+      { name: 'Jamie', initials: 'J', speaking: false },
+      { name: 'You', initials: 'L', speaking: false, me: true }
+    ];
+    const people = speakers.map((s) => {
+      const talk = s.speaking && open;
+      return {
+        name: s.name,
+        initials: s.initials,
+        label: s.name + (talk ? ', speaking' : ''),
+        bg: s.me ? '#2B2A2E' : '#26252A',
+        fg: '#F5EFE7',
+        ring: talk ? '#FF762E' : 'rgba(245,239,231,0.12)',
+        animated: talk && motion,
+        staticWave: talk && !motion,
+        flat: !talk
+      };
+    });
+    const messages = [
+      { name: 'Alex', text: 'Okay, I have to tell you about Kevin, my old roommate.' },
+      { name: 'Sam', text: 'NO WAY he ate the entire cake.' },
+      { catchup: true, text: 'Alex is telling stories about Kevin, an old roommate: the cake, the wrong airport, the landlord.' },
+      { name: 'Jamie', text: 'Honestly that’s kind of impressive.' },
+      { name: 'Alex', text: 'He went to the Oakland airport. His flight was out of SFO.' }
+    ].map((m) => ({ name: m.name || '', text: m.text, isCatchup: !!m.catchup, isLine: !m.catchup }));
+    const holding = !!st.holding;
+    return {
+      people,
+      messages,
+      showInfo: !!st.info && phase !== 'entry',
+      infoExpanded: st.info ? 'true' : 'false',
+      toggleInfo: () => this.setState({ info: !(this.state || {}).info }),
+      boardBg: finished ? '#111114' : '#18181C',
+      boardBorder: finished ? 'rgba(245,239,231,0)' : 'rgba(245,239,231,0.08)',
+      showMessages: !finished,
+      showBurn: closing,
+      burnStart: p.burnStart ?? 0,
+      burnProgress: p.burnProgress ?? 0.5,
+      burnDuration: 2000,
+      seed: 42,
+      forceMotion: force,
+      showIgnite: phase === 'ignite',
+      showDone: finished,
+      showError: phase === 'error',
+      showConfirm: phase === 'confirming' || phase === 'requesting',
+      requesting: phase === 'requesting',
+      notRequesting: phase !== 'requesting',
+      showEntry: phase === 'entry',
+      open,
+      closingInput: closing,
+      finished,
+      motion,
+      noMotion: !motion,
+      holdWidth: holding ? '100%' : '0%',
+      holdTransition: holding ? 'width 1200ms linear' : 'width 150ms ease-out',
+      holdDown: () => {
+        clearTimeout(this.holdTimer);
+        this.setState({ holding: true });
+        this.holdTimer = setTimeout(() => {
+          this.setState({ holding: false });
+          (this.props.onConfirm || noop)();
+        }, 1200);
+      },
+      holdUp: () => {
+        clearTimeout(this.holdTimer);
+        if ((this.state || {}).holding) this.setState({ holding: false });
+      },
+      enter: p.onEnter || noop,
+      burn: p.onBurn || noop,
+      keep: p.onKeep || noop,
+      confirm: p.onConfirm || noop,
+      retry: p.onRetry || noop,
+      dismissError: p.onDismissError || noop,
+      home: p.onHome || noop,
+      newRoom: p.onNewRoom || noop
+    };
+  }
+}
+</script>
+</body>
+</html>

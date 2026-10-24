@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Room, RoomEvent } from '../../../shared/schema'
 import App from '../App'
+import { DONE_MS } from '../room/closing'
 import type { JoinResult, RoomClient } from '../room/RoomClient'
 import { initialRoomState, roomReducer } from '../room/state'
 import { fixtureEvents } from '../room/testFixtures'
@@ -41,27 +42,62 @@ describe('Burn button', () => {
     expect(screen.queryByRole('button', { name: /burn/i })).toBeNull()
     cleanup()
     renderRoom('m_taylor')
-    expect(screen.getByRole('button', { name: 'Burn room' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Burn room…' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('needs two taps and resets after 4 seconds', () => {
-    vi.useFakeTimers()
+  it('opens a confirmation sheet, and only its Burn room button burns', () => {
     const onBurn = renderRoom('m_taylor')
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    expect(screen.getByRole('dialog', { name: 'Burn this room for everyone?' })).toBeTruthy()
     expect(onBurn).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Tap again to burn' })).toBeTruthy()
-    act(() => {
-      vi.advanceTimersByTime(4000)
-    })
-    expect(screen.getByRole('button', { name: 'Burn room' })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Tap again to burn' }))
     expect(onBurn).toHaveBeenCalledTimes(1)
+  })
+
+  it('Keep talking closes the sheet without burning', () => {
+    const onBurn = renderRoom('m_taylor')
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Keep talking' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(onBurn).not.toHaveBeenCalled()
+  })
+
+  it('returns focus to Burn room… when the sheet closes by Keep talking, Escape or the scrim', () => {
+    renderRoom('m_taylor')
+    const control = screen.getByRole('button', { name: 'Burn room…' })
+    const closers: Array<() => void> = [
+      () => fireEvent.click(screen.getByRole('button', { name: 'Keep talking' })),
+      () => fireEvent.keyDown(document, { key: 'Escape' }),
+      () => fireEvent.click(document.querySelector('.burn-scrim')!),
+    ]
+    for (const close of closers) {
+      fireEvent.click(control)
+      expect(document.activeElement).not.toBe(control)
+      close()
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(document.activeElement).toBe(control)
+    }
+  })
+
+  it('closes the sheet and shows the error when a burn fails', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const self = state.members.find((m) => m.id === 'm_taylor')!
+    const room = { ...baseRoom, hostMemberId: 'm_taylor' }
+    const props = { state, self, room, onBurn: vi.fn() }
+    const { rerender } = render(<RoomScreen {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    rerender(<RoomScreen {...props} pending="burn" />)
+    expect((screen.getByRole('button', { name: 'Burning…' }) as HTMLButtonElement).disabled).toBe(true)
+    rerender(<RoomScreen {...props} pending={null} error={{ kind: 'unknown', message: 'Could not burn.' }} />)
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('alert').textContent).toBe('Could not burn.')
   })
 })
 
 describe('Burned screen', () => {
   it('drops all room content, even with the pop-up and story card open', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     let listener: (e: RoomEvent) => void = () => {}
     const self: Member = {
       id: 'm_taylor',
@@ -89,6 +125,7 @@ describe('Burned screen', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => {
       for (const e of fixtureEvents()) listener(e)
     })
@@ -102,7 +139,10 @@ describe('Burned screen', () => {
     await act(async () => {
       listener({ type: 'room_burned', roomId: 'demo' })
     })
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    // The closing plays over the frozen room (the card closes at once), then the clean slate.
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(screen.queryByRole('dialog')).toBeNull()
     const text = document.body.textContent!
     expect(text.toLowerCase()).not.toContain('cake')

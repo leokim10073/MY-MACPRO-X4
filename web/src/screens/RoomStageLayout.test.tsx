@@ -36,10 +36,13 @@ describe('room stage on the room screen', () => {
     expect(stage).toBeTruthy()
     expect(stage.closest('.room-dock')).toBeNull()
     expect(stage.closest('.room-banner')).toBeNull()
-    const order = Array.from(container.querySelector('.room')!.children).map((el) => el.className.split(' ')[0])
+    const board = container.querySelector('.room-board')!
+    const order = Array.from(board.children).map((el) => el.className.split(' ')[0])
     expect(order.indexOf('room-banner')).toBeLessThan(order.indexOf('room-stage'))
     expect(order.indexOf('room-stage')).toBeLessThan(order.indexOf('room-transcript'))
-    expect(order.indexOf('room-transcript')).toBeLessThan(order.indexOf('room-dock'))
+    expect(order.indexOf('room-transcript')).toBeLessThan(order.indexOf('room-popup-slot'))
+    const top = Array.from(container.querySelector('.room')!.children).map((el) => el.className.split(' ')[0])
+    expect(top.indexOf('room-board')).toBeLessThan(top.indexOf('room-dock'))
   })
 
   it('shows my name and how many people are in the room', () => {
@@ -68,8 +71,9 @@ describe('room stage on the room screen', () => {
     expect(container.querySelector('.room-stage')!.className).not.toContain('compact')
     fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
     expect(container.querySelector('.room-stage')!.className).toContain('compact')
+    const board = container.querySelector('.room-board')!
     const dock = container.querySelector('.room-dock')!
-    expect(dock.querySelector('[role="dialog"]')).toBeTruthy()
+    expect(board.querySelector('[role="dialog"]')).toBeTruthy()
     expect(dock.querySelector('.room-talk')!.textContent).toContain('Hold to talk')
   })
 })

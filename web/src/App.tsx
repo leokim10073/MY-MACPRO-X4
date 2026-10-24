@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { readInviteToken } from './config'
 import type { RoomClient } from './room/RoomClient'
 import { inviteUrl, type ClientKind } from './room/createRoomClient'
+import { useClosing } from './room/useClosing'
 import { useRoom } from './room/useRoom'
 import BurnedScreen from './screens/BurnedScreen'
 import JoinScreen from './screens/JoinScreen'
@@ -18,7 +19,30 @@ interface Props {
 // Leaving disposes this phone's client and remounts everything under a new key,
 // so the reducer, pop-up and recap state all start clean on a fresh client.
 export default function App({ client, kind, search = window.location.search, makeClient }: Props) {
-  const [session, setSession] = useState({ key: 0, client })
+  const [session, setSession] = useState<{ key: number; client: RoomClient; search: string; autoCreate?: string }>({
+    key: 0,
+    client,
+    search,
+  })
+
+  // Disposes this client and starts a fresh session. 'new-room' creates a room for `name` on mount;
+  // both modes drop only `room` from the URL, so the old invite can't be reused.
+  function restart(mode: 'new-room' | 'home', name?: string) {
+    if (!makeClient) return
+    session.client.dispose()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('room')
+    window.history.replaceState(window.history.state, '', url)
+    const params = new URLSearchParams(session.search)
+    params.delete('room')
+    const rest = params.toString()
+    setSession({
+      key: session.key + 1,
+      client: makeClient(),
+      search: rest ? `?${rest}` : '',
+      autoCreate: mode === 'new-room' ? name : undefined,
+    })
+  }
 
   function leave() {
     if (!makeClient) return
@@ -33,7 +57,7 @@ export default function App({ client, kind, search = window.location.search, mak
     } else {
       old.dispose()
     }
-    setSession({ key: session.key + 1, client: makeClient() })
+    setSession({ key: session.key + 1, client: makeClient(), search: session.search })
   }
 
   return (
@@ -41,8 +65,10 @@ export default function App({ client, kind, search = window.location.search, mak
       key={session.key}
       client={session.client}
       kind={kind}
-      search={search}
+      search={session.search}
+      autoCreate={session.autoCreate}
       onLeave={makeClient ? leave : undefined}
+      onRestart={makeClient ? restart : undefined}
     />
   )
 }
@@ -51,14 +77,37 @@ interface SessionProps {
   client: RoomClient
   kind: ClientKind
   search: string
+  /** Nickname to create a room with once on mount (Start a new room). */
+  autoCreate?: string
   onLeave?: () => void
+  onRestart?: (mode: 'new-room' | 'home', name?: string) => void
 }
 
-function RoomSession({ client, kind, search, onLeave }: SessionProps) {
-  const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
+function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: SessionProps) {
+  const { state, self, room, pending, error, connection, burnConfirmed, create, join, burn, addLine, startReplay } =
+    useRoom(client)
+  // The frozen copy of the last live room lives in memory only, and is dropped when the closing ends.
+  const { closing, frozen, done } = useClosing(state, room?.id ?? null, burnConfirmed)
   const params = new URLSearchParams(search)
+  // The entry ritual is in memory only: a new session (Leave) remounts this and shows it again.
+  const [entered, setEntered] = useState(false)
+  // Start a new room: create once on mount. The ref survives StrictMode's second effect run.
+  const autoCreated = useRef(false)
+  useEffect(() => {
+    if (autoCreate === undefined || autoCreated.current) return
+    autoCreated.current = true
+    void create(autoCreate)
+  }, [autoCreate, create])
 
   if (!self) {
+    // Creating the new room: show nothing from the Join form until it answers (or fails).
+    if (autoCreate !== undefined && !error) return (
+        <main className="burned" aria-busy="true">
+          <p role="status" className="sr-only">
+            Creating room…
+          </p>
+        </main>
+      )
     return (
       <JoinScreen
         inviteToken={readInviteToken(search)}
@@ -70,14 +119,22 @@ function RoomSession({ client, kind, search, onLeave }: SessionProps) {
       />
     )
   }
-  if (state.status === 'burned') return <BurnedScreen />
+  const playing = closing !== null && !done && frozen !== null
+  if (!playing && (done || state.status === 'burned')) {
+    return (
+      <BurnedScreen
+        onNewRoom={onRestart && (() => onRestart('new-room', self.name))}
+        onHome={onRestart && (() => onRestart('home'))}
+      />
+    )
+  }
   const invite =
     kind === 'convex' && room
       ? inviteUrl(window.location.origin, window.location.pathname, kind, room.inviteToken)
       : undefined
   return (
     <RoomScreen
-      state={state}
+      state={playing ? frozen : state}
       self={self}
       room={room!}
       onBurn={() => void burn()}
@@ -92,6 +149,10 @@ function RoomSession({ client, kind, search, onLeave }: SessionProps) {
       onStartReplay={startReplay}
       voice={client.voice}
       onLeave={onLeave}
+      // A burn during the entry ritual dismisses it: the room behind it burns.
+      entered={entered || closing !== null}
+      onEnter={() => setEntered(true)}
+      closing={playing ? closing : null}
     />
   )
 }

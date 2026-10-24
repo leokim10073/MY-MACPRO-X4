@@ -58,17 +58,17 @@ describe('RecallPopup', () => {
     const talk = container.querySelector('.room-talk')!
     expect(slot.contains(popup)).toBe(true)
     expect(talk.contains(popup)).toBe(false)
-    expect(slot.parentElement).toBe(talk.parentElement)
+    expect(slot.parentElement).toBe(container.querySelector('.room-board'))
     expect(slot.compareDocumentPosition(talk) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  it('renders the story card inside the dock, above and outside push-to-talk', () => {
+  it('renders the story card in the board, above and outside push-to-talk', () => {
     const { container } = setup()
     fireEvent.click(within(screen.getByRole('region', { name: 'Mentioned again' }), 'Cake'))
     const dialog = screen.getByRole('dialog', { name: 'Cake' })
-    const dock = container.querySelector('.room-dock')!
+    const board = container.querySelector('.room-board')!
     const talk = container.querySelector('.room-talk')!
-    expect(dock.contains(dialog)).toBe(true)
+    expect(board.contains(dialog)).toBe(true)
     expect(talk.contains(dialog)).toBe(false)
     expect(dialog.compareDocumentPosition(talk) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })

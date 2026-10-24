@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Burn layer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: {{position}}; inset: {{inset}}; width: {{width}}; height: {{height}}; background: {{rootBg}}">
+<canvas ref="{{cv}}" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block"></canvas>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"progress":{"editor":"range","min":0,"max":1,"step":0.01,"default":0.5},"seed":{"editor":"int","default":42},"backdrop":{"editor":"boolean","default":true},"fill":{"editor":null,"default":false},"forceMotion":{"editor":null,"default":false},"start":{"editor":null,"default":0},"duration":{"editor":null,"default":2000},"$preview":{"width":390,"height":540}}'>
+class Component extends DCLogic {
+  renderVals() {
+    if (!this.cv) this.cv = { current: null };
+    const backdrop = this.props.backdrop ?? true;
+    const fill = !!this.props.fill;
+    return {
+      cv: this.cv,
+      position: fill ? 'absolute' : 'relative',
+      inset: fill ? '0' : 'auto',
+      width: fill ? '100%' : '390px',
+      height: fill ? '100%' : '540px',
+      rootBg: backdrop ? '#18181C' : 'transparent'
+    };
+  }
+  componentDidMount() {
+    this.onResize = () => this.restart();
+    window.addEventListener('resize', this.onResize);
+    this.waits = 0;
+    this.restart();
+  }
+  componentDidUpdate(prev) {
+    const p = this.props;
+    if (prev.start !== p.start || prev.progress !== p.progress || prev.seed !== p.seed || prev.backdrop !== p.backdrop || prev.forceMotion !== p.forceMotion) {
+      this.waits = 0;
+      this.restart();
+    }
+  }
+  componentWillUnmount() {
+    this.gone = true;
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener('resize', this.onResize);
+    this.parts = [];
+    this.field = null;
+  }
+
+  rng(seed) {
+    let a = (seed >>> 0) || 1;
+    return () => {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  lattice(rand, cols, rows, step) {
+    const gw = Math.ceil(cols / step) + 2, gh = Math.ceil(rows / step) + 2;
+    const g = new Float32Array(gw * gh);
+    for (let i = 0; i < g.length; i++) g[i] = rand();
+    return (c, r) => {
+      const x = c / step, y = r / step, x0 = Math.floor(x), y0 = Math.floor(y);
+      let fx = x - x0, fy = y - y0;
+      fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy);
+      const a = g[y0 * gw + x0], b = g[y0 * gw + x0 + 1], c2 = g[(y0 + 1) * gw + x0], d = g[(y0 + 1) * gw + x0 + 1];
+      return (a + (b - a) * fx) + ((c2 + (d - c2) * fx) - (a + (b - a) * fx)) * fy;
+    };
+  }
+
+  restart() {
+    cancelAnimationFrame(this.raf);
+    if (this.gone) return;
+    const c = this.cv && this.cv.current;
+    const rect = c ? c.getBoundingClientRect() : null;
+    // The canvas must have a real size before drawing; inside the room the board may lay out a frame later.
+    if (!c || !rect || rect.width < 2 || rect.height < 2) {
+      if ((this.waits = (this.waits || 0) + 1) < 120) this.raf = requestAnimationFrame(() => this.restart());
+      return;
+    }
+    const w = rect.width, h = rect.height;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    c.width = Math.round(w * dpr);
+    c.height = Math.round(h * dpr);
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx = ctx; this.w = w; this.h = h;
+    this.reduced = !this.props.forceMotion && !!window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.build();
+    this.parts = [];
+    this.rand = null;
+    this.finished = false;
+    const start = this.props.start || 0;
+    if (start > 0) {
+      this.last = Date.now();
+      const loop = () => {
+        this.frame(Date.now());
+        if (!this.finished) this.raf = requestAnimationFrame(loop);
+      };
+      loop();
+    } else {
+      this.drawStatic(this.props.progress ?? 0.5);
+    }
+  }
+
+  build() {
+    // A 3 px grid, drawn into a small bitmap and scaled up with smoothing, so the edge reads as soft, not as squares.
+    const cell = 3;
+    const cols = Math.ceil(this.w / cell), rows = Math.ceil(this.h / cell);
+    const rand = this.rng(this.props.seed ?? 42);
+    const coarse = this.lattice(rand, cols, rows, 18);
+    const fine = this.lattice(rand, cols, rows, 5);
+    const field = new Float32Array(cols * rows);
+    const speck = new Float32Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      const yn = rows > 1 ? r / (rows - 1) : 1;
+      for (let col = 0; col < cols; col++) {
+        const xn = cols > 1 ? col / (cols - 1) : 0.5;
+        const fn = fine(col, r);
+        const n = 0.65 * coarse(col, r) + 0.35 * fn;
+        field[r * cols + col] = (1 - yn) * 0.78 + Math.abs(xn - 0.5) * 0.22 + n * 0.24;
+        speck[r * cols + col] = fn;
+      }
+    }
+    this.cell = cell; this.cols = cols; this.rows = rows; this.field = field; this.speck = speck;
+    this.palette = [];
+    this.paletteRGB = [];
+    const gold = [255, 230, 175], orange = [255, 118, 46], red = [173, 53, 39];
+    for (let i = 0; i <= 20; i++) {
+      const t = i / 20;
+      const a = t < 0.35 ? gold : orange, b = t < 0.35 ? orange : red;
+      const k = t < 0.35 ? t / 0.35 : (t - 0.35) / 0.65;
+      const rgb = [0, 1, 2].map((j) => Math.round(a[j] + (b[j] - a[j]) * k));
+      this.paletteRGB.push(rgb);
+      this.palette.push('rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')');
+    }
+    const mk = () => {
+      const c = document.createElement('canvas');
+      c.width = cols; c.height = rows;
+      const x = c.getContext('2d');
+      return { c, x, img: x.createImageData(cols, rows) };
+    };
+    this.body = mk();
+    this.glow = mk();
+    this.canBlur = typeof this.ctx.filter === 'string';
+  }
+
+  drawBackdrop() {
+    if (!(this.props.backdrop ?? true)) return;
+    const ctx = this.ctx, w = this.w;
+    const blocks = [[16, 54, 0.82], [82, 64, 0.62], [158, 76, 0.9], [246, 54, 0.7], [312, 64, 0.86], [388, 54, 0.6], [454, 64, 0.8]];
+    for (const [y, h, f] of blocks) {
+      if (y + h > this.h - 8) break;
+      ctx.fillStyle = '#202024';
+      this.round(12, y, (w - 24) * f, h, 12);
+      ctx.fillStyle = '#2E2E33';
+      this.round(24, y + 12, 44, 8, 4);
+      this.round(24, y + 28, (w - 48) * f * 0.8, 10, 5);
+    }
+  }
+  round(x, y, w, h, r) {
+    const ctx = this.ctx;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  paint(p) {
+    const ctx = this.ctx, field = this.field, speck = this.speck, n = this.cols * this.rows;
+    const body = this.body.img.data, glow = this.glow.img.data;
+    const band = [];
+    for (let i = 0; i < n; i++) {
+      const o = i * 4;
+      const d = p - field[i];
+      glow[o + 3] = 0;
+      if (d <= 0) { body[o + 3] = 0; continue; }
+      let r, g, b;
+      if (d > 0.07) {
+        if (speck[i] > 0.8 && d < 0.16) { r = 36; g = 28; b = 26; } else { r = 17; g = 17; b = 20; }
+      } else if (d > 0.035) {
+        // Char band, warming toward the glow so the two blend instead of meeting at a hard line.
+        const k = (0.07 - d) / 0.035;
+        r = Math.round(36 + 60 * k * k); g = Math.round(28 + 10 * k * k); b = 26;
+      } else {
+        const rgb = this.paletteRGB[Math.min(20, Math.round((d / 0.035) * 20))];
+        r = rgb[0]; g = rgb[1]; b = rgb[2];
+        glow[o] = 255; glow[o + 1] = d < 0.012 ? 200 : 118; glow[o + 2] = 46; glow[o + 3] = 255;
+        if (band.length < 6000) band.push(i);
+      }
+      body[o] = r; body[o + 1] = g; body[o + 2] = b;
+      // Fade in over the leading edge so the burn front is soft.
+      body[o + 3] = d < 0.01 ? Math.round(255 * (d / 0.01)) : 255;
+    }
+    this.body.x.putImageData(this.body.img, 0, 0);
+    ctx.clearRect(0, 0, this.w, this.h);
+    this.drawBackdrop();
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(this.body.c, 0, 0, this.w, this.h);
+    if (band.length) {
+      this.glow.x.putImageData(this.glow.img, 0, 0);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.45;
+      if (this.canBlur) ctx.filter = 'blur(6px)';
+      ctx.drawImage(this.glow.c, 0, 0, this.w, this.h);
+      ctx.restore();
+    }
+    return band;
+  }
+
+  spawn(band, rand, u) {
+    if (!band.length || this.parts.length >= 70) return;
+    const i = band[Math.floor(rand() * band.length)];
+    const x = (i % this.cols) * this.cell + this.cell / 2, y = Math.floor(i / this.cols) * this.cell;
+    const ash = rand() < Math.min(0.65, 0.15 + u * 0.6);
+    const s = 2 + rand() * 3.4;
+    this.parts.push({
+      ash, x, y,
+      vx: (rand() - 0.5) * 0.5,
+      vy: ash ? -(0.25 + rand() * 0.5) : -(0.7 + rand() * 1.1),
+      life: 0,
+      max: ash ? 70 + rand() * 60 : 34 + rand() * 40,
+      size: ash ? s : 1.1 + rand() * 1.6,
+      rot: rand() * 6.28,
+      vr: (rand() - 0.5) * 0.12,
+      phase: rand() * 6.28,
+      pts: [[-s, -s * 0.5 * rand()], [s * 0.7, -s * 0.6], [s, s * 0.4 * rand()], [-s * 0.4, s * 0.7]]
+    });
+  }
+  drawParts(dt) {
+    const ctx = this.ctx;
+    const keep = [];
+    for (const q of this.parts) {
+      q.life += dt;
+      if (q.life >= q.max) continue;
+      q.x += q.vx * dt + Math.sin(q.phase + q.life * 0.08) * 0.25 * dt;
+      q.y += q.vy * dt;
+      q.rot += q.vr * dt;
+      this.drawPart(q);
+      keep.push(q);
+    }
+    this.parts = keep;
+  }
+  drawPart(q) {
+    const ctx = this.ctx;
+    const f = q.life / q.max;
+    if (q.ash) {
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.rotate(q.rot);
+      ctx.fillStyle = 'rgba(141,133,128,' + (0.75 * (1 - f)).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.moveTo(q.pts[0][0], q.pts[0][1]);
+      for (let k = 1; k < 4; k++) ctx.lineTo(q.pts[k][0], q.pts[k][1]);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.fillStyle = this.palette[Math.min(20, Math.round(f * 20))];
+      ctx.globalAlpha = Math.max(0, 1 - f);
+      ctx.beginPath();
+      ctx.arc(q.x, q.y, q.size * (1 - f * 0.5), 0, 6.283);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  frame(now) {
+    const ctx = this.ctx;
+    const start = this.props.start || 0, dur = this.props.duration || 2000;
+    const dt = Math.min(3, Math.max(0.2, (now - (this.last || now)) / 16.7));
+    this.last = now;
+    if (!this.rand) this.rand = this.rng((this.props.seed ?? 42) + 7);
+    if (now < start) {
+      ctx.clearRect(0, 0, this.w, this.h);
+      this.drawBackdrop();
+      return;
+    }
+    const u = (now - start) / dur;
+    if (this.reduced) {
+      ctx.clearRect(0, 0, this.w, this.h);
+      this.drawBackdrop();
+      ctx.globalAlpha = Math.min(1, u / 0.3);
+      ctx.fillStyle = '#111114';
+      ctx.fillRect(0, 0, this.w, this.h);
+      ctx.globalAlpha = 1;
+      if (u >= 0.3) this.finished = true;
+      return;
+    }
+    // Mostly linear with a gentle ease, so the front moves as soon as the ember lands.
+    const c = Math.min(1, u);
+    const e = 0.55 * c + 0.45 * c * c * (3 - 2 * c);
+    const band = this.paint(this.front(e));
+    if (u < 1) {
+      this.spawn(band, this.rand, u);
+      this.spawn(band, this.rand, u);
+    }
+    this.drawParts(dt);
+    if (u >= 1 && this.parts.length === 0) {
+      ctx.clearRect(0, 0, this.w, this.h);
+      ctx.fillStyle = '#111114';
+      ctx.fillRect(0, 0, this.w, this.h);
+      this.finished = true;
+    }
+  }
+
+  // Burn-front position for 0–1 progress. Starts just above 0 so the ember's landing spot is already lit.
+  front(progress) {
+    return 0.035 + progress * 1.3;
+  }
+
+  drawStatic(progress) {
+    const band = this.paint(this.front(progress));
+    if (this.reduced || !band.length) return;
+    const rand = this.rng((this.props.seed ?? 42) + 13);
+    const count = progress < 0.15 ? 14 : 48;
+    for (let k = 0; k < count; k++) {
+      this.spawn(band, rand, progress);
+      const q = this.parts[this.parts.length - 1];
+      if (!q) break;
+      const age = rand() * q.max * 0.85;
+      q.life = age;
+      q.x += q.vx * age;
+      q.y += q.vy * age;
+      q.rot += q.vr * age;
+    }
+    for (const q of this.parts) this.drawPart(q);
+    this.parts = [];
+  }
+}
+</script>
+</body>
+</html>

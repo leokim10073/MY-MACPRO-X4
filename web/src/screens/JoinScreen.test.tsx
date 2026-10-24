@@ -64,7 +64,7 @@ describe('JoinScreen', () => {
     await user.type(screen.getByLabelText('Nickname'), '  Leo ')
     await user.click(screen.getByRole('button', { name: 'Join the room' }))
     expect(client.joinRoom).toHaveBeenCalledWith('demo', 'Leo')
-    expect(await screen.findByRole('status')).toBeTruthy()
+    expect(await screen.findByText('Listening')).toBeTruthy()
   })
 
   it('shows Joining… and disables the button while the call is pending', async () => {

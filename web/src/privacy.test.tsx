@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { DONE_MS } from './room/closing'
 import { createRoomClient } from './room/createRoomClient'
 import { fixtureLines } from './room/testFixtures'
 
@@ -31,6 +32,7 @@ async function enter(button: string) {
     fireEvent.click(screen.getByRole('button', { name: button }))
     await vi.advanceTimersByTimeAsync(0)
   })
+  fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
   await act(async () => {
     await vi.advanceTimersByTimeAsync(60_000)
   })
@@ -53,12 +55,15 @@ describe('storage guard', () => {
     render(<App {...mock("?speed=1000")} />)
     await enter('Start the party')
     expect(document.body.textContent).toContain(line21())
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Tap again to burn' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
       await vi.advanceTimersByTimeAsync(0)
     })
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(DONE_MS)
+    })
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })

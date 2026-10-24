@@ -444,28 +444,6 @@ button.primary {
   padding: 0 16px;
 }
 
-.burn {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid #e03131;
-  border-radius: 8px;
-  background: transparent;
-  color: #e03131;
-  font-size: 14px;
-}
-
-.burn-armed {
-  background: #e03131;
-  color: #fff;
-}
-
-.burned {
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 48px 16px;
-  text-align: center;
-}
-
 .recap-toggle {
   display: block;
   min-height: 44px;
@@ -685,10 +663,6 @@ button.primary {
   background: rgba(127, 127, 127, 0.45);
 }
 
-.burn {
-  font-weight: 600;
-}
-
 .leave {
   min-height: 44px;
   padding: 0 14px;
@@ -748,4 +722,449 @@ button.primary {
   color: inherit;
   text-decoration: underline;
   font-size: 15px;
+}
+
+/* Burning Room */
+:root {
+  --br-charcoal: #111114;
+  --br-ivory: #f5efe7;
+  --br-ember: #ff762e;
+  --br-gold: #ffe6af;
+  --br-red: #ad3527;
+  --br-char: #241c1a;
+  --br-ash: #8d8580;
+}
+
+.shhh-badge {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.shhh-badge-button {
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--br-charcoal);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shhh-badge p:empty {
+  /* Stays in the accessibility tree (live region) but draws nothing. */
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+
+.shhh-badge-button:focus-visible {
+  outline: 2px solid var(--br-ember);
+  outline-offset: 2px;
+}
+
+.shhh-badge p {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: min(260px, 80vw);
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--br-ash);
+  border-radius: 12px;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@keyframes shhh-finger-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+
+@keyframes shhh-ring-contract {
+  0%, 100% { r: 30px; }
+  50% { r: 27px; }
+}
+
+.shhh-icon-animated .shhh-finger {
+  animation: shhh-finger-drift 2.6s ease-in-out infinite;
+}
+
+.shhh-icon-animated .shhh-ring {
+  animation: shhh-ring-contract 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shhh-icon-animated .shhh-finger,
+  .shhh-icon-animated .shhh-ring {
+    animation: none;
+  }
+}
+
+.room-actions .burn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--br-ember);
+  border-radius: 12px;
+  /* Charcoal fill like the badge: the gold label then holds contrast on a light or dark room. */
+  background: var(--br-charcoal);
+  color: var(--br-gold);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.room-actions .burn svg path {
+  fill: var(--br-ember);
+}
+
+.burn-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(5, 5, 7, 0.62);
+}
+
+.burn-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 26px;
+  border-top: 1px solid rgba(255, 118, 46, 0.4);
+  border-radius: 22px 22px 0 0;
+  background: var(--br-char);
+  color: var(--br-ivory);
+}
+
+.burn-sheet h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.burn-sheet p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.burn-sheet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.burn-sheet-actions button {
+  flex: 1;
+  min-height: 52px;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.burn-keep {
+  border: 1px solid rgba(245, 239, 231, 0.25);
+  background: transparent;
+  color: var(--br-ivory);
+}
+
+.burn-go {
+  border: 0;
+  background: var(--br-ember);
+  color: var(--br-charcoal);
+  font-weight: 600;
+}
+
+.burn-go:disabled {
+  background: var(--br-red);
+  color: var(--br-ivory);
+  cursor: default;
+}
+
+.room-actions .burn:focus-visible,
+.burn-sheet-actions button:focus-visible {
+  outline: 2px solid var(--br-ember);
+  outline-offset: 2px;
+}
+
+.entry-ritual {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  text-align: center;
+}
+
+.entry-ritual h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.entry-ritual ul {
+  max-width: 340px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.entry-ritual li:first-child {
+  color: var(--br-gold);
+}
+
+.entry-ritual-enter {
+  min-width: 200px;
+  min-height: 52px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--br-ember);
+  color: var(--br-charcoal);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entry-ritual-enter:focus-visible {
+  outline: 2px solid var(--br-gold);
+  outline-offset: 3px;
+}
+
+.entry-ritual-exit {
+  position: fixed;
+  z-index: 30;
+  top: 38%;
+  left: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  pointer-events: none;
+  transform-origin: center;
+  animation: entry-ritual-shrink 250ms ease-in forwards;
+}
+
+@keyframes entry-ritual-shrink {
+  to {
+    top: 34px;
+    left: 40px;
+    transform: scale(0.4);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-ritual-exit {
+    display: none;
+  }
+}
+
+.room-board {
+  position: relative;
+  flex: 1;
+  /* min-height stays auto: the board's floor is banner + stage + the transcript's 5rem + the slot,
+     so content that does not fit pushes the dock as it did before the board existed. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* The transcript counts as only its 5rem floor toward the board's minimum height; without this its
+   whole line list would, and the board would never shrink. */
+.room-board > .room-transcript {
+  contain: size;
+}
+
+/* The pop-up slot moved out of the dock into the board; keep its old inset and spacing. */
+.room-popup-slot {
+  padding: 8px 16px 0;
+  margin-bottom: -8px;
+}
+
+.ptt:disabled {
+  background: var(--br-char);
+  color: var(--br-ash);
+}
+
+.burn-ignition {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background: rgba(17, 17, 20, 0);
+  transition: background-color 180ms ease-out;
+}
+
+/* Dim the board behind the icon and line so they don't clash with the transcript. */
+.burn-ignition-active {
+  background: rgba(17, 17, 20, 0.78);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burn-ignition {
+    transition: none;
+  }
+}
+
+.burn-ignition-copy {
+  position: absolute;
+  top: 18%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--br-ivory);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.burn-ember {
+  position: absolute;
+  left: 50%;
+  top: 98.5%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--br-gold);
+  box-shadow: 0 0 0 6px rgba(255, 118, 46, 0.22);
+}
+
+.burn-ember-drop {
+  top: 23%;
+  animation: burn-ember-drop 0.5s ease-in 0.1s forwards;
+}
+
+@keyframes burn-ember-drop {
+  to {
+    top: 98.5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .burn-ember-drop {
+    top: 98.5%;
+    animation: none;
+  }
+}
+
+.burn-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Burning Room: clean slate */
+.burned {
+  min-height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  text-align: center;
+}
+
+.burned h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.burned-lead {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.burned-note {
+  max-width: 320px;
+  margin: 0 0 32px;
+  color: var(--br-ash);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.burned-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.burned-primary,
+.burned-secondary {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.burned-primary {
+  border: 0;
+  background: var(--br-ember);
+  color: var(--br-charcoal);
+  font-weight: 600;
+}
+
+.burned-secondary {
+  border: 1px solid var(--br-ash);
+  background: transparent;
+  color: var(--br-ivory);
+}
+
+.burned-primary:focus-visible,
+.burned-secondary:focus-visible {
+  outline: 3px solid var(--br-gold);
+  outline-offset: 2px;
+}
+
+/* Visually hidden, still read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

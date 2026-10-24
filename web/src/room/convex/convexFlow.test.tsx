@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Recap, Room, RoomEvent } from '../../../../shared/schema'
 import App from '../../App'
+import { DONE_MS } from '../closing'
 import { fakeConvex } from '../../test/fakeConvex'
 import { ConvexRoomClient } from './ConvexRoomClient'
 import sample from './__fixtures__/events.sample.json'
@@ -36,6 +37,7 @@ async function joinViaUi(joinAs: { room: Room; member: Member }) {
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
   })
+  fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
   const sub = fake.subscriptions[0]
   const push = (v: { status: 'active' | 'burned'; events: Row[] }) =>
     act(async () => {
@@ -46,6 +48,7 @@ async function joinViaUi(joinAs: { room: Room; member: Member }) {
 
 describe('Convex path: late join and burn', () => {
   it('shows the recap for the latecomer, the pop-up and card, then burns cleanly', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     const { fake, client, sub, push } = await joinViaUi({ room: joinedRoom, member: taylor.member })
     expect(sub).toBeDefined()
 
@@ -70,7 +73,11 @@ describe('Convex path: late join and burn', () => {
     expect(screen.getByRole('dialog', { name: 'Cake' })).toBeTruthy()
 
     await push({ status: 'burned', events: [] })
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    // The closing plays over the frozen room first, then the clean slate.
+    expect(screen.getByRole('button', { name: 'Room closed' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     const text = document.body.textContent ?? ''
     expect(text).not.toMatch(/kevin/i)
     expect(text).not.toMatch(/cake/i)
@@ -84,6 +91,7 @@ describe('Convex path: late join and burn', () => {
 
 describe('storage guard on the Convex path', () => {
   it('the same flow never writes to browser storage', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     if (typeof indexedDB === 'undefined') vi.stubGlobal('indexedDB', { open: vi.fn() })
     const setItem = vi.spyOn(Storage.prototype, 'setItem')
     const open = vi.spyOn(indexedDB, 'open')
@@ -91,7 +99,8 @@ describe('storage guard on the Convex path', () => {
     await push({ status: 'active', events: upToR2 })
     fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
     await push({ status: 'burned', events: [] })
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })
