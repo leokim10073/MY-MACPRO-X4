@@ -49,7 +49,18 @@ npm run tts:audition      # narrator candidates → voice/out/ (not committed)
 | `stt/keyterms.ts` | Member names + the AI's people and aliases, cut to Ink's limits |
 | `stt/lineSender.ts` | Sends `NewTranscriptLine`s with retries; drops empty or noise-only text |
 | `server/cartesia.ts` | **Server only.** `mintSttToken`, `synthesizeRecap`. Plain functions for a Convex action |
-| `config.ts` | Every Cartesia setting and tuning number, including the narrator voice |
+| `audio/pcmCapture.ts` | Any mic track → AudioWorklet → 16 kHz PCM16 frames. Shared by push-to-talk and the call |
+| `audio/trackSource.ts` | Frames from the call's mic; re-attached to a new track after the system restarts the mic |
+| `audio/loudnessGate.ts` | Blocks audio too quiet to be this phone's owner. Learns the owner's level from their own turns |
+| `call/callSession.ts` | The LiveKit call: join from the tap, publish with Krisp, play friends, recover after lock/app switch, wake lock |
+| `call/noiseFilter.ts` | Loads Krisp (with background voice cancellation) only when someone joins |
+| `call/liveText.ts` | The words someone is saying right now, sent to the others in the call over LiveKit |
+| `stt/turns.ts` | Ink's turn-detection endpoint: URL and messages |
+| `stt/turnSession.ts` | One Ink connection for the whole call: queue, reconnect with backoff, rotate every 10 min, drain on close |
+| `stt/turnSplitter.ts` | Splits my open turn when someone cuts in, so the transcript keeps the real order |
+| `stt/openMic.ts` | The call controller web uses: join, mute, leave, stop, live text, ducking. Counterpart of `PushToTalk` |
+| `server/livekit.ts` | **Server only.** `mintCallToken`, `endCall`. Plain functions for a Convex action |
+| `config.ts` | Every Cartesia and call setting and tuning number, including the narrator voice |
 
 ## For web: wiring push-to-talk
 
@@ -71,6 +82,46 @@ const voice = useSyncExternalStore(ptt.subscribe, ptt.getState)
 ```
 
 `voice.isListening` is true exactly while audio is going to Ink; `voice.preview` is what Ink has heard so far (speaker's own screen only); `voice.failed` lists lines that couldn't be sent, each with `retry()`. To import from `../voice/src`, web's `vite.config.ts` needs `'../voice'` in `server.fs.allow`.
+
+## For web: wiring the call
+
+`OpenMic` is the call's counterpart of `PushToTalk`, with the same `subscribe`/`getState` shape:
+
+```tsx
+const call = useMemo(() => new OpenMic({
+  roomId: room.id,
+  speakerId: self.id,
+  getSttToken: () => tokens.get(),
+  getCallToken: () => client.callToken(),   // new VoiceTransport method → backend's callToken action
+  sendLine: (line) => client.addLine(line),
+  keyterms: () => buildKeyterms(members, state.storyState?.people ?? []),
+}), [room.id, self.id])
+const voice = useSyncExternalStore(call.subscribe, call.getState)
+
+<button onClick={call.join}>Join call</button>  // call join() straight from the tap, no await before it (iOS)
+// call.leave(), call.setMuted(bool); on room_burned: call.stop()
+// every line_added: call.noteLine(line)
+// around recap playback: call.duck(true) … call.duck(false)
+```
+
+The room screen needs:
+- "Join call" / "Leave" and a mute button. The user is only in the call after tapping "Join call".
+- `voice.participants`: everyone in the call, self first, with `speaking` and `muted`.
+- `voice.live`: what each friend is saying right now, by member id, as they speak. Show it under their name, or as a greyed line at the end of the transcript. A `final` entry is their finished turn; it goes away when its real line arrives (via `noteLine`) or after 4 s. `voice.preview` is the same for me.
+- The "Keep this screen on during the call" notice while `status` is `in_call`/`reconnecting`, and a "Tap to resume" button calling `call.resume()` while `voice.needsTap`.
+- `voice.isListening` for the mic indicator, `voice.failed` with `retry()` as in push-to-talk, and `voice.error`.
+- A mode switch between push-to-talk and the call, if both are kept.
+- `livekit-client` and `@livekit/krisp-noise-filter` in web's package.json. Krisp (about 6 MB) is loaded only on "Join call".
+- Join screen notice (process.md section 13): the call's audio goes through LiveKit to friends and through Cartesia for text, and neither records it. Live text goes only to the people in the call and isn't stored.
+
+## For backend: the call
+
+- An action `callToken(sessionToken)`: checks membership and that the room isn't burned (like the STT token), then returns `mintCallToken(cfg, { roomId, memberId, name })`. Needs a `"use node"` action file.
+- On burn, call `endCall(cfg, roomId)`: everyone is dropped from the call.
+- Environment variables `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, and `livekit-server-sdk` in backend's package.json.
+- Expect 2–3 times as many lines as push-to-talk (splits, short reactions) for AI trigger and cost estimates.
+- Q6 (sort by `seq` or `at`) still stands. The split keeps both orders right.
+- Cartesia allows 20 Ink connections at once across all rooms: one per phone in a call. Fine for the hackathon.
 
 ## For backend: what to move into Convex
 

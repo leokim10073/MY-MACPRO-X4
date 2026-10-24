@@ -74,6 +74,8 @@ export default defineSchema({
     // Secret the phone keeps and sends with every call. Never returned to other members.
     // Replay speakers have no token, so nobody can act as them.
     token: v.optional(v.string()),
+    // Set when the member taps Leave; their token is removed at the same time.
+    leftAt: v.optional(v.number()),
   })
     .index("by_room", ["roomId"])
     .index("by_token", ["token"]),

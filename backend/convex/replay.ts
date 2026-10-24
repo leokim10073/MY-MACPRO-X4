@@ -74,7 +74,8 @@ async function replaySpeaker(ctx: MutationCtx, roomId: Id<"rooms">, name: string
     .query("members")
     .withIndex("by_room", (q) => q.eq("roomId", roomId))
     .collect();
-  const existing = members.find((m) => m.name === name && m.token === undefined);
+  // Scripted speakers are the members with no token who never left.
+  const existing = members.find((m) => m.name === name && m.token === undefined && m.leftAt === undefined);
   if (existing) return existing;
   const room = (await ctx.db.get(roomId))!;
   const id = await ctx.db.insert("members", { roomId, name, joinedAtSeq: room.lastSeq });

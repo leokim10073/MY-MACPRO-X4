@@ -18,8 +18,6 @@ export interface RecallDraft {
   reference: RecallReference;
   /** Only one known person could be meant, given the recent lines. */
   onlyOneFits: boolean;
-  /** The line just continues the story being told right now, so it isn't a recall. */
-  continuesCurrentStory: boolean;
 }
 
 const REFERENCE_CONFIDENCE: Record<RecallReference, number> = {
@@ -34,11 +32,12 @@ const AMBIGUOUS_CONFIDENCE = 0.5;
 
 /**
  * Confidence from fixed rules, so the same answer always gets the same score.
- * Returns null when the line isn't a recall: it continues the current story, or the person
- * is in the room (recalls are for people the latecomer has never met).
+ * Returns null when the person is in the room: recalls are for people the latecomer has never met.
+ * Mentions inside the story being told right now still count; the phone shows a recall only to
+ * people who missed the start of that story.
  */
 export function scoreRecall(draft: RecallDraft, person: Person): number | null {
-  if (draft.continuesCurrentStory || person.memberId) return null;
+  if (person.memberId) return null;
   if (!draft.onlyOneFits) return AMBIGUOUS_CONFIDENCE;
   return REFERENCE_CONFIDENCE[draft.reference] ?? AMBIGUOUS_CONFIDENCE;
 }
@@ -60,9 +59,8 @@ function recallTool(state: StoryState): BetaTool {
               focusStoryId: { type: "string", enum: ["", ...state.stories.map((s) => s.id)] },
               reference: { type: "string", enum: ["name", "alias", "pronoun", "story_reference"] },
               onlyOneFits: { type: "boolean" },
-              continuesCurrentStory: { type: "boolean" },
             },
-            required: ["personId", "matchedText", "focusStoryId", "reference", "onlyOneFits", "continuesCurrentStory"],
+            required: ["personId", "matchedText", "focusStoryId", "reference", "onlyOneFits"],
             additionalProperties: false,
           },
         },
@@ -73,7 +71,7 @@ function recallTool(state: StoryState): BetaTool {
   };
 }
 
-/** Fills in ids, storyIds, seq and confidence; drops recalls whose person or matched text don't check out, or that aren't recalls. */
+/** Fills in ids, storyIds, seq and confidence; drops recalls whose person or matched text don't check out, or whose person is in the room. */
 export function assembleRecalls(drafts: RecallDraft[], line: TranscriptLine, state: StoryState): Recall[] {
   const people = new Map(state.people.map((p) => [p.id, p]));
   const firstSeq = new Map(state.stories.map((s) => [s.id, s.firstSeq]));

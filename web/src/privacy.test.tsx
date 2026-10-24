@@ -43,7 +43,7 @@ describe('storage guard', () => {
     vi.useFakeTimers()
     const { setItem, open } = spies()
     render(<App {...mock("?room=demo&speed=1000")} />)
-    await enter('Join room')
+    await enter('Join the room')
     expect(document.body.textContent).toContain(line21())
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
@@ -53,7 +53,7 @@ describe('storage guard', () => {
     vi.useFakeTimers()
     const { setItem, open } = spies()
     render(<App {...mock("?speed=1000")} />)
-    await enter('Create room')
+    await enter('Start the party')
     expect(document.body.textContent).toContain(line21())
     fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
     await act(async () => {

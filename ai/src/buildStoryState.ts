@@ -15,7 +15,23 @@ import type {
 } from "../../shared/schema";
 import { callTool, SLOW_MODEL } from "./llm";
 import { formatLines, formatMembers, formatState, STORY_SYSTEM } from "./prompts";
-import { isOneWord, quoteInLine, seqRange, slugId, toOneWord } from "./validate";
+import { countWords, isOneWord, quoteInLine, seqRange, slugId, toOneWord, truncateToWords } from "./validate";
+
+/** A story card is read at a glance: two short sentences at most. */
+export const SUMMARY_MAX_WORDS = 35;
+
+/** Problems with a summary: too long, or the teller attributed more than once ("Khris says... Khris says..."). */
+function summaryProblems(label: string, summary: string): string[] {
+  const problems: string[] = [];
+  const words = countWords(summary);
+  if (words > SUMMARY_MAX_WORDS) {
+    problems.push(`story "${label}": summary has ${words} words; keep it to 2 short sentences, at most ${SUMMARY_MAX_WORDS}`);
+  }
+  if ((summary.match(/\bsays\b/gi) ?? []).length > 1) {
+    problems.push(`story "${label}": name the teller once at the start ("Alex says ..."), then tell it without repeating "says"`);
+  }
+  return problems;
+}
 
 // What the model fills in. Everything else (ids, member names, seq ranges, teller) is computed.
 export interface PersonDraft {
@@ -168,13 +184,16 @@ export function assembleStoryState(
     else id = slugId("s", keyword, takenStoryIds);
     usedStoryIds.add(id);
 
+    const summary = d.summary.trim();
+    problems.push(...summaryProblems(label, summary));
+
     const range = seqRange([...sourceLineIds, ...reactions.map((r) => r.lineId)], lineById)!;
     stories.push({
       id,
       roomId: ctx.roomId,
       personIds: [...new Set(personIds)],
       keyword,
-      summary: d.summary.trim(),
+      summary: truncateToWords(summary, SUMMARY_MAX_WORDS),
       tellerId: tellerOf(sourceLineIds, lineById),
       reactions,
       speculation,

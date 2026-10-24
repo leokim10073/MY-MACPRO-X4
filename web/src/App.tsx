@@ -46,7 +46,17 @@ export default function App({ client, kind, search = window.location.search, mak
 
   function leave() {
     if (!makeClient) return
-    session.client.dispose()
+    // Tell the backend first (so other phones' people count drops), then close this client.
+    // The screen resets at once; a failed leave call only means the count stays high.
+    const old = session.client
+    if (old.leave) {
+      void old
+        .leave()
+        .catch(() => {})
+        .finally(() => old.dispose())
+    } else {
+      old.dispose()
+    }
     setSession({ key: session.key + 1, client: makeClient(), search: session.search })
   }
 

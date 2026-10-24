@@ -94,7 +94,27 @@ export const get = query({
       .query("members")
       .withIndex("by_room", (q) => q.eq("roomId", room._id))
       .collect();
-    return { room: toRoom(room), me: toMember(member), members: members.map(toMember) };
+    const present = members.filter((m) => m.leftAt === undefined);
+    return { room: toRoom(room), me: toMember(member), members: present.map(toMember) };
+  },
+});
+
+/**
+ * This phone leaves the room (not a burn). The token stops working, and every phone
+ * drops the member from the people count. Leaving twice, or after a burn, does nothing.
+ */
+export const leave = mutation({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const member = await ctx.db
+      .query("members")
+      .withIndex("by_token", (q) => q.eq("token", sessionToken))
+      .unique();
+    if (!member) return;
+    const room = await ctx.db.get(member.roomId);
+    if (!room || room.status !== "active") return;
+    await ctx.db.patch(member._id, { token: undefined, leftAt: Date.now() });
+    await appendEvent(ctx, room._id, { type: "member_left", memberId: member._id });
   },
 });
 

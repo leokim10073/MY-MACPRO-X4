@@ -52,9 +52,9 @@ function fakeClient(opts: { host: boolean; burn?: () => Promise<void> }) {
   return { client, emit: (e: RoomEvent) => act(() => listener(e)) }
 }
 
-async function joinWith(client: RoomClient, button: 'Create room' | 'Join room', makeClient?: () => RoomClient) {
+async function joinWith(client: RoomClient, button: 'Start the party' | 'Join the room', makeClient?: () => RoomClient) {
   render(
-    <App client={client} kind="mock" search={button === 'Join room' ? '?room=demo' : ''} makeClient={makeClient} />,
+    <App client={client} kind="mock" search={button === 'Join the room' ? '?room=demo' : ''} makeClient={makeClient} />,
   )
   fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
   await act(async () => {
@@ -88,7 +88,7 @@ function expectCleanSlate() {
 
 describe('Burn flow in the app', () => {
   it('host on the mock: closes over the frozen room, then shows the clean slate at 2900 ms', async () => {
-    await joinWith(new MockRoomClient({ speed: 1000 }), 'Create room')
+    await joinWith(new MockRoomClient({ speed: 1000 }), 'Start the party')
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await advance(60_000)
     expect(text()).toContain('Kevin')
@@ -104,7 +104,7 @@ describe('Burn flow in the app', () => {
 
   it('non-host: room_burned with no tap plays the same closing', async () => {
     const { client, emit } = fakeClient({ host: false })
-    await joinWith(client, 'Join room')
+    await joinWith(client, 'Join the room')
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     for (const e of fixtureEvents()) emit(e)
     expect(text()).toContain('Kevin')
@@ -121,7 +121,7 @@ describe('Burn flow in the app', () => {
       host: true,
       burn: () => Promise.reject(new BackendError('unknown', 'Could not burn.')),
     })
-    await joinWith(client, 'Create room')
+    await joinWith(client, 'Start the party')
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     for (const e of fixtureEvents()) emit(e)
 
@@ -140,7 +140,7 @@ describe('Burn flow in the app', () => {
 
   it('a successful burn() starts closing even before room_burned arrives, and room_burned does not restart it', async () => {
     const { client, emit } = fakeClient({ host: true })
-    await joinWith(client, 'Create room')
+    await joinWith(client, 'Start the party')
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     for (const e of fixtureEvents()) emit(e)
 
@@ -157,7 +157,7 @@ describe('Burn flow in the app', () => {
 
   it('a host burn whose room_burned event never arrives still ends at the clean slate with nothing left in the DOM', async () => {
     const { client, emit } = fakeClient({ host: true })
-    await joinWith(client, 'Create room')
+    await joinWith(client, 'Start the party')
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     for (const e of fixtureEvents()) emit(e)
     expect(text()).toContain('Kevin')
@@ -172,7 +172,7 @@ describe('Burn flow in the app', () => {
 
   it('a burn during the entry ritual dismisses the ritual and burns the room behind it', async () => {
     const { client, emit } = fakeClient({ host: false })
-    await joinWith(client, 'Join room')
+    await joinWith(client, 'Join the room')
     for (const e of fixtureEvents()) emit(e)
     expect(screen.getByRole('button', { name: 'Enter room' })).toBeTruthy()
 
@@ -193,7 +193,7 @@ describe('Burn flow in the app', () => {
     }))
     try {
       const { client, emit } = fakeClient({ host: true })
-      await joinWith(client, 'Create room')
+      await joinWith(client, 'Start the party')
       fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
       for (const e of fixtureEvents()) emit(e)
 
@@ -211,7 +211,7 @@ describe('Burn flow in the app', () => {
 
   it('Leave during closing goes to a fresh Join screen and never shows the clean slate (Review Focus 3)', async () => {
     const quiet = fakeClient({ host: false }).client
-    await joinWith(new MockRoomClient({ speed: 1000 }), 'Create room', () => quiet)
+    await joinWith(new MockRoomClient({ speed: 1000 }), 'Start the party', () => quiet)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await advance(60_000)
 
@@ -223,24 +223,24 @@ describe('Burn flow in the app', () => {
 
     for (let i = 0; i < 10; i++) {
       await advance(500)
-      expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Start the party' })).toBeTruthy()
       expect(text()).not.toContain(BURNED)
       expect(text()).not.toContain('Kevin')
       expect(hasRoomClosed()).toBe(false)
     }
   })
 
-  it('Back home after a host burn shows Join with Create room and drops room= from the URL', async () => {
+  it('Back home after a host burn shows Join with Start the party and drops room= from the URL', async () => {
     window.history.replaceState(null, '', '/play?room=demo&client=mock')
     const second = fakeClient({ host: false }).client
     const makeClient = vi.fn(() => second)
-    await joinWith(fakeClient({ host: true }).client, 'Create room', makeClient)
+    await joinWith(fakeClient({ host: true }).client, 'Start the party', makeClient)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await tapBurn()
     await advance(2900)
     fireEvent.click(screen.getByRole('button', { name: 'Back home' }))
     expect(makeClient).toHaveBeenCalledTimes(1)
-    expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Start the party' })).toBeTruthy()
     expect(window.location.search).not.toContain('room=')
     expect(window.location.search).toContain('client=mock')
     expect(window.location.pathname).toBe('/play')
@@ -251,7 +251,7 @@ describe('Burn flow in the app', () => {
     const first = fakeClient({ host: true }).client
     const dispose = vi.fn()
     first.dispose = dispose
-    await joinWith(first, 'Create room', () => fakeClient({ host: false }).client)
+    await joinWith(first, 'Start the party', () => fakeClient({ host: false }).client)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await tapBurn()
     await advance(2900)
@@ -265,7 +265,7 @@ describe('Burn flow in the app', () => {
     const dispose = vi.fn()
     first.dispose = dispose
     const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom: newRoomCreator() }
-    await joinWith(first, 'Create room', () => fresh)
+    await joinWith(first, 'Start the party', () => fresh)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await tapBurn()
     await advance(2900)
@@ -280,7 +280,7 @@ describe('Burn flow in the app', () => {
     const createRoom = newRoomCreator()
     const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom }
     const makeClient = vi.fn(() => fresh)
-    await joinWith(fakeClient({ host: true }).client, 'Create room', makeClient)
+    await joinWith(fakeClient({ host: true }).client, 'Start the party', makeClient)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await tapBurn()
     await advance(2900)
@@ -297,7 +297,7 @@ describe('Burn flow in the app', () => {
 
   it('Start a new room shows a Creating room status while the new room is made', async () => {
     const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom: () => new Promise(() => {}) }
-    await joinWith(fakeClient({ host: true }).client, 'Create room', () => fresh)
+    await joinWith(fakeClient({ host: true }).client, 'Start the party', () => fresh)
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await tapBurn()
     await advance(2900)
@@ -318,7 +318,7 @@ describe('Burn flow in the app', () => {
     )
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
       await vi.advanceTimersByTimeAsync(0)
     })
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))

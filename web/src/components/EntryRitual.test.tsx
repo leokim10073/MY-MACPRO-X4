@@ -44,7 +44,7 @@ describe('entry ritual in the app', () => {
     render(<App client={new MockRoomClient({ speed: 1000 })} kind="mock" search="" />)
     fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
     expect(screen.getByText('Shhh. Keep it in the room.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Hold to talk' })).toBeNull()
