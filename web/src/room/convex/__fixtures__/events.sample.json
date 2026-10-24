@@ -1,0 +1,702 @@
+[
+  {
+    "eventSeq": 1,
+    "event": {
+      "type": "member_joined",
+      "member": {
+        "id": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "name": "Alex",
+        "joinedAtSeq": 0,
+        "joinedAt": 1790000000000
+      }
+    }
+  },
+  {
+    "eventSeq": 2,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a20rloq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "Okay, I have to tell you about Kevin, my old roommate.",
+        "seq": 1,
+        "at": 1790000001500
+      }
+    }
+  },
+  {
+    "eventSeq": 3,
+    "event": {
+      "type": "member_joined",
+      "member": {
+        "id": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "name": "Sam",
+        "joinedAtSeq": 1,
+        "joinedAt": 1790000002500
+      }
+    }
+  },
+  {
+    "eventSeq": 4,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a20xpnq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Sam",
+        "text": "The guy with the cat?",
+        "seq": 2,
+        "at": 1790000005000
+      }
+    }
+  },
+  {
+    "eventSeq": 5,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a213tmq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "No, that's Kevin from work. Roommate Kevin. So for my birthday I bought this huge chocolate cake.",
+        "seq": 3,
+        "at": 1790000007500
+      }
+    }
+  },
+  {
+    "eventSeq": 6,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a219xlq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "I go to grab it before the party and the box is empty. He ate the whole thing.",
+        "seq": 4,
+        "at": 1790000011000
+      }
+    }
+  },
+  {
+    "eventSeq": 7,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a21g1kq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Sam",
+        "text": "NO WAY he ate the entire cake.",
+        "seq": 5,
+        "at": 1790000013500
+      }
+    }
+  },
+  {
+    "eventSeq": 8,
+    "event": {
+      "type": "member_joined",
+      "member": {
+        "id": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "name": "Jamie",
+        "joinedAtSeq": 5,
+        "joinedAt": 1790000014500
+      }
+    }
+  },
+  {
+    "eventSeq": 9,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a21m5jq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Jamie",
+        "text": "Honestly that's kind of impressive.",
+        "seq": 6,
+        "at": 1790000016500
+      }
+    }
+  },
+  {
+    "eventSeq": 10,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a21s9iq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "And his excuse was that he thought it was shared fridge food.",
+        "seq": 7,
+        "at": 1790000019500
+      }
+    }
+  },
+  {
+    "eventSeq": 11,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a21ydhq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "Then last spring he's flying to Seattle for his sister's wedding.",
+        "seq": 8,
+        "at": 1790000023000
+      }
+    }
+  },
+  {
+    "eventSeq": 12,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a224hgq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "He goes to the Oakland airport. His flight was out of SFO.",
+        "seq": 9,
+        "at": 1790000026000
+      }
+    }
+  },
+  {
+    "eventSeq": 13,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a22alfq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Jamie",
+        "text": "How do you even do that?",
+        "seq": 10,
+        "at": 1790000028000
+      }
+    }
+  },
+  {
+    "eventSeq": 14,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a22gpeq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Sam",
+        "text": "Did he make it?",
+        "seq": 11,
+        "at": 1790000030000
+      }
+    }
+  },
+  {
+    "eventSeq": 15,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a22mtdq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "He made the reception. Missed the whole ceremony.",
+        "seq": 12,
+        "at": 1790000032500
+      }
+    }
+  },
+  {
+    "eventSeq": 16,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a22sxcq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "Oh, and he once got into a full shouting match with our landlord over a parking spot.",
+        "seq": 13,
+        "at": 1790000036000
+      }
+    }
+  },
+  {
+    "eventSeq": 17,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a22z1bq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Jamie",
+        "text": "Over a parking spot?",
+        "seq": 14,
+        "at": 1790000038000
+      }
+    }
+  },
+  {
+    "eventSeq": 18,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a2355aq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "He doesn't even own a car.",
+        "seq": 15,
+        "at": 1790000040000
+      }
+    }
+  },
+  {
+    "eventSeq": 19,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a23b99q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Sam",
+        "text": "That is the most Kevin thing I've heard, and I only know him from this call.",
+        "seq": 16,
+        "at": 1790000043000
+      }
+    }
+  },
+  {
+    "eventSeq": 20,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a23hd8q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "Anyway, he just texted asking if he can come to the reunion.",
+        "seq": 17,
+        "at": 1790000049000
+      }
+    }
+  },
+  {
+    "eventSeq": 21,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a23nh7q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Jamie",
+        "text": "I'd invite him. He sounds fun.",
+        "seq": 18,
+        "at": 1790000051500
+      }
+    }
+  },
+  {
+    "eventSeq": 22,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a23tl6q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Sam",
+        "text": "After the cake thing? He's lucky anyone still talks to him.",
+        "seq": 19,
+        "at": 1790000054000
+      }
+    }
+  },
+  {
+    "eventSeq": 23,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a23zp5q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Alex",
+        "text": "Also he'd definitely show up at the wrong restaurant.",
+        "seq": 20,
+        "at": 1790000057000
+      }
+    }
+  },
+  {
+    "eventSeq": 24,
+    "event": {
+      "type": "line_added",
+      "line": {
+        "id": "kd7a245t4q9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "speakerId": "k57a20lhpq9m2x8vn5k1p3h6t0w4zs70h",
+        "speakerName": "Taylor",
+        "text": "Wait, the whole cake?",
+        "seq": 21,
+        "at": 1790000060000
+      }
+    }
+  },
+  {
+    "eventSeq": 25,
+    "event": {
+      "type": "story_state_updated",
+      "storyState": {
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "uptoSeq": 16,
+        "people": [
+          {
+            "id": "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "name": "Kevin",
+            "aliases": [
+              "Roommate Kevin",
+              "Alex's old roommate"
+            ],
+            "storyIds": [
+              "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+              "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+              "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h"
+            ]
+          }
+        ],
+        "stories": [
+          {
+            "id": "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Cake",
+            "summary": "Alex says Kevin ate their entire birthday cake before the party, claiming he thought it was shared fridge food.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Sam",
+                "quote": "NO WAY he ate the entire cake.",
+                "lineId": "kd7a21g1kq9m2x8vn5k1p3h6t0w4zs70h"
+              },
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "Honestly that's kind of impressive.",
+                "lineId": "kd7a21m5jq9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a213tmq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a219xlq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a21s9iq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 3,
+            "lastSeq": 7
+          },
+          {
+            "id": "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Airport",
+            "summary": "Alex says Kevin went to the Oakland airport for a flight that left from SFO, so he missed his sister's wedding ceremony and only made the reception.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "How do you even do that?",
+                "lineId": "kd7a22alfq9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a21ydhq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a224hgq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a22mtdq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 8,
+            "lastSeq": 12
+          },
+          {
+            "id": "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Landlord",
+            "summary": "Alex says Kevin got into a shouting match with their landlord over a parking spot, even though he doesn't own a car.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "Over a parking spot?",
+                "lineId": "kd7a22z1bq9m2x8vn5k1p3h6t0w4zs70h"
+              },
+              {
+                "memberId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Sam",
+                "quote": "That is the most Kevin thing I've heard, and I only know him from this call.",
+                "lineId": "kd7a23b99q9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a22sxcq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a2355aq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 13,
+            "lastSeq": 16
+          }
+        ],
+        "currentTopic": "Whether to invite Kevin to the reunion: Jamie says yes, Sam brings up the cake.",
+        "openQuestions": [
+          {
+            "text": "Should Kevin come to the reunion?",
+            "lineIds": [
+              "kd7a23hd8q9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a23nh7q9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a23tl6q9m2x8vn5k1p3h6t0w4zs70h"
+            ]
+          }
+        ],
+        "updatedAt": 1790000060500
+      }
+    }
+  },
+  {
+    "eventSeq": 26,
+    "event": {
+      "type": "story_state_updated",
+      "storyState": {
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "uptoSeq": 21,
+        "people": [
+          {
+            "id": "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "name": "Kevin",
+            "aliases": [
+              "Roommate Kevin",
+              "Alex's old roommate"
+            ],
+            "storyIds": [
+              "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+              "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+              "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h"
+            ]
+          }
+        ],
+        "stories": [
+          {
+            "id": "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Cake",
+            "summary": "Alex says Kevin ate their entire birthday cake before the party, claiming he thought it was shared fridge food.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Sam",
+                "quote": "NO WAY he ate the entire cake.",
+                "lineId": "kd7a21g1kq9m2x8vn5k1p3h6t0w4zs70h"
+              },
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "Honestly that's kind of impressive.",
+                "lineId": "kd7a21m5jq9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a213tmq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a219xlq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a21s9iq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 3,
+            "lastSeq": 7
+          },
+          {
+            "id": "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Airport",
+            "summary": "Alex says Kevin went to the Oakland airport for a flight that left from SFO, so he missed his sister's wedding ceremony and only made the reception.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "How do you even do that?",
+                "lineId": "kd7a22alfq9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a21ydhq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a224hgq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a22mtdq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 8,
+            "lastSeq": 12
+          },
+          {
+            "id": "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h",
+            "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+            "personIds": [
+              "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "keyword": "Landlord",
+            "summary": "Alex says Kevin got into a shouting match with their landlord over a parking spot, even though he doesn't own a car.",
+            "tellerId": "k57a2035sq9m2x8vn5k1p3h6t0w4zs70h",
+            "reactions": [
+              {
+                "memberId": "k57a20fdqq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Jamie",
+                "quote": "Over a parking spot?",
+                "lineId": "kd7a22z1bq9m2x8vn5k1p3h6t0w4zs70h"
+              },
+              {
+                "memberId": "k57a2099rq9m2x8vn5k1p3h6t0w4zs70h",
+                "memberName": "Sam",
+                "quote": "That is the most Kevin thing I've heard, and I only know him from this call.",
+                "lineId": "kd7a23b99q9m2x8vn5k1p3h6t0w4zs70h"
+              }
+            ],
+            "speculation": [],
+            "sourceLineIds": [
+              "kd7a22sxcq9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a2355aq9m2x8vn5k1p3h6t0w4zs70h"
+            ],
+            "firstSeq": 13,
+            "lastSeq": 16
+          }
+        ],
+        "currentTopic": "Whether to invite Kevin to the reunion: Jamie says yes, Sam brings up the cake.",
+        "openQuestions": [
+          {
+            "text": "Should Kevin come to the reunion?",
+            "lineIds": [
+              "kd7a23hd8q9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a23nh7q9m2x8vn5k1p3h6t0w4zs70h",
+              "kd7a23tl6q9m2x8vn5k1p3h6t0w4zs70h"
+            ]
+          }
+        ],
+        "updatedAt": 1790000060500
+      }
+    }
+  },
+  {
+    "eventSeq": 27,
+    "event": {
+      "type": "member_joined",
+      "member": {
+        "id": "k57a20lhpq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "name": "Taylor",
+        "joinedAtSeq": 16,
+        "joinedAt": 1790000062000
+      }
+    }
+  },
+  {
+    "eventSeq": 28,
+    "event": {
+      "type": "recap_ready",
+      "recap": {
+        "id": "kc7a250czq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "uptoSeq": 16,
+        "text": "Alex has been telling stories about Kevin, their old roommate. Kevin ate Alex's entire birthday cake, went to the wrong airport and missed his sister's wedding, and fought the landlord over a parking spot he doesn't need. Sam can't believe it. Jamie is weirdly impressed.",
+        "createdAt": 1790000062500
+      }
+    }
+  },
+  {
+    "eventSeq": 29,
+    "event": {
+      "type": "recall",
+      "recall": {
+        "id": "kr7a256gyq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "lineId": "kd7a23hd8q9m2x8vn5k1p3h6t0w4zs70h",
+        "seq": 17,
+        "personId": "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h",
+        "storyIds": [
+          "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h"
+        ],
+        "matchedText": "he just texted",
+        "confidence": 0.85
+      }
+    }
+  },
+  {
+    "eventSeq": 30,
+    "event": {
+      "type": "recall",
+      "recall": {
+        "id": "kr7a25ckxq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "lineId": "kd7a23tl6q9m2x8vn5k1p3h6t0w4zs70h",
+        "seq": 19,
+        "personId": "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h",
+        "storyIds": [
+          "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h"
+        ],
+        "focusStoryId": "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+        "matchedText": "the cake thing",
+        "confidence": 0.95
+      }
+    }
+  },
+  {
+    "eventSeq": 31,
+    "event": {
+      "type": "recall",
+      "recall": {
+        "id": "kr7a25iowq9m2x8vn5k1p3h6t0w4zs70h",
+        "roomId": "jd7c4q9m2x8vn5k1p3h6t0w4zs70h2ab",
+        "lineId": "kd7a23zp5q9m2x8vn5k1p3h6t0w4zs70h",
+        "seq": 20,
+        "personId": "kn7a24bx3q9m2x8vn5k1p3h6t0w4zs70h",
+        "storyIds": [
+          "kn7a24i12q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+          "kn7a24u90q9m2x8vn5k1p3h6t0w4zs70h"
+        ],
+        "focusStoryId": "kn7a24o51q9m2x8vn5k1p3h6t0w4zs70h",
+        "matchedText": "show up at the wrong restaurant",
+        "confidence": 0.75
+      }
+    }
+  }
+]
