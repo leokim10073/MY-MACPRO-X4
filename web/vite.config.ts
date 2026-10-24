@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     host: true,
-    fs: { allow: ['../shared'] },
+    // Serve this app (".") plus the shared contract; nothing else in the repo is exposed on the LAN.
+    fs: { allow: ['.', '../shared'] },
   },
   test: {
     environment: 'jsdom',
