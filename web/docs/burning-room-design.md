@@ -1,5 +1,7 @@
 # Burning Room: design
 
+> **Superseded (visuals).** The flow, timing and privacy rules below still hold. The charcoal/ember look, the `--br-*` palette, the canvas burn and the Shhh entry ritual were replaced by the Tea Party "Last Sip" design on branch `chore/gossip-window-tea-party-cohesion`: all colours now come from `src/theme/tokens.css` (lavender `#e4dbff`, peach `#ffc49b`, mint `#8ee3c8`), and no `--br-*` tokens remain.
+
 **Status:** draft for approval. Branch `web/burning-room` (worktree `.claude/worktrees/burning-room`), cut from `main` at `db2badb`.
 **Approved look:** the [Burning Room canvas](https://claude.ai/artifact/Gryennh4tbW6BmZurr935a), with its storyboard and tap-through prototype. This doc covers how to build that into the real web app.
 
