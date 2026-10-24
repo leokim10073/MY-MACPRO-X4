@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NewTranscriptLine } from '../../../shared/schema'
 import type { CallEvents, CallLike, CallParticipant, NoiseFilterKind } from '../call/callSession'
+import type { LiveText } from '../call/liveText'
 import type { CallToken } from '../server/livekit'
 import { FakeTurnsSocket } from './fakeTurns'
 import { OpenMic } from './openMic'
@@ -12,6 +13,7 @@ class FakeCall implements CallLike {
   muted: boolean[] = []
   volumes: number[] = []
   resumed = 0
+  live: LiveText[] = []
   private listener: ((f: Int16Array) => void) | null = null
   private settle: { resolve(k: NoiseFilterKind): void; reject(e: Error): void } | null = null
 
@@ -37,6 +39,9 @@ class FakeCall implements CallLike {
   }
   setRemoteVolume(v: number) {
     this.volumes.push(v)
+  }
+  sendLive(msg: LiveText) {
+    this.live.push(msg)
   }
   async resume() {
     this.resumed++
@@ -274,6 +279,46 @@ describe('OpenMic', () => {
     const list: CallParticipant[] = [{ id: 'm_alex', name: 'Alex', speaking: true, muted: false }]
     s.call.events!.onParticipants(list)
     expect(s.mic.getState().participants).toEqual(list)
+  })
+
+  it('my turn.update goes to friends as live text, turn.end as final', async () => {
+    const s = await inCall()
+    s.last().serverSend({ type: 'turn.start' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Kevin' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Kevin' })
+    s.last().serverSend({ type: 'turn.update', transcript: 'Kevin ate' })
+    s.last().serverSend({ type: 'turn.end', transcript: 'Kevin ate it.' })
+    expect(s.call.live).toEqual([
+      { text: 'Kevin', final: false },
+      { text: 'Kevin ate', final: false },
+      { text: 'Kevin ate it.', final: true },
+    ])
+  })
+
+  it("friends' live text shows by speaker until their line arrives", async () => {
+    const s = await inCall()
+    s.call.events!.onLive('m_sam', { text: 'So I', final: false })
+    expect(s.mic.getState().live).toEqual({ m_sam: { text: 'So I', final: false } })
+    s.call.events!.onLive('m_sam', { text: 'So I went.', final: true })
+    expect(s.mic.getState().live.m_sam).toEqual({ text: 'So I went.', final: true })
+    s.mic.noteLine({ id: 'l1', roomId: 'room1', speakerId: 'm_sam', speakerName: 'Sam', text: 'So I went.', seq: 1, at: 1 })
+    expect(s.mic.getState().live).toEqual({})
+  })
+
+  it('a final live text clears itself after 4 s without a line', async () => {
+    const s = await inCall()
+    s.call.events!.onLive('m_sam', { text: 'Hi.', final: true })
+    await vi.advanceTimersByTimeAsync(3900)
+    expect(s.mic.getState().live.m_sam).toBeDefined()
+    await vi.advanceTimersByTimeAsync(200)
+    expect(s.mic.getState().live).toEqual({})
+  })
+
+  it('live text of someone who left is cleared', async () => {
+    const s = await inCall()
+    s.call.events!.onLive('m_sam', { text: 'So', final: false })
+    s.call.events!.onParticipants([{ id: 'm_alex', name: 'Alex', speaking: false, muted: false }])
+    expect(s.mic.getState().live).toEqual({})
   })
 
   it('a cut-off turn is sent and flagged', async () => {

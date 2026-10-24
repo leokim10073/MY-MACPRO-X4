@@ -5,7 +5,7 @@ import fixture from '../../../shared/fixtures/kevin.expected.json'
 import { MicSource } from '../audio/micSource'
 import { RECAP_OPENER_TEXT } from '../config'
 import { CallSession, type CallParticipant } from '../call/callSession'
-import { OpenMic } from '../stt/openMic'
+import { OpenMic, type OpenMicState } from '../stt/openMic'
 import type { CallToken } from '../server/livekit'
 import { buildKeyterms } from '../stt/keyterms'
 import { PushToTalk } from '../stt/pushToTalk'
@@ -194,6 +194,7 @@ function renderCall() {
       ` · level: ${d.levelDb.toFixed(0)} dB · Krisp buffer drops: ${krispBufferDrops}`
     : ''
   renderPeople(s.participants)
+  renderLive(s.live, s.participants)
   $('call-failed').replaceChildren(
     ...s.failed.map((f) => {
       const li = document.createElement('li')
@@ -201,6 +202,18 @@ function renderCall() {
       btn.textContent = `Not sent: "${f.line.text}" — tap to retry`
       btn.onclick = () => f.retry()
       li.append(btn)
+      return li
+    }),
+  )
+}
+
+function renderLive(live: OpenMicState['live'], people: readonly CallParticipant[]) {
+  $('call-live').replaceChildren(
+    ...Object.entries(live).map(([id, l]) => {
+      const li = document.createElement('li')
+      const who = document.createElement('b')
+      who.textContent = people.find((p) => p.id === id)?.name ?? id
+      li.append(who, document.createTextNode(l.text + (l.final ? '' : ' …')))
       return li
     }),
   )
@@ -253,6 +266,7 @@ async function refresh() {
     li.append(who, document.createTextNode(line.text))
     list.append(li)
     lastSeq = line.seq
+    openMic?.noteLine(line)
   }
   if (body.lines.length) list.scrollTop = list.scrollHeight
 }

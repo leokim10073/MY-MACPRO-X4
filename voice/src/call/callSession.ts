@@ -11,6 +11,7 @@ import {
 import type { Id } from '../../../shared/schema'
 import { TrackSource } from '../audio/trackSource'
 import type { CallToken } from '../server/livekit'
+import { decodeLive, encodeLive, LIVE_TOPIC, type LiveText } from './liveText'
 import { loadNoiseFilter } from './noiseFilter'
 
 /** Which noise filtering really runs on the published mic. */
@@ -37,6 +38,8 @@ export interface CallEvents {
   onMicRestarted(): void
   /** The browser blocked audio until the user taps. */
   onNeedsTap(needed: boolean): void
+  /** What a friend is saying right now. */
+  onLive(id: Id, live: LiveText): void
 }
 
 /** What OpenMic needs from a call. CallSession is the real one; tests use a fake. */
@@ -49,6 +52,8 @@ export interface CallLike {
   /** 16 kHz PCM16 frames of the published mic. */
   onFrame(listener: (frame: Int16Array) => void): () => void
   setMuted(muted: boolean): Promise<void>
+  /** Shows what I'm saying on everyone else's phone. Dropped if not connected. */
+  sendLive(live: LiveText): void
   /** Volume of every friend, 0..1. */
   setRemoteVolume(volume: number): void
   resume(): Promise<void>
@@ -163,6 +168,13 @@ export class CallSession implements CallLike {
     this.emitParticipants()
   }
 
+  sendLive(live: LiveText): void {
+    const local = this.room?.localParticipant
+    if (!local || this.leaving) return
+    // Reliable, so updates arrive in order and the final one isn't lost.
+    local.publishData(encodeLive(live), { reliable: true, topic: LIVE_TOPIC }).catch(() => {})
+  }
+
   setRemoteVolume(volume: number): void {
     this.remoteVolume = volume
     for (const p of this.room?.remoteParticipants.values() ?? []) p.setVolume(volume)
@@ -211,6 +223,11 @@ export class CallSession implements CallLike {
       }
       this.speaking = new Set(ids)
       this.emitParticipants()
+    })
+    room.on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+      if (topic !== LIVE_TOPIC || !participant) return
+      const live = decodeLive(payload)
+      if (live) this.events?.onLive(participant.identity, live)
     })
     room.on(RoomEvent.Reconnecting, () => this.events?.onReconnecting(true))
     room.on(RoomEvent.Reconnected, () => this.events?.onReconnecting(false))

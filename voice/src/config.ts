@@ -122,3 +122,8 @@ export const NARRATOR_VOICE_ID: string = NARRATOR_CANDIDATES.daniel
 
 /** Fixed intro played while the real recap is being generated. Contains no conversation content. */
 export const RECAP_OPENER_TEXT = 'Previously, on Gossip Window.'
+
+/** Live text over the call: a friend's finished turn stays this long if their line hasn't come. */
+export const LIVE_FINAL_HOLD_MS = 4000
+/** Live text sent per update is cut to its last this-many characters. */
+export const LIVE_MAX_CHARS = 1000

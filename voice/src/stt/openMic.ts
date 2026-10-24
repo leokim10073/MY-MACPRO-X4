@@ -2,7 +2,8 @@ import type { Id, NewTranscriptLine, TranscriptLine } from '../../../shared/sche
 import { CallSession, type CallEvents, type CallLike, type CallParticipant, type NoiseFilterKind } from '../call/callSession'
 import { Chunker } from '../audio/chunker'
 import { LoudnessGate } from '../audio/loudnessGate'
-import { STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
+import type { LiveText } from '../call/liveText'
+import { LIVE_FINAL_HOLD_MS, STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
 import type { CallToken } from '../server/livekit'
 import { LineSender, type FailedLine } from './lineSender'
 import { openBrowserSocket, type OpenSocket } from './socket'
@@ -26,8 +27,13 @@ export interface OpenMicState {
   isListening: boolean
   /** Everyone in the call, self first. */
   participants: readonly CallParticipant[]
-  /** What Ink has heard so far in my current turn. Shown only on my own phone. */
+  /** What Ink has heard so far in my current turn. */
   preview: string
+  /**
+   * What each friend is saying right now, by Member.id, as they speak. A `final` entry is their
+   * finished turn, kept until its real line arrives (see noteLine) or 4 s pass.
+   */
+  live: Readonly<Record<Id, LiveText>>
   noiseFilter: NoiseFilterKind | null
   /** The browser blocked audio; show a button that calls `resume`. */
   needsTap: boolean
@@ -72,6 +78,7 @@ export class OpenMic {
     isListening: false,
     participants: [],
     preview: '',
+    live: {},
     noiseFilter: null,
     needsTap: false,
     sending: 0,
@@ -97,6 +104,8 @@ export class OpenMic {
   private callReconnecting = false
   private inkReconnecting = false
   private startThreshold = TURN_START_THRESHOLD
+  private readonly liveTimers = new Map<Id, ReturnType<typeof setTimeout>>()
+  private lastSentLive = ''
 
   constructor(private readonly opts: OpenMicOptions) {
     this.openSocket = opts.openSocket ?? openBrowserSocket
@@ -178,6 +187,7 @@ export class OpenMic {
       this.call = null
     }
     this.sender.cancel()
+    this.clearAllLive()
     this.update({ status: 'stopped', isListening: false, preview: '', failed: [], error: null, needsTap: false })
   }
 
@@ -192,7 +202,7 @@ export class OpenMic {
 
   /** Every line_added from the backend. Used to split my open turn when someone cuts in. */
   noteLine = (line: TranscriptLine): void => {
-    void line
+    if (line.speakerId in this.state.live) this.clearLive(line.speakerId)
   }
 
   /** Ink's turn_start_threshold, applied live. */
@@ -245,12 +255,19 @@ export class OpenMic {
           this.gate.turnStarted()
         },
         onUpdate: (text) => {
-          if (this.session === session) this.update({ preview: text })
+          if (this.session !== session) return
+          this.update({ preview: text })
+          if (text !== this.lastSentLive) {
+            this.lastSentLive = text
+            this.call?.sendLive({ text, final: false })
+          }
         },
         onEnd: (text, complete) => {
           this.gate.turnEnded()
           this.updateDebug()
           if (this.stopped) return
+          this.lastSentLive = ''
+          this.call?.sendLive({ text, final: true })
           this.sender.submit({ roomId: this.opts.roomId, speakerId: this.opts.speakerId, text, at: at || this.now() })
           at = 0
           if (!complete) this.update({ error: MAYBE_MISSING })
@@ -275,7 +292,12 @@ export class OpenMic {
 
   private callEvents(): CallEvents {
     return {
-      onParticipants: (participants) => this.update({ participants }),
+      onParticipants: (participants) => {
+        this.update({ participants })
+        const here = new Set(participants.map((p) => p.id))
+        for (const id of Object.keys(this.state.live)) if (!here.has(id)) this.clearLive(id)
+      },
+      onLive: (id, live) => this.showLive(id, live),
       onRemoteSpeakingStarted: () => {},
       onReconnecting: (reconnecting) => {
         this.callReconnecting = reconnecting
@@ -299,9 +321,37 @@ export class OpenMic {
     this.unsubscribeFrames?.()
     this.unsubscribeFrames = null
     this.callReconnecting = this.inkReconnecting = false
+    this.clearAllLive()
     this.update({ status, isListening: false, preview: '', participants: [], needsTap: false, error })
     await session?.close()
     await call?.leave().catch(() => {})
+  }
+
+  private showLive(id: Id, live: LiveText): void {
+    const timer = this.liveTimers.get(id)
+    if (timer) clearTimeout(timer)
+    this.liveTimers.delete(id)
+    if (!live.text) {
+      this.clearLive(id)
+      return
+    }
+    this.update({ live: { ...this.state.live, [id]: live } })
+    if (live.final) this.liveTimers.set(id, setTimeout(() => this.clearLive(id), LIVE_FINAL_HOLD_MS))
+  }
+
+  private clearLive(id: Id): void {
+    const timer = this.liveTimers.get(id)
+    if (timer) clearTimeout(timer)
+    this.liveTimers.delete(id)
+    if (!(id in this.state.live)) return
+    const { [id]: _gone, ...rest } = this.state.live
+    this.update({ live: rest })
+  }
+
+  private clearAllLive(): void {
+    for (const t of this.liveTimers.values()) clearTimeout(t)
+    this.liveTimers.clear()
+    this.update({ live: {} })
   }
 
   private gated(chunk: Int16Array<ArrayBuffer>): void {
