@@ -80,7 +80,7 @@ describe('Burn button', () => {
     }
   })
 
-  it('closes the sheet and shows the error when a burn fails', () => {
+  it('keeps the sheet open and shows the error inside it when a burn fails', () => {
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)
     const self = state.members.find((m) => m.id === 'm_taylor')!
     const room = { ...baseRoom, hostMemberId: 'm_taylor' }
@@ -90,8 +90,9 @@ describe('Burn button', () => {
     rerender(<RoomScreen {...props} pending="burn" />)
     expect((screen.getByRole('button', { name: 'Ending room…' }) as HTMLButtonElement).disabled).toBe(true)
     rerender(<RoomScreen {...props} pending={null} error={{ kind: 'unknown', message: 'Could not burn.' }} />)
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.querySelector('[role="alert"]')?.textContent).toBe("Couldn't end the room. Please try again.")
+    expect(screen.getAllByRole('alert').length).toBe(1)
   })
 })
 

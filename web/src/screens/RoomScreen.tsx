@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
 import LastSipClosing from '../components/LastSipClosing'
 import EntryRitual from '../components/EntryRitual'
 import LastSipCup from '../components/art/LastSipCup'
+import type { AvatarLook } from '../components/art/Avatar'
 import WindowLogo from '../components/art/WindowLogo'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
@@ -56,6 +57,8 @@ interface Props {
   onEnter?: () => void
   /** Set once the room is closing (burning). Talk is closed, and pop-ups, stories and typing go away. */
   closing?: { phase: ClosingPhase; startedAt: number; seed: number } | null
+  /** The avatar picked on Join, kept on this phone only. */
+  selfAvatar?: AvatarLook
 }
 
 const noop = () => {}
@@ -85,6 +88,7 @@ export default function RoomScreen({
   entered = true,
   onEnter = noop,
   closing = null,
+  selfAvatar,
 }: Props) {
   const isClosing = closing !== null
   const motion = motionOk()
@@ -97,11 +101,8 @@ export default function RoomScreen({
     setConfirmBurn(false)
     burnControl.current?.focus()
   }, [])
-  // Counts failed burns; the effect below returns focus to "Burn room…" once the sheet has unmounted.
-  const [burnFailures, setBurnFailures] = useState(0)
-  useEffect(() => {
-    if (burnFailures > 0) burnControl.current?.focus()
-  }, [burnFailures])
+  // The last end attempt failed: the sheet stays open and shows it (cleared on a new attempt or a fresh open).
+  const [burnFailed, setBurnFailed] = useState(false)
   // When closing starts, any open sheet closes once. Leave can be opened again afterwards.
   const [wasClosing, setWasClosing] = useState(isClosing)
   if (wasClosing !== isClosing) {
@@ -111,14 +112,11 @@ export default function RoomScreen({
       setConfirmBurn(false)
     }
   }
-  // A failed burn closes the sheet so the error line underneath shows; a successful one ends this screen anyway.
+  // A failed burn keeps the sheet open with the failure; a successful one ends this screen anyway.
   const [wasBurning, setWasBurning] = useState(false)
   if (wasBurning !== (pending === 'burn')) {
     setWasBurning(pending === 'burn')
-    if (wasBurning && error) {
-      setConfirmBurn(false)
-      setBurnFailures((n) => n + 1)
-    }
+    setBurnFailed(wasBurning && !!error)
   }
   // After Enter, a decorative icon shrinks toward the badge once, then goes away.
   const [ritualSeen, setRitualSeen] = useState(!entered)
@@ -173,7 +171,10 @@ export default function RoomScreen({
                     className="burn"
                     ref={burnControl}
                     aria-describedby="last-sip-hint"
-                    onClick={() => setConfirmBurn(true)}
+                    onClick={() => {
+                      setBurnFailed(false)
+                      setConfirmBurn(true)
+                    }}
                   >
                     <LastSipCup size={24} mood="waiting" />
                     Last Sip…
@@ -189,7 +190,7 @@ export default function RoomScreen({
           </div>
         </header>
         <ConnectionBanner status={connection} onRejoin={onRejoin} />
-        {error && (
+        {error && !(isHost && confirmBurn) && (
           <p role="alert" className="error gw-alert">
             Couldn't end the room. Please try again.
           </p>
@@ -198,7 +199,7 @@ export default function RoomScreen({
           <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
         )}
         {isHost && confirmBurn && (
-          <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={keepRoom} />
+          <BurnConfirm pending={pending === 'burn'} onBurn={onBurn} onKeep={keepRoom} failed={burnFailed} />
         )}
         {!isClosing && showReplay && onStartReplay && !replayStarted && isHost && (
           <button
@@ -235,6 +236,8 @@ export default function RoomScreen({
             speaker={!isClosing && speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
             lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
             compact={!!openStory}
+            selfLook={selfAvatar}
+            hostId={room.hostMemberId}
           />
           <div className="room-transcript">
             <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />

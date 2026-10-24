@@ -20,9 +20,19 @@ interface Props {
   pending?: boolean
   /** Where "Try the offline demo" goes; set only when running on the real backend. */
   offlineDemoHref?: string
+  /** Told the picked avatar id, so the room can show it on this phone. Never sent to the server. */
+  onAvatarChange?(id: string): void
 }
 
-export default function JoinScreen({ inviteToken, onCreate, onJoin, error, pending = false, offlineDemoHref }: Props) {
+export default function JoinScreen({
+  inviteToken,
+  onCreate,
+  onJoin,
+  error,
+  pending = false,
+  offlineDemoHref,
+  onAvatarChange,
+}: Props) {
   const [name, setName] = useState('')
   const [touched, setTouched] = useState(false)
   // After leaving, the invite link is often still in the URL; let people start their own room instead.
@@ -164,7 +174,10 @@ export default function JoinScreen({ inviteToken, onCreate, onJoin, error, pendi
                             name="avatar"
                             value={a.id}
                             checked={a.id === avatarId}
-                            onChange={() => setAvatarId(a.id)}
+                            onChange={() => {
+                              setAvatarId(a.id)
+                              onAvatarChange?.(a.id)
+                            }}
                             aria-label={a.label}
                           />
                           <Avatar look={a} size={44} />

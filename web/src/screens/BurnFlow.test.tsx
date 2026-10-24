@@ -126,7 +126,10 @@ describe('Burn flow in the app', () => {
     for (const e of fixtureEvents()) emit(e)
 
     await tapBurn()
-    expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
+    expect(screen.getByRole('dialog').querySelector('[role="alert"]')?.textContent).toBe(
+      "Couldn't end the room. Please try again.",
+    )
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep chatting' }))
     expect(hasRoomClosed()).toBe(false)
     expect(screen.queryByText('Room ended.')).toBeNull()
 
@@ -134,7 +137,9 @@ describe('Burn flow in the app', () => {
     expect(hasRoomClosed()).toBe(false)
     expect(text()).toContain('Kevin')
     expect(text()).not.toContain(BURNED)
-    expect(screen.getByRole('button', { name: 'Last Sip…' })).toBeTruthy()
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Last Sip…' }))
   })
 

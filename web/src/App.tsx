@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { readInviteToken } from './config'
+import { AVATAR_CHOICES } from './components/art/Avatar'
 import WindowLogo from './components/art/WindowLogo'
 import type { RoomClient } from './room/RoomClient'
 import { inviteUrl, type ClientKind } from './room/createRoomClient'
@@ -92,6 +93,8 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
   const params = new URLSearchParams(search)
   // The entry ritual is in memory only: a new session (Leave) remounts this and shows it again.
   const [entered, setEntered] = useState(false)
+  // The avatar picked on Join, kept in memory on this phone only (never sent, never stored). A new session re-picks.
+  const [avatarId, setAvatarId] = useState(AVATAR_CHOICES[0].id)
   // Start a new room: create once on mount. The ref survives StrictMode's second effect run.
   const autoCreated = useRef(false)
   useEffect(() => {
@@ -123,6 +126,7 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
         error={error}
         pending={pending === 'create' || pending === 'join'}
         offlineDemoHref={kind === 'convex' ? '?client=mock' : undefined}
+        onAvatarChange={setAvatarId}
       />
     )
   }
@@ -132,6 +136,7 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
       <BurnedScreen
         onNewRoom={onRestart && (() => onRestart('new-room', self.name))}
         onHome={onRestart && (() => onRestart('home'))}
+        isHost={room?.hostMemberId === self.id}
       />
     )
   }
@@ -160,6 +165,7 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
       entered={entered || closing !== null}
       onEnter={() => setEntered(true)}
       closing={playing ? closing : null}
+      selfAvatar={AVATAR_CHOICES.find((a) => a.id === avatarId)}
     />
   )
 }

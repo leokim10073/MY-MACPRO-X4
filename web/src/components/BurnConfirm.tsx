@@ -5,12 +5,14 @@ interface Props {
   pending: boolean
   onBurn: () => void
   onKeep: () => void
+  /** The last try failed: the sheet stays open, shows why, and lets you try again or keep chatting. */
+  failed?: boolean
 }
 
 // Asks before ending the room (Last Sip): a sheet on phones, a card on wider screens.
 // Keep chatting gets focus, so a stray Enter keeps the room.
 // While the burn is in flight the Burn button is disabled, so a double tap calls onBurn once.
-export default function BurnConfirm({ pending, onBurn, onKeep }: Props) {
+export default function BurnConfirm({ pending, onBurn, onKeep, failed = false }: Props) {
   const keep = useRef<HTMLButtonElement>(null)
   const sheet = useRef<HTMLDivElement>(null)
   // Latch: once onBurn has fired, further taps do nothing, even before the parent re-renders with pending.
@@ -27,6 +29,10 @@ export default function BurnConfirm({ pending, onBurn, onKeep }: Props) {
     onBurn()
   }
   useEffect(() => keep.current?.focus(), [])
+  // After a failure, focus comes back to Keep chatting (the sheet stays open).
+  useEffect(() => {
+    if (failed) keep.current?.focus()
+  }, [failed])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onKeep()
@@ -60,12 +66,21 @@ export default function BurnConfirm({ pending, onBurn, onKeep }: Props) {
         aria-labelledby="burn-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <LastSipCup size={112} mood={pending ? 'pending' : 'waiting'} className="burn-sheet-cup" />
+        <LastSipCup
+          size={112}
+          mood={pending ? 'pending' : failed ? 'failed' : 'waiting'}
+          className="burn-sheet-cup"
+        />
         <h2 id="burn-title">Ready for the last sip?</h2>
         <p>
           End this room for everyone and permanently delete its conversation, transcript, and AI catch-ups. This can't
           be undone.
         </p>
+        {failed && !pending && (
+          <p role="alert" className="burn-sheet-error gw-alert">
+            Couldn't end the room. Please try again.
+          </p>
+        )}
         <div className="burn-sheet-actions gw-dialog-actions">
           <button type="button" ref={keep} className="burn-keep gw-btn gw-btn--quiet" onClick={onKeep}>
             Keep chatting
