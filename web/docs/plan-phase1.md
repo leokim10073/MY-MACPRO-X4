@@ -130,7 +130,7 @@ export interface TimelineOptions {
   recapLatencyMs?: number;      // default 1500
   snapshotLatencyMs?: number;   // default 1500
   snapshotAfterLines?: number[];// default [7, 12, 16, 21]
-  pauseAfterJoinMs?: number;    // default 0; added to every event after the late join
+  pauseAfterJoinMs?: number;    // default 0; added to every event after the late join except the recap
   self?: { name: string; mode: "host" | "latecomer" }; // adds member m_self
 }
 export interface TimedEvent { atMs: number; event: RoomEvent }

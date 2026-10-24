@@ -106,7 +106,7 @@ export function buildReplayTimeline(
   // Pause after the late join, then latecomer shift, then speed scaling.
   const shiftBase = opts.self?.mode === 'latecomer' ? joinMs + 0 : 0
   const out = items.map(({ atMs, event }) => {
-    let ms = late && atMs > joinMs ? atMs + pause : atMs
+    let ms = late && atMs > joinMs && event.type !== 'recap_ready' ? atMs + pause : atMs
     if (opts.self?.mode === 'latecomer') ms = ms <= joinMs ? 0 : ms - shiftBase
     return { atMs: ms / speed, event }
   })

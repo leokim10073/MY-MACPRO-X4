@@ -65,7 +65,18 @@ describe('buildReplayTimeline', () => {
     const taylor = tl.find((t) => t.event.type === 'member_joined' && t.event.member.id === 'm_taylor')!
     expect(taylor.atMs).toBe(39500)
     const recap = tl.find((t) => t.event.type === 'recap_ready')!
-    expect(recap.atMs).toBe(39500 + 1500 + 15000)
+    expect(recap.atMs).toBe(39500 + 1500)
+  })
+
+  it('latecomer with pauseAfterJoinMs: recap at 1500, l17 at 21000, r1 at 21800', () => {
+    const tl = buildReplayTimeline(script, fixture, {
+      self: { name: 'Me', mode: 'latecomer' },
+      pauseAfterJoinMs: 15000,
+    })
+    expect(tl.find((t) => t.event.type === 'recap_ready')!.atMs).toBe(1500)
+    expect(timeOfLine(tl, 'l17')).toBe(21000)
+    const r1 = tl.find((t) => t.event.type === 'recall' && t.event.recall.id === 'r1')!
+    expect(r1.atMs).toBe(21800)
   })
 })
 
