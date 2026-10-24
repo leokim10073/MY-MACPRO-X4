@@ -1,45 +1,87 @@
 import { useState } from 'react'
-import { readMockOptions } from './config'
+import { readInviteToken } from './config'
 import type { RoomClient } from './room/RoomClient'
-import { ConvexRoomClient } from './room/convex/ConvexRoomClient'
-import { MockRoomClient } from './room/mock/MockRoomClient'
+import { inviteUrl, type ClientKind } from './room/createRoomClient'
 import { useRoom } from './room/useRoom'
 import BurnedScreen from './screens/BurnedScreen'
 import JoinScreen from './screens/JoinScreen'
 import RoomScreen from './screens/RoomScreen'
 
 interface Props {
-  client?: RoomClient
+  client: RoomClient
+  kind: ClientKind
   search?: string
+  /** Makes a fresh client after Leave. Without it, the Leave button isn't offered. */
+  makeClient?: () => RoomClient
 }
 
-// The real backend when VITE_CONVEX_URL is set (add ?mock to force the mock).
-// Tests always use the mock, even if a developer's .env.local sets the URL.
-function defaultClient(search: string): RoomClient {
-  const url = import.meta.env.VITE_CONVEX_URL as string | undefined
-  const useConvex = url && import.meta.env.MODE !== 'test' && !new URLSearchParams(search).has('mock')
-  return useConvex ? new ConvexRoomClient(url) : new MockRoomClient(readMockOptions(search))
+// Leaving disposes this phone's client and remounts everything under a new key,
+// so the reducer, pop-up and recap state all start clean on a fresh client.
+export default function App({ client, kind, search = window.location.search, makeClient }: Props) {
+  const [session, setSession] = useState({ key: 0, client })
+
+  function leave() {
+    if (!makeClient) return
+    session.client.dispose()
+    setSession({ key: session.key + 1, client: makeClient() })
+  }
+
+  return (
+    <RoomSession
+      key={session.key}
+      client={session.client}
+      kind={kind}
+      search={search}
+      onLeave={makeClient ? leave : undefined}
+    />
+  )
 }
 
-export default function App({ client, search = window.location.search }: Props) {
-  const [ownClient] = useState(() => (client ? null : defaultClient(search)))
-  const roomClient = (client ?? ownClient)!
-  const { state, self, room, error, create, join, burn } = useRoom(roomClient)
+interface SessionProps {
+  client: RoomClient
+  kind: ClientKind
+  search: string
+  onLeave?: () => void
+}
+
+function RoomSession({ client, kind, search, onLeave }: SessionProps) {
+  const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
+  const params = new URLSearchParams(search)
 
   if (!self) {
     return (
       <JoinScreen
-        inviteToken={readMockOptions(search).inviteToken}
+        inviteToken={readInviteToken(search)}
         onCreate={(name) => void create(name)}
         onJoin={(token, name) => void join(token, name)}
         error={error}
+        pending={pending === 'create' || pending === 'join'}
+        offlineDemoHref={kind === 'convex' ? '?client=mock' : undefined}
       />
     )
   }
   if (state.status === 'burned') return <BurnedScreen />
-  const inviteUrl =
-    roomClient instanceof ConvexRoomClient && room
-      ? `${window.location.origin}${window.location.pathname}?room=${room.inviteToken}`
+  const invite =
+    kind === 'convex' && room
+      ? inviteUrl(window.location.origin, window.location.pathname, kind, room.inviteToken)
       : undefined
-  return <RoomScreen state={state} self={self} room={room!} onBurn={() => void burn()} inviteUrl={inviteUrl} voice={roomClient.voice} />
+  return (
+    <RoomScreen
+      state={state}
+      self={self}
+      room={room!}
+      onBurn={() => void burn()}
+      inviteUrl={invite}
+      connection={connection}
+      onRejoin={() => window.location.reload()}
+      pending={pending}
+      error={error}
+      showTypeLine={params.get('type') === '1'}
+      onAddLine={addLine}
+      showReplay={params.get('replay') === '1' && !!startReplay}
+      onStartReplay={startReplay}
+      voice={client.voice}
+      onLeave={onLeave}
+    />
+  )
 }

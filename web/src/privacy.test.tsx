@@ -1,9 +1,12 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { createRoomClient } from './room/createRoomClient'
 import { fixtureLines } from './room/testFixtures'
 
 const line21 = () => fixtureLines()[20].text
+
+const mock = (search: string) => ({ ...createRoomClient(search, {}), search })
 
 afterEach(() => {
   cleanup()
@@ -37,7 +40,7 @@ describe('storage guard', () => {
   it('latecomer path never writes to browser storage', async () => {
     vi.useFakeTimers()
     const { setItem, open } = spies()
-    render(<App search="?room=demo&speed=1000" />)
+    render(<App {...mock("?room=demo&speed=1000")} />)
     await enter('Join room')
     expect(document.body.textContent).toContain(line21())
     expect(setItem).toHaveBeenCalledTimes(0)
@@ -47,7 +50,7 @@ describe('storage guard', () => {
   it('host path, through burning, never writes to browser storage', async () => {
     vi.useFakeTimers()
     const { setItem, open } = spies()
-    render(<App search="?speed=1000" />)
+    render(<App {...mock("?speed=1000")} />)
     await enter('Create room')
     expect(document.body.textContent).toContain(line21())
     fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))

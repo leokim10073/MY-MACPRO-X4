@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RoomEvent } from '../../../../shared/schema'
+import type { RoomClient } from '../RoomClient'
 import { MockRoomClient } from './MockRoomClient'
 
 const collect = (client: MockRoomClient) => {
@@ -88,5 +89,27 @@ describe('MockRoomClient', () => {
     off()
     vi.runAllTimers()
     expect(events).toEqual([])
+  })
+
+  it('addLine emits a typed line_added at seq 1001, then 1002', async () => {
+    const client = new MockRoomClient()
+    const events = collect(client)
+    await client.addLine('ignored before join', 1)
+    await client.createRoom('Sam')
+    vi.advanceTimersByTime(0)
+    const before = lines(events).length
+    await client.addLine('first', 5)
+    await client.addLine('second', 6)
+    const typed = lines(events).slice(before)
+    expect(
+      typed.map((e) => e.type === 'line_added' && [e.line.seq, e.line.id, e.line.text, e.line.at, e.line.speakerName]),
+    ).toEqual([
+      [1001, 'typed-1', 'first', 5, 'Sam'],
+      [1002, 'typed-2', 'second', 6, 'Sam'],
+    ])
+  })
+
+  it('has no startReplay', () => {
+    expect((new MockRoomClient() as RoomClient).startReplay).toBeUndefined()
   })
 })

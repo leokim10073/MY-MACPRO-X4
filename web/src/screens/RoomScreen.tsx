@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnButton from '../components/BurnButton'
+import ConnectionBanner from '../components/ConnectionBanner'
+import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import Transcript from '../components/Transcript'
+import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
+import RoomStage from '../components/RoomStage'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
-import type { VoiceTransport } from '../room/RoomClient'
+import type { ConnectionStatus, VoiceTransport } from '../room/RoomClient'
+import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
+import { latestLine } from '../room/derived'
 import { useVoice } from '../voice/useVoice'
 
 interface Props {
@@ -20,25 +26,106 @@ interface Props {
   onBurn: () => void
   /** Shown to the host so friends can join. Only set when running against the real backend. */
   inviteUrl?: string
+  /** Only the Convex client reports this; null or absent shows nothing. */
+  connection?: ConnectionStatus | null
+  onRejoin?: () => void
+  /** The pending action; only 'burn' matters here. */
+  pending?: 'create' | 'join' | 'burn' | null
+  /** The last action's error, shown here only as a failed burn. */
+  error?: { kind: string; message: string } | null
+  /** Dev-only typed line (?type=1). */
+  showTypeLine?: boolean
+  onAddLine?: (text: string, at: number) => Promise<void>
+  /** Host-only "Start Kevin replay" (?replay=1, Convex). */
+  showReplay?: boolean
+  onStartReplay?: () => Promise<void>
   /** Push-to-talk to the backend. Absent on the mock, where the button only animates. */
   voice?: VoiceTransport
+  /** A real "who is speaking" signal (e.g. push-to-talk). Without it, the speaker of each new line is shown. */
+  speaking?: SpeakingSignal
+  /** Leave this phone's session (not a burn). Without it there's no Leave button. */
+  onLeave?: () => void
 }
 
-export default function RoomScreen({ state, self, room, onBurn, inviteUrl, voice: transport }: Props) {
+const noop = () => {}
+
+export default function RoomScreen({
+  state,
+  self,
+  room,
+  onBurn,
+  inviteUrl,
+  connection = null,
+  onRejoin = noop,
+  pending = null,
+  error = null,
+  showTypeLine = false,
+  onAddLine,
+  showReplay = false,
+  onStartReplay,
+  voice: transport,
+  speaking,
+  onLeave,
+}: Props) {
   const voice = useVoice(transport, room, self, state)
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const isHost = room.hostMemberId === self.id
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
+  const [replayStarted, setReplayStarted] = useState(false)
   const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
   const popupPerson = popup ? personById(state, popup.personId) : undefined
   const openStory = openStoryId ? storiesById(state).get(openStoryId) : undefined
+  // The first pop-up of this session carries a hint; once it closes (tap, dismiss or fade) the hint is done.
+  // Kept in memory only: leaving or reloading starts a new session.
+  const [hint, setHint] = useState<'waiting' | 'showing' | 'done'>('waiting')
+  if (hint === 'waiting' && popup) setHint('showing')
+  if (hint === 'showing' && !popup) setHint('done')
+  const lineSpeaking = useLineSpeaking(state.lines, self.joinedAtSeq)
+  const { speakerId } = speaking ?? lineSpeaking
+  const newest = latestLine(state)
+  const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
+  const nameOf = (id: string) =>
+    state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
 
   return (
     <main className="room">
       <header className="room-header">
         <h1>Gossip Window</h1>
         <ListeningIndicator micLive={voice?.state.isListening} />
-        {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
+        {(isHost || onLeave) && (
+          <div className="room-actions">
+            {isHost && <BurnButton onBurn={onBurn} pending={pending === 'burn'} />}
+            {isHost && onLeave && <span className="actions-divider" aria-hidden="true" />}
+            {onLeave && (
+              <button type="button" className="leave" onClick={() => setConfirmLeave(true)}>
+                Leave
+              </button>
+            )}
+          </div>
+        )}
       </header>
+      <ConnectionBanner status={connection} onRejoin={onRejoin} />
+      {error && (
+        <p role="alert" className="error">
+          {error.message}
+        </p>
+      )}
+      {confirmLeave && onLeave && (
+        <LeaveConfirm isHost={isHost} onLeave={onLeave} onStay={() => setConfirmLeave(false)} />
+      )}
+      {showReplay && onStartReplay && !replayStarted && isHost && (
+        <button
+          type="button"
+          className="replay"
+          onClick={() => {
+            setReplayStarted(true)
+            void onStartReplay().catch(() => setReplayStarted(false))
+          }}
+        >
+          Start Kevin replay
+        </button>
+      )}
       {inviteUrl && room.hostMemberId === self.id && (
         <p className="room-invite">
           Invite: <a href={inviteUrl}>{inviteUrl}</a>
@@ -55,6 +142,13 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, voice
           />
         )}
       </div>
+      <RoomStage
+        members={state.members}
+        self={self}
+        speaker={speakerId ? { id: speakerId, name: nameOf(speakerId) } : null}
+        lastSpeaker={lastLine ? { id: lastLine.speakerId, name: lastLine.speakerName } : null}
+        compact={!!openStory}
+      />
       <div className="room-transcript">
         <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
       </div>
@@ -78,10 +172,12 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, voice
                 focusStoryId={popup.focusStoryId}
                 onChip={tapChip}
                 onDismiss={dismiss}
+                hint={hint !== 'done'}
               />
             )
           )}
         </div>
+        {showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}
         <div className="room-talk">
           {voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
           {voice?.state.error && (
@@ -100,5 +196,3 @@ export default function RoomScreen({ state, self, room, onBurn, inviteUrl, voice
     </main>
   )
 }
-
-function noop() {}

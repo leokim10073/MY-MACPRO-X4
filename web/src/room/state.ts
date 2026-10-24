@@ -70,6 +70,9 @@ export function personById(state: RoomState, id: Id): Person | undefined {
   return state.storyState?.people.find((p) => p.id === id)
 }
 
+// The backend guarantees uptoSeq === joinedAtSeq (backend/convex/ai.ts recapInput sets
+// uptoSeq = member.joinedAtSeq), so this match is safe on the Convex path.
+// Once proposal B3/P2 (Recap.forMemberId) lands, switch to the recap's owner instead.
 // TEMPORARY: matching on uptoSeq === joinedAtSeq stands in until schema proposal P2
 // (Recap.forMemberId) is agreed. This is the only place that matches recaps.
 export function recapFor(state: RoomState, self: Member): Recap | undefined {

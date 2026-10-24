@@ -3,17 +3,15 @@
 //   (in backend/) npx convex dev
 //   (in web/)     LIVE_CONVEX_URL=http://127.0.0.1:3210 npx vitest run src/room/convex/live.test.ts
 import { ConvexClient } from 'convex/browser'
-import { anyApi } from 'convex/server'
 import { afterAll, describe, expect, it } from 'vitest'
-import type { api as backendApi } from '../../../../backend/convex/_generated/api'
 import type { RoomEvent } from '../../../../shared/schema'
 import { initialRoomState, recapFor, roomReducer } from '../state'
+import { backendApi as api } from './backendApi'
 import { ConvexRoomClient } from './ConvexRoomClient'
 
 // Read without Node types, which the app's tsconfig leaves out.
 const url = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env
   .LIVE_CONVEX_URL
-const api = anyApi as unknown as typeof backendApi
 
 /** Resolves once `check` passes on the events received so far, or fails after 10 s. */
 function waitFor(events: RoomEvent[], check: (events: RoomEvent[]) => boolean): Promise<void> {
@@ -62,7 +60,23 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     ])
     expect(recapFor(state, self)?.uptoSeq).toBe(2)
 
-    await raw.mutation(api.rooms.burn, { roomId: host.room.id as never, sessionToken: host.sessionToken })
+    // Check-in 1: the size of the largest listAfter update. Prints only the number, never the payload.
+    let largestBytes = 0
+    const stopMeasuring = raw.onUpdate(
+      api.events.listAfter,
+      { roomId: host.room.id, sessionToken: host.sessionToken, afterEventSeq: 0 },
+      (log) => {
+        largestBytes = Math.max(largestBytes, new TextEncoder().encode(JSON.stringify(log)).length)
+      },
+    )
+    await new Promise<void>((resolve) => {
+      const tick = () => (largestBytes > 0 ? resolve() : setTimeout(tick, 50))
+      tick()
+    })
+    stopMeasuring()
+    console.log(`largest listAfter payload: ${largestBytes} bytes`)
+
+    await raw.mutation(api.rooms.burn, { roomId: host.room.id, sessionToken: host.sessionToken })
     await waitFor(events, (es) => es.some((e) => e.type === 'room_burned'))
     expect(events.reduce(roomReducer, initialRoomState)).toEqual({ ...initialRoomState, status: 'burned' })
   })

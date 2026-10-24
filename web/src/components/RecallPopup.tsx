@@ -7,9 +7,11 @@ interface Props {
   focusStoryId: Id | undefined
   onChip(id: Id): void
   onDismiss(): void
+  /** One-time nudge on the first pop-up, for people who've never seen the app. */
+  hint?: boolean
 }
 
-export default function RecallPopup({ person, chips, focusStoryId, onChip, onDismiss }: Props) {
+export default function RecallPopup({ person, chips, focusStoryId, onChip, onDismiss, hint = false }: Props) {
   return (
     <section
       className="recall-popup"
@@ -35,6 +37,7 @@ export default function RecallPopup({ person, chips, focusStoryId, onChip, onDis
           </button>
         ))}
       </div>
+      {hint && <p className="recall-hint">Tap a word to see the story</p>}
     </section>
   )
 }
