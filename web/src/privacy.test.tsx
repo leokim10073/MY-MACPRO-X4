@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import { DONE_MS } from './room/closing'
 import { createRoomClient } from './room/createRoomClient'
 import { fixtureLines } from './room/testFixtures'
 
@@ -58,6 +59,9 @@ describe('storage guard', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
       await vi.advanceTimersByTimeAsync(0)
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(DONE_MS)
     })
     expect(screen.getByText('This room has ended.')).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)

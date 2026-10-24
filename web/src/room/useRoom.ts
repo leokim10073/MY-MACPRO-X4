@@ -12,6 +12,8 @@ export interface UseRoom {
   error: { kind: BackendErrorKind; message: string } | null
   /** null for clients that don't report it (the mock). */
   connection: ConnectionStatus | null
+  /** True once this phone's burn() call resolved: the server has burned the room. Never reset. */
+  burnConfirmed: boolean
   create(name: string): Promise<void>
   join(token: string, name: string): Promise<void>
   burn(): Promise<void>
@@ -31,6 +33,7 @@ export function useRoom(client: RoomClient): UseRoom {
   const [error, setError] = useState<UiError | null>(null)
   const [pending, setPending] = useState<Pending>(null)
   const [connection, setConnection] = useState<ConnectionStatus | null>(null)
+  const [burnConfirmed, setBurnConfirmed] = useState(false)
 
   useEffect(() => client.subscribe(dispatch), [client])
   useEffect(() => client.onConnectionChange?.(setConnection), [client])
@@ -58,7 +61,14 @@ export function useRoom(client: RoomClient): UseRoom {
     (token: string, name: string) => run('join', () => client.joinRoom(token, name)),
     [client, run],
   )
-  const burn = useCallback(() => run('burn', () => client.burn()), [client, run])
+  const burn = useCallback(
+    () =>
+      run('burn', async () => {
+        await client.burn()
+        setBurnConfirmed(true)
+      }),
+    [client, run],
+  )
   const addLine = useCallback((text: string, at: number) => client.addLine(text, at), [client])
   const startReplay = useCallback(() => client.startReplay!(), [client])
 
@@ -69,6 +79,7 @@ export function useRoom(client: RoomClient): UseRoom {
     pending,
     error,
     connection,
+    burnConfirmed,
     create,
     join,
     burn,

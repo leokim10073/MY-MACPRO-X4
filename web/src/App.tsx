@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { readInviteToken } from './config'
 import type { RoomClient } from './room/RoomClient'
 import { inviteUrl, type ClientKind } from './room/createRoomClient'
+import { useClosing } from './room/useClosing'
 import { useRoom } from './room/useRoom'
 import BurnedScreen from './screens/BurnedScreen'
 import JoinScreen from './screens/JoinScreen'
@@ -45,7 +46,10 @@ interface SessionProps {
 }
 
 function RoomSession({ client, kind, search, onLeave }: SessionProps) {
-  const { state, self, room, pending, error, connection, create, join, burn, addLine, startReplay } = useRoom(client)
+  const { state, self, room, pending, error, connection, burnConfirmed, create, join, burn, addLine, startReplay } =
+    useRoom(client)
+  // The frozen copy of the last live room lives in memory only, and is dropped when the closing ends.
+  const { closing, frozen, done } = useClosing(state, room?.id ?? null, burnConfirmed)
   const params = new URLSearchParams(search)
   // The entry ritual is in memory only: a new session (Leave) remounts this and shows it again.
   const [entered, setEntered] = useState(false)
@@ -62,14 +66,15 @@ function RoomSession({ client, kind, search, onLeave }: SessionProps) {
       />
     )
   }
-  if (state.status === 'burned') return <BurnedScreen />
+  const playing = closing !== null && !done && frozen !== null
+  if (!playing && (done || state.status === 'burned')) return <BurnedScreen />
   const invite =
     kind === 'convex' && room
       ? inviteUrl(window.location.origin, window.location.pathname, kind, room.inviteToken)
       : undefined
   return (
     <RoomScreen
-      state={state}
+      state={playing ? frozen : state}
       self={self}
       room={room!}
       onBurn={() => void burn()}
@@ -84,8 +89,10 @@ function RoomSession({ client, kind, search, onLeave }: SessionProps) {
       onStartReplay={startReplay}
       voice={client.voice}
       onLeave={onLeave}
-      entered={entered}
+      // A burn during the entry ritual dismisses it: the room behind it burns.
+      entered={entered || closing !== null}
       onEnter={() => setEntered(true)}
+      closing={playing ? closing : null}
     />
   )
 }

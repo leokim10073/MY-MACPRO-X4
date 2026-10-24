@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Room, RoomEvent } from '../../../shared/schema'
 import App from '../App'
+import { DONE_MS } from '../room/closing'
 import type { JoinResult, RoomClient } from '../room/RoomClient'
 import { initialRoomState, roomReducer } from '../room/state'
 import { fixtureEvents } from '../room/testFixtures'
@@ -96,6 +97,7 @@ describe('Burn button', () => {
 
 describe('Burned screen', () => {
   it('drops all room content, even with the pop-up and story card open', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     let listener: (e: RoomEvent) => void = () => {}
     const self: Member = {
       id: 'm_taylor',
@@ -137,6 +139,9 @@ describe('Burned screen', () => {
     await act(async () => {
       listener({ type: 'room_burned', roomId: 'demo' })
     })
+    // The closing plays over the frozen room (the card closes at once), then the clean slate.
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
     expect(screen.getByText('This room has ended.')).toBeTruthy()
     expect(screen.queryByRole('dialog')).toBeNull()
     const text = document.body.textContent!
