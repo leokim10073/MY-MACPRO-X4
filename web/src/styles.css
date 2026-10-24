@@ -87,6 +87,13 @@ button.primary {
   padding-top: max(12px, env(safe-area-inset-top));
 }
 
+.room-invite {
+  margin: 0;
+  padding: 0 16px 8px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
 .room-header h1 {
   margin: 0;
   font-size: 18px;

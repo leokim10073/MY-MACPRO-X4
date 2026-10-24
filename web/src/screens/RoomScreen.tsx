@@ -16,9 +16,11 @@ interface Props {
   self: Member
   room: Room
   onBurn: () => void
+  /** Shown to the host so friends can join. Only set when running against the real backend. */
+  inviteUrl?: string
 }
 
-export default function RoomScreen({ state, self, room, onBurn }: Props) {
+export default function RoomScreen({ state, self, room, onBurn, inviteUrl }: Props) {
   // Phase 1: only tracked; the voice owner wires the mic to this later.
   const [, setTalking] = useState(false)
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
@@ -34,6 +36,11 @@ export default function RoomScreen({ state, self, room, onBurn }: Props) {
         <ListeningIndicator />
         {room.hostMemberId === self.id && <BurnButton onBurn={onBurn} />}
       </header>
+      {inviteUrl && room.hostMemberId === self.id && (
+        <p className="room-invite">
+          Invite: <a href={inviteUrl}>{inviteUrl}</a>
+        </p>
+      )}
       <div className="room-banner">
         {!recapDismissed && (
           <RecapBanner
