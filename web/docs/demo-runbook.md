@@ -24,7 +24,7 @@ Without `?room`, "Create room" makes you the host. `?speed=N` sets the mock play
 ## If the backend drops mid-demo
 
 - "Reconnecting…" at the top: wait a few seconds, it may recover.
-- "Lost connection to the room" (Rejoin button): tap **Rejoin** once, or switch to the **Backup** bookmark.
+- "Lost connection to the room" (Rejoin button): guests tap **Rejoin** once (their invite link brings them back as a new member). The **host** should switch to the **Backup** bookmark instead: a host reload lands on "Create room" and would start a new room.
 - Create or join shows "Can't reach the server." after 10 s: tap **Try the offline demo**.
 - Say on stage that this is a **replay** (TEAM.md requires it).
 - A reload rejoins as a new member. The session is kept in memory only.
@@ -36,15 +36,18 @@ Without `?room`, "Create room" makes you the host. `?speed=N` sets the mock play
 - [ ] Phones use the cloud dev deployment, not `127.0.0.1`. Get its URL from the backend owner.
 - [ ] Both bookmarks are saved on every phone, and the certificate is accepted.
 - [ ] A test room was created and burned.
-- [ ] The AI is not stubbed: a replay produced at least one recall. (On `main` the AI functions in `backend/convex/ai.ts` are still stubs.)
+- [ ] The AI is live: `ANTHROPIC_API_KEY` is set on the deployment (`npx convex env set ANTHROPIC_API_KEY …`), and a test replay produced at least one recall pop-up. Without the key the AI calls are skipped and no pop-ups appear.
+- [ ] Voice is live: `CARTESIA_API_KEY` is set on the deployment. Without it push-to-talk is refused and the recap stays text-only.
+- [ ] Each phone allowed microphone access once (hold **Hold to talk** in a test room).
 - [ ] The Backup bookmark was opened once and works.
 
 ## Live demo sequence
 
-1. Phone A (host): open `…/?replay=1`, Create room.
+1. Phone A (host): open `…/?replay=1`, Create room. The invite link appears under the header.
 2. Phone A: tap **Start Kevin replay**. Alternative, from `backend/`: `npx convex run replay:startLatest` (replays into the newest room).
 3. Phone B: open the invite link (it carries `client=convex&room=<token>`) and join late.
-4. Phone B hears the recap, then taps the Kevin chip.
+4. Phone B gets the recap: the text shows at once, and the narrated audio follows a few seconds later. **On iPhone the audio does not start by itself yet** (it isn't unlocked on the Join tap), so tap **▶** in the "While you were away" card. Then tap the Kevin chip when the pop-up appears.
+5. Anyone can hold **Hold to talk** to add their own line (the Listening dot turns live while the mic is on).
 
-`?type=1` adds a "Type a line" box. `?replay=1` shows the host-only "Start Kevin replay" button.
+`?type=1` adds a "Type a line" box (handy without a mic). `?replay=1` shows the host-only "Start Kevin replay" button. **Leave** (top right) disconnects this phone without ending the room; only the host's red **Burn room** ends it for everyone.
 Full two-phone test: Task 7 of [plan-phase2.md](plan-phase2.md).
