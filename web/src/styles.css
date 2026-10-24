@@ -749,3 +749,80 @@ button.primary {
   text-decoration: underline;
   font-size: 15px;
 }
+
+/* Burning Room */
+:root {
+  --br-charcoal: #111114;
+  --br-ivory: #f5efe7;
+  --br-ember: #ff762e;
+  --br-gold: #ffe6af;
+  --br-red: #ad3527;
+  --br-char: #241c1a;
+  --br-ash: #8d8580;
+}
+
+.shhh-badge {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.shhh-badge-button {
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--br-charcoal);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shhh-badge-button:focus-visible {
+  outline: 2px solid var(--br-ember);
+  outline-offset: 2px;
+}
+
+.shhh-badge p {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: min(260px, 80vw);
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--br-ash);
+  border-radius: 12px;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@keyframes shhh-finger-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+
+@keyframes shhh-ring-contract {
+  0%, 100% { r: 30px; }
+  50% { r: 27px; }
+}
+
+.shhh-icon-animated .shhh-finger {
+  animation: shhh-finger-drift 2.6s ease-in-out infinite;
+}
+
+.shhh-icon-animated .shhh-ring {
+  animation: shhh-ring-contract 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shhh-icon-animated .shhh-finger,
+  .shhh-icon-animated .shhh-ring {
+    animation: none;
+  }
+}

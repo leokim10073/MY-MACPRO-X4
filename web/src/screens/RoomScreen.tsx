@@ -6,6 +6,7 @@ import LeaveConfirm from '../components/LeaveConfirm'
 import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
+import ShhhBadge from '../components/ShhhBadge'
 import Transcript from '../components/Transcript'
 import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
@@ -91,6 +92,7 @@ export default function RoomScreen({
   return (
     <main className="room">
       <header className="room-header">
+        <ShhhBadge />
         <h1>Gossip Window</h1>
         <ListeningIndicator micLive={voice?.state.isListening} />
         {(isHost || onLeave) && (
