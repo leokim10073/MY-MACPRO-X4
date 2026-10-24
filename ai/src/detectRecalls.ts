@@ -2,16 +2,45 @@
 
 import type Anthropic from "@anthropic-ai/sdk";
 import type { BetaTool } from "@anthropic-ai/sdk/resources/beta/messages/messages";
-import type { Recall, StoryState, TranscriptLine } from "../../shared/schema";
+import type { Person, Recall, StoryState, TranscriptLine } from "../../shared/schema";
 import { callTool, FAST_MODEL } from "./llm";
 import { formatLines, formatState, RECALL_SYSTEM } from "./prompts";
 import { normalize } from "./validate";
 
+/** How the line refers to the person. */
+export type RecallReference = "name" | "alias" | "pronoun" | "story_reference";
+
+/** What the model reports. It answers plain questions; scoreRecall turns them into a confidence. */
 export interface RecallDraft {
   personId: string;
   matchedText: string;
   focusStoryId: string;
-  confidence: number;
+  reference: RecallReference;
+  /** Only one known person could be meant, given the recent lines. */
+  onlyOneFits: boolean;
+  /** The line just continues the story being told right now, so it isn't a recall. */
+  continuesCurrentStory: boolean;
+}
+
+const REFERENCE_CONFIDENCE: Record<RecallReference, number> = {
+  name: 0.95,
+  alias: 0.95,
+  story_reference: 0.9,
+  pronoun: 0.8,
+};
+
+/** Below RECALL_MIN_CONFIDENCE: kept for logs and evals, never shown on a phone. */
+const AMBIGUOUS_CONFIDENCE = 0.5;
+
+/**
+ * Confidence from fixed rules, so the same answer always gets the same score.
+ * Returns null when the line isn't a recall: it continues the current story, or the person
+ * is in the room (recalls are for people the latecomer has never met).
+ */
+export function scoreRecall(draft: RecallDraft, person: Person): number | null {
+  if (draft.continuesCurrentStory || person.memberId) return null;
+  if (!draft.onlyOneFits) return AMBIGUOUS_CONFIDENCE;
+  return REFERENCE_CONFIDENCE[draft.reference] ?? AMBIGUOUS_CONFIDENCE;
 }
 
 function recallTool(state: StoryState): BetaTool {
@@ -29,9 +58,11 @@ function recallTool(state: StoryState): BetaTool {
               personId: { type: "string", enum: state.people.map((p) => p.id) },
               matchedText: { type: "string" },
               focusStoryId: { type: "string", enum: ["", ...state.stories.map((s) => s.id)] },
-              confidence: { type: "number" },
+              reference: { type: "string", enum: ["name", "alias", "pronoun", "story_reference"] },
+              onlyOneFits: { type: "boolean" },
+              continuesCurrentStory: { type: "boolean" },
             },
-            required: ["personId", "matchedText", "focusStoryId", "confidence"],
+            required: ["personId", "matchedText", "focusStoryId", "reference", "onlyOneFits", "continuesCurrentStory"],
             additionalProperties: false,
           },
         },
@@ -42,7 +73,7 @@ function recallTool(state: StoryState): BetaTool {
   };
 }
 
-/** Fills in ids, storyIds and seq; drops recalls whose person or matched text don't check out. */
+/** Fills in ids, storyIds, seq and confidence; drops recalls whose person or matched text don't check out, or that aren't recalls. */
 export function assembleRecalls(drafts: RecallDraft[], line: TranscriptLine, state: StoryState): Recall[] {
   const people = new Map(state.people.map((p) => [p.id, p]));
   const firstSeq = new Map(state.stories.map((s) => [s.id, s.firstSeq]));
@@ -51,6 +82,8 @@ export function assembleRecalls(drafts: RecallDraft[], line: TranscriptLine, sta
   for (const d of drafts) {
     const person = people.get(d.personId);
     if (!person) continue;
+    const confidence = scoreRecall(d, person);
+    if (confidence === null) continue;
     const matchedText = d.matchedText.trim();
     if (!matchedText || !normalize(line.text).includes(normalize(matchedText))) continue;
     const storyIds = person.storyIds
@@ -67,7 +100,7 @@ export function assembleRecalls(drafts: RecallDraft[], line: TranscriptLine, sta
       storyIds,
       ...(storyIds.includes(d.focusStoryId) ? { focusStoryId: d.focusStoryId } : {}),
       matchedText,
-      confidence: Math.min(1, Math.max(0, d.confidence)),
+      confidence,
     };
     const existing = byPerson.get(person.id);
     if (!existing || recall.confidence > existing.confidence) byPerson.set(person.id, recall);

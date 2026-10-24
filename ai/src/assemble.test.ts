@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { assembleStoryState, type StoryStateDraft } from "./buildStoryState";
-import { assembleRecalls } from "./detectRecalls";
+import { assembleRecalls, scoreRecall, type RecallDraft } from "./detectRecalls";
 import { loadFixture } from "./fixtures";
 import { assembleRecap, recapProblems } from "./writeRecap";
 import { countWords, isOneWord, quoteInLine, slugId, storyStateViolations, toOneWord, truncateToWords } from "./validate";
@@ -114,18 +114,58 @@ test("assembleRecalls fills storyIds and drops unverifiable recalls", () => {
   const line = kevin.lines[18]; // l19 "After the cake thing? ..."
   const recalls = assembleRecalls(
     [
-      { personId: "p_kevin", matchedText: "the cake thing", focusStoryId: "s_cake", confidence: 0.95 },
-      { personId: "p_kevin", matchedText: "He's lucky", focusStoryId: "", confidence: 0.6 },
-      { personId: "p_nobody", matchedText: "cake", focusStoryId: "", confidence: 0.9 },
-      { personId: "p_kevin", matchedText: "the birthday disaster", focusStoryId: "", confidence: 0.99 },
+      draft({ matchedText: "the cake thing", focusStoryId: "s_cake", reference: "story_reference" }),
+      draft({ matchedText: "He's lucky", reference: "pronoun", onlyOneFits: false }),
+      draft({ personId: "p_nobody", matchedText: "cake" }),
+      draft({ matchedText: "the birthday disaster", reference: "story_reference" }),
     ],
     line,
     state,
   );
-  assert.equal(recalls.length, 1);
+  // Both remaining drafts point at Kevin; only the strongest per person is kept.
+  assert.deepEqual(
+    recalls.map((r) => [r.matchedText, r.confidence]),
+    [["the cake thing", 0.9]],
+  );
   assert.equal(recalls[0].focusStoryId, "s_cake");
   assert.deepEqual(recalls[0].storyIds, ["s_cake", "s_airport", "s_landlord"]);
   assert.equal(recalls[0].seq, 19);
+});
+
+function draft(over: Partial<RecallDraft> = {}): RecallDraft {
+  return {
+    personId: "p_kevin",
+    matchedText: "Kevin",
+    focusStoryId: "",
+    reference: "name",
+    onlyOneFits: true,
+    continuesCurrentStory: false,
+    ...over,
+  };
+}
+
+test("scoreRecall: confidence comes from fixed rules, not from the model", () => {
+  const kevinPerson = kevin.expected.storyState.people.find((p) => p.id === "p_kevin")!;
+  assert.equal(scoreRecall(draft({ reference: "name" }), kevinPerson), 0.95);
+  assert.equal(scoreRecall(draft({ reference: "alias" }), kevinPerson), 0.95);
+  assert.equal(scoreRecall(draft({ reference: "story_reference" }), kevinPerson), 0.9);
+  assert.equal(scoreRecall(draft({ reference: "pronoun" }), kevinPerson), 0.8);
+  // Could mean more than one known person: kept below the 0.7 pop-up threshold.
+  assert.equal(scoreRecall(draft({ reference: "name", onlyOneFits: false }), kevinPerson), 0.5);
+  // Not a recall at all.
+  assert.equal(scoreRecall(draft({ continuesCurrentStory: true }), kevinPerson), null);
+  assert.equal(scoreRecall(draft(), { ...kevinPerson, memberId: "m_kevin" }), null);
+});
+
+test("assembleRecalls drops lines about people in the room and lines continuing the current story", () => {
+  const state = kevin.expected.storyState;
+  const line = kevin.lines[18];
+  const inRoom = { ...state, people: state.people.map((p) => ({ ...p, memberId: "m_kevin" })) };
+  assert.deepEqual(assembleRecalls([draft({ matchedText: "the cake thing" })], line, inRoom), []);
+  assert.deepEqual(
+    assembleRecalls([draft({ matchedText: "the cake thing", continuesCurrentStory: true })], line, state),
+    [],
+  );
 });
 
 test("recap word limit", () => {

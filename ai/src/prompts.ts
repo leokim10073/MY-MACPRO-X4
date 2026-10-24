@@ -45,8 +45,13 @@ For each recall:
 - personId: one of the known people.
 - matchedText: the exact words copied from the new line that point to them (e.g. "he just texted", "the cake thing").
 - focusStoryId: the story id if the line clearly points to one specific story, otherwise "".
-- confidence: 0-1. Use below 0.7 when unsure who is meant.
-Return an empty list when nothing qualifies. Never guess a person who is not in the known list.
+- reference: how the line points to them: "name" (their name), "alias" (one of their aliases, e.g. "the roommate"), \
+"pronoun" ("he", "him", "that guy"), or "story_reference" (one of their stories, e.g. "the cake thing").
+- onlyOneFits: true only if exactly one known person could be meant, given the recent lines. false if it could be someone else.
+- continuesCurrentStory: true if the line is part of the story being told right now (the teller adding details or \
+listeners reacting), rather than pointing back to an earlier one.
+Answer these honestly; do not score anything yourself. Return an empty list when nothing qualifies. Never guess a \
+person who is not in the known list.
 
 ${DATA_RULE}`;
 
