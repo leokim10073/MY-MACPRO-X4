@@ -1079,3 +1079,13 @@ button.primary {
     animation: none;
   }
 }
+
+.burn-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}

@@ -167,6 +167,31 @@ describe('Burn flow in the app', () => {
     expectCleanSlate()
   })
 
+  it('reduced motion still reaches the clean slate at 2900 ms, with the overlay told to reduce (Review Focus 4)', async () => {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }))
+    try {
+      const { client, emit } = fakeClient({ host: true })
+      await joinWith(client, 'Create room')
+      fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+      for (const e of fixtureEvents()) emit(e)
+
+      await tapBurn()
+      expectClosingOverFrozenRoom(true)
+      expect(document.querySelector('canvas.burn-overlay')?.getAttribute('data-reduced')).toBe('true')
+      await advance(2899)
+      expectClosingOverFrozenRoom()
+      await advance(1)
+      expectCleanSlate()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('Leave during closing goes to a fresh Join screen and never shows the clean slate (Review Focus 3)', async () => {
     const quiet = fakeClient({ host: false }).client
     await joinWith(new MockRoomClient({ speed: 1000 }), 'Create room', () => quiet)

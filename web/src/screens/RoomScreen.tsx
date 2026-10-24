@@ -18,7 +18,8 @@ import RoomStage from '../components/RoomStage'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
 import type { ConnectionStatus, VoiceTransport } from '../room/RoomClient'
-import type { ClosingPhase } from '../room/closing'
+import BurnOverlay from '../components/BurnOverlay'
+import { BURN_DURATION_MS, BURN_START_MS, type ClosingPhase } from '../room/closing'
 import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
@@ -234,6 +235,14 @@ export default function RoomScreen({
             )
           )}
         </div>
+        {closing && (
+          <BurnOverlay
+            startAt={closing.startedAt + BURN_START_MS}
+            durationMs={BURN_DURATION_MS}
+            seed={closing.seed}
+            reducedMotion={!motionOk()}
+          />
+        )}
         <BurnIgnition animated={motionOk()} active={closing?.phase === 'ignite'} />
       </div>
       <div className="room-dock">
