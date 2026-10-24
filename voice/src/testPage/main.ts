@@ -5,6 +5,7 @@ import fixture from '../../../shared/fixtures/kevin.expected.json'
 import { MicSource } from '../audio/micSource'
 import { RECAP_OPENER_TEXT } from '../config'
 import { CallSession, type CallParticipant } from '../call/callSession'
+import { OpenMic } from '../stt/openMic'
 import type { CallToken } from '../server/livekit'
 import { buildKeyterms } from '../stt/keyterms'
 import { PushToTalk } from '../stt/pushToTalk'
@@ -91,7 +92,10 @@ function bindButton(p: PushToTalk) {
 
 // --- Call mode -----------------------------------------------------------------------------
 
-let call: CallSession | null = null
+let openMic: OpenMic | null = null
+let unsubscribeCall: (() => void) | null = null
+/** What Krisp's debug log said about background voice cancellation. Test page only. */
+let bvc: 'unknown' | 'on' | 'blocked' = 'unknown'
 
 function bindModes() {
   for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="mode"]')) {
@@ -103,49 +107,85 @@ function bindModes() {
   }
 }
 
-$('join-call').addEventListener('click', () => {
-  if (call || !me) return
-  const session = new CallSession()
-  call = session
-  // No await before join: iOS needs the AudioContext started inside this tap.
-  const joined = api('/livekit-token', { method: 'POST' }).then(async (res) => {
-    const body = (await res.json()) as CallToken & { error?: string }
-    if (!res.ok) throw new Error(body.error ?? `Call token failed (${res.status})`)
-    return body
-  })
-  $('call-status').textContent = 'Joining…'
-  void session
-    .join(
-      joined,
-      {
-        onParticipants: renderPeople,
-        onRemoteSpeakingStarted: () => {},
-        onReconnecting: (r) => ($('call-status').textContent = r ? 'Reconnecting…' : 'In call'),
-        onDropped: (msg) => endCall(msg),
-        onMicRestarted: () => {},
-        onNeedsTap: () => {},
-      },
-    )
-    .then(() => {
-      $('call-status').textContent = 'In call'
-      $('join-call').hidden = true
-      $('leave-call').hidden = false
-    })
-    .catch((err: unknown) => endCall(err instanceof Error ? err.message : 'Could not join the call.'))
-})
-
-$('leave-call').addEventListener('click', () => endCall(''))
-
-function endCall(message: string) {
-  void call?.leave()
-  call = null
-  $('call-status').textContent = message
-  $('join-call').hidden = false
-  $('leave-call').hidden = true
-  $('people').replaceChildren()
+// Krisp only reports BVC in its debug log, so the test page reads that line. Production doesn't.
+for (const level of ['info', 'log'] as const) {
+  const original = console[level].bind(console)
+  console[level] = (...args: unknown[]) => {
+    const text = args.map(String).join(' ')
+    // Krisp logs "blocked" while creating the filter, before it reports ready. Ready without
+    // that line means BVC was allowed.
+    if (text.includes('is blocked for BVC')) bvc = 'blocked'
+    else if (text.includes('"isReady":true') && bvc === 'unknown') bvc = 'on'
+    if (text.includes('KrispSDK')) renderCall()
+    original(...args)
+  }
 }
 
-function renderPeople(list: CallParticipant[]) {
+$('join-call').addEventListener('click', () => {
+  if (!me || !tokens) return
+  const self = me
+  const t = tokens
+  if (!openMic) {
+    openMic = new OpenMic({
+      roomId: self.roomId,
+      speakerId: self.id,
+      getSttToken: () => t.get(),
+      getCallToken: async () => {
+        const res = await api('/livekit-token', { method: 'POST' })
+        const body = (await res.json()) as CallToken & { error?: string }
+        if (!res.ok) throw new Error(body.error ?? `Call token failed (${res.status})`)
+        return body
+      },
+      sendLine: async (line) => {
+        const res = await api('/lines', { method: 'POST', body: JSON.stringify(line) })
+        if (!res.ok) throw new Error(`Send failed (${res.status})`)
+      },
+      keyterms: () => buildKeyterms(members, fixture.storyState.people),
+      createCall: () => new CallSession({ krispDebugLogs: true }),
+    })
+    unsubscribeCall = openMic.subscribe(renderCall)
+  }
+  bvc = 'unknown'
+  // No await before join: iOS needs audio started inside this tap.
+  void openMic.join()
+})
+
+$('leave-call').addEventListener('click', () => void openMic?.leave())
+
+$('mute').addEventListener('click', () => {
+  if (openMic) void openMic.setMuted(!openMic.getState().muted)
+})
+
+function renderCall() {
+  if (!openMic) return
+  const s = openMic.getState()
+  const inCall = s.status === 'in_call' || s.status === 'reconnecting'
+  $('join-call').hidden = inCall || s.status === 'joining'
+  $('leave-call').hidden = !inCall
+  $('mute').hidden = !inCall
+  $('mute').textContent = s.muted ? 'Unmute' : 'Mute'
+  $('mute').setAttribute('aria-pressed', String(s.muted))
+  $('call-sending').classList.toggle('on', s.isListening)
+  $('call-status').textContent = s.status.replace('_', ' ')
+  $('call-preview').textContent = s.preview
+  $('call-error').textContent = s.error ?? ''
+  $('call-noise').textContent = s.noiseFilter
+    ? `Noise filter: ${s.noiseFilter}${s.noiseFilter === 'krisp' ? ` · BVC: ${bvc}` : ''} · Ink connections: ${s.debug.inkConnects}`
+    : ''
+  renderPeople(s.participants)
+  $('call-failed').replaceChildren(
+    ...s.failed.map((f) => {
+      const li = document.createElement('li')
+      const btn = document.createElement('button')
+      btn.textContent = `Not sent: "${f.line.text}" — tap to retry`
+      btn.onclick = () => f.retry()
+      li.append(btn)
+      return li
+    }),
+  )
+}
+
+function renderPeople(list: readonly CallParticipant[]) {
   $('people').replaceChildren(
     ...list.map((p) => {
       const li = document.createElement('li')
@@ -197,6 +237,10 @@ async function refresh() {
 }
 
 function burned() {
+  openMic?.stop()
+  unsubscribeCall?.()
+  openMic = null
+  unsubscribeCall = null
   ptt?.stop()
   tokens?.dispose()
   if (poll) clearInterval(poll)

@@ -72,9 +72,15 @@
         <div class="row">
           <button type="button" id="join-call">Join call</button>
           <button type="button" id="leave-call" hidden>Leave</button>
+          <button type="button" id="mute" hidden aria-pressed="false">Mute</button>
+          <span class="badge" id="call-sending" title="Audio actually going to Ink"><span class="dot"></span>Transcribing</span>
           <span class="muted" id="call-status"></span>
         </div>
         <ul id="people"></ul>
+        <p class="preview" id="call-preview"></p>
+        <p class="error" id="call-error"></p>
+        <ul id="call-failed"></ul>
+        <p class="muted" id="call-noise"></p>
       </section>
 
       <details>
