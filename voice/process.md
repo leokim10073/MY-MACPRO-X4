@@ -590,10 +590,10 @@ Cartesia-Version: 2026-08-14
 | --- | --- | --- |
 | 1 | ✅ Cartesia 帳號、Startup 方案額度、API key 放進 `voice/.env`，用 Python SDK 測試 TTS | 已完成 |
 | 2 | ✅ `npm run ink:latency`：用 Sonic 念 Kevin 劇本，以即時速度串流給 ink-2（走真正的 `PttSession` 程式碼） | 已完成。6 句全對，人名正確。建立連線 130–680ms（平均 350ms，期間的聲音會排隊補送），放開到拿到文字平均 134ms（另加 300ms 尾音） |
-| 3 | 🟡 電腦瀏覽器測試頁（`npm run dev`）：麥克風 → AudioWorklet（16k、s16）→ ink-2。本機 dev API 發 token。程式已切成「音訊來源 / 轉文字工作階段 / 送出一行」三塊 | 程式和單元測試完成，**還沒用真的麥克風測過** |
+| 3 | ✅ 測試頁（`npm run dev`）：麥克風 → AudioWorklet（16k、s16）→ ink-2。本機 dev API 發 token。程式已切成「音訊來源 / 轉文字工作階段 / 送出一行」三塊 | 已完成（2026-10-24）。手機用真的麥克風說話，即時轉出文字。手機要用 Wi-Fi 介面的 `https://` 網址，不是 `169.254` 開頭的那些；會場 Wi-Fi 如果擋裝置互連，就改用手機熱點 |
 | 4 | 🟡 push-to-talk 狀態機、pre-roll、尾音、finalize、close、組成一行文字 | 單元測試通過，**還沒用真的麥克風連按 10 次** |
 | 5 | 透過 HTTPS 在手機上測試（iOS Safari 和 Android Chrome 各一支）。dev server 已開 HTTPS 並監聽區網 | 兩種手機都能用 |
-| 6 | 和 backend 對接：發 token 的端點、送出 `NewTranscriptLine`。backend 還沒好就先送到 mock | **兩支手機用 push-to-talk 輪流對話，兩個人的句子按順序、掛在正確名字下，出現在同一個房間的 transcript** |
+| 6 | 🟡 和 backend 對接：發 token 的端點、送出 `NewTranscriptLine`。backend 還沒好就先送到 mock | **完成標準已在 dev API（mock）上達成（2026-10-24）**：兩支手機輪流說話，兩個人的句子都正確出現在同一份 transcript、名字正確。**還差接上 Convex** |
 
 #### 週六上午到中午
 
