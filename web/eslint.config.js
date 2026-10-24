@@ -23,6 +23,16 @@ export default tseslint.config(
         { name: 'sessionStorage', message: storageMessage },
         { name: 'indexedDB', message: storageMessage },
       ],
+      'no-restricted-properties': [
+        'error',
+        ...['window', 'globalThis'].flatMap((object) =>
+          ['localStorage', 'sessionStorage', 'indexedDB'].map((property) => ({
+            object,
+            property,
+            message: storageMessage,
+          })),
+        ),
+      ],
     },
   },
 )

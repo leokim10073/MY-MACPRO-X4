@@ -84,6 +84,7 @@ button.primary {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
 }
 
 .room-header h1 {
@@ -279,6 +280,7 @@ button.primary {
   background: transparent;
   color: inherit;
   font-size: 16px;
+  touch-action: manipulation;
 }
 
 .recall-chip[aria-current='true'] {
@@ -360,7 +362,11 @@ button.primary {
   border: 1px dashed rgba(127, 127, 127, 0.7);
   border-radius: 8px;
   font-style: italic;
-  opacity: 0.8;
+}
+
+.story-card .story-guess-label {
+  opacity: 1;
+  color: GrayText;
 }
 
 .story-card .story-close {

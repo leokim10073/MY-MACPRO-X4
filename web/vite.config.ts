@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     host: true,
-    fs: { allow: ['..'] },
+    fs: { allow: ['../shared'] },
   },
   test: {
     environment: 'jsdom',
