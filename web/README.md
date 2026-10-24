@@ -28,16 +28,18 @@ Someone who has never seen the app joins late on a phone, hears the recap, taps 
 
 ## Running against the real backend
 
-The mock is the default. Add `?client=convex` to the URL to use the backend in `backend/` (needs `VITE_CONVEX_URL`; without it the page says "Backend not configured"):
+The mock is the default. Add `?client=convex` to use the backend in `backend/`. It needs `VITE_CONVEX_URL` in `web/.env.local`; without it the page says "Backend not configured" and links to the offline demo.
 
-1. In `backend/`: `npx convex dev` (or `CONVEX_AGENT_MODE=anonymous npx convex dev` for a local backend at http://127.0.0.1:3210).
-2. In `web/`: put `VITE_CONVEX_URL=<the CONVEX_URL from backend/.env.local>` in `web/.env.local`, then `npm run dev` and open `/?client=convex`.
-3. Create a room in one tab. The host sees an invite link (it carries `client=convex`); open it in another tab or phone to join.
-4. From `backend/`: `npx convex run replay:startLatest` plays the Kevin script into the newest room.
+1. In `backend/`: `npx convex dev` (phones need a cloud dev deployment; they can't reach `127.0.0.1`).
+2. In `web/`: put `VITE_CONVEX_URL=<url>` in `web/.env.local` (never commit it), then `npm run dev`. The dev server is HTTPS (self-signed): open the `https://<LAN IP>:5173` address it prints and accept the certificate once on each phone.
+3. Create a room at `/?client=convex`. The invite link carries `client=convex&room=<token>`.
+4. From `backend/`: `npx convex run replay:startLatest` replays the Kevin script into the newest room.
 
-`?client=mock` or the legacy `?mock` forces the mock. Tests build their client explicitly (the mock). `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
+Extras for Convex: `?type=1` shows a "Type a line" box; `?replay=1` shows a host-only "Start Kevin replay" button.
 
-Phones on the Wi-Fi can't reach a local backend on `127.0.0.1`; use a cloud dev deployment (`npx convex login`, then `npx convex dev`) for phones.
+`?client=mock`, the legacy `?mock`, an unknown value or no param all give the mock. `?client=convex&mock` is still Convex. Tests build their client explicitly (the mock). `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
+
+For the stage setup, bookmarks, rollback to the mock and the pre-flight checklist, see [docs/demo-runbook.md](docs/demo-runbook.md).
 
 ## Demo and submission (also this owner)
 
