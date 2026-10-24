@@ -9,9 +9,7 @@ import {
   Track,
 } from 'livekit-client'
 import type { Id } from '../../../shared/schema'
-import { STT_SAMPLE_RATE } from '../config'
-import { PCM_CAPTURE_PROCESSOR, pcmCaptureWorkletUrl } from '../audio/pcmCaptureWorklet'
-import { Resampler } from '../audio/resampler'
+import { TrackSource } from '../audio/trackSource'
 import type { CallToken } from '../server/livekit'
 
 /** Which noise filtering really runs on the published mic. */
@@ -93,9 +91,9 @@ export class CallSession implements CallLike {
   private speaking = new Set<Id>()
   private remoteVolume = 1
   private leaving = false
-  private readonly listeners = new Set<(frame: Int16Array) => void>()
   private readonly sinks = document.createElement('div')
-  private disconnectCapture: (() => void) | null = null
+  private source: TrackSource | null = null
+  private readonly frameListeners = new Set<(frame: Int16Array) => void>()
 
   constructor() {
     this.sinks.hidden = true
@@ -125,15 +123,19 @@ export class CallSession implements CallLike {
     const published = new LocalAudioTrack(this.raw.clone(), undefined, true, ctx)
     this.published = published
     await room.localParticipant.publishTrack(published, { source: Track.Source.Microphone })
-    await this.capture(published.mediaStreamTrack)
+    this.source = new TrackSource(ctx)
+    this.source.onFrame((frame) => {
+      for (const l of this.frameListeners) l(frame)
+    })
+    await this.source.attach(published.mediaStreamTrack)
     document.body.append(this.sinks)
     this.emitParticipants()
     return 'browser'
   }
 
   onFrame(listener: (frame: Int16Array) => void): () => void {
-    this.listeners.add(listener)
-    return () => this.listeners.delete(listener)
+    this.frameListeners.add(listener)
+    return () => this.frameListeners.delete(listener)
   }
 
   async setMuted(muted: boolean): Promise<void> {
@@ -155,8 +157,8 @@ export class CallSession implements CallLike {
 
   async leave(): Promise<void> {
     this.leaving = true
-    this.disconnectCapture?.()
-    this.disconnectCapture = null
+    this.source?.detach()
+    this.source = null
     await this.room?.disconnect().catch(() => {})
     this.published?.stop()
     this.raw?.stop()
@@ -165,33 +167,6 @@ export class CallSession implements CallLike {
     await this.ctx?.close().catch(() => {})
     this.room = this.published = this.raw = this.ctx = null
     this.speaking.clear()
-  }
-
-  // Replaced by TrackSource in Task 4 of voice/stage2-plan.md.
-  private async capture(track: MediaStreamTrack): Promise<void> {
-    const ctx = this.ctx!
-    const url = pcmCaptureWorkletUrl()
-    try {
-      await ctx.audioWorklet.addModule(url)
-    } finally {
-      URL.revokeObjectURL(url)
-    }
-    const resampler = new Resampler(ctx.sampleRate, STT_SAMPLE_RATE)
-    const source = ctx.createMediaStreamSource(new MediaStream([track]))
-    const node = new AudioWorkletNode(ctx, PCM_CAPTURE_PROCESSOR, { numberOfInputs: 1, numberOfOutputs: 1 })
-    const mute = ctx.createGain()
-    mute.gain.value = 0
-    source.connect(node).connect(mute).connect(ctx.destination)
-    node.port.onmessage = (ev: MessageEvent<Float32Array>) => {
-      const frame = resampler.process(ev.data)
-      if (frame.length) for (const l of this.listeners) l(frame)
-    }
-    this.disconnectCapture = () => {
-      node.port.onmessage = null
-      source.disconnect()
-      node.disconnect()
-      mute.disconnect()
-    }
   }
 
   private watch(room: Room): void {
