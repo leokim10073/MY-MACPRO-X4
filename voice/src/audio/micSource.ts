@@ -1,7 +1,6 @@
 import { PREROLL_MS, STT_SAMPLE_RATE } from '../config'
 import type { AudioInput } from './audioInput'
-import { PCM_CAPTURE_PROCESSOR, pcmCaptureWorkletUrl } from './pcmCaptureWorklet'
-import { Resampler } from './resampler'
+import { startPcmCapture } from './pcmCapture'
 import { SampleRing } from './sampleRing'
 
 /**
@@ -57,25 +56,9 @@ export class MicSource implements AudioInput {
       audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     })
     await resumed
-    const workletUrl = pcmCaptureWorkletUrl()
-    try {
-      await ctx.audioWorklet.addModule(workletUrl)
-    } finally {
-      URL.revokeObjectURL(workletUrl)
-    }
-
-    const resampler = new Resampler(ctx.sampleRate, STT_SAMPLE_RATE)
-    const source = ctx.createMediaStreamSource(this.stream)
-    const capture = new AudioWorkletNode(ctx, PCM_CAPTURE_PROCESSOR, { numberOfInputs: 1, numberOfOutputs: 1 })
-    const mute = ctx.createGain()
-    mute.gain.value = 0
-    source.connect(capture).connect(mute).connect(ctx.destination)
-
-    capture.port.onmessage = (ev: MessageEvent<Float32Array>) => {
-      const frame = resampler.process(ev.data)
-      if (frame.length === 0) return
+    await startPcmCapture(ctx, this.stream.getAudioTracks()[0], (frame) => {
       this.ring.push(frame)
       for (const l of this.listeners) l(frame)
-    }
+    })
   }
 }

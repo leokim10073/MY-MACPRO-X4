@@ -10,9 +10,14 @@
     "ink:latency": "tsx --env-file=.env scripts/ink-latency.ts",
     "tts:audition": "tsx --env-file=.env scripts/tts-audition.ts"
   },
+  "dependencies": {
+    "@livekit/krisp-noise-filter": "0.4.5",
+    "livekit-client": "2.22.4"
+  },
   "devDependencies": {
     "@types/node": "26.6.5",
     "@vitejs/plugin-basic-ssl": "2.3.0",
+    "livekit-server-sdk": "2.19.1",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vite": "8.3.5",
