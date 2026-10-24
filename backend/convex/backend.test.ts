@@ -20,12 +20,26 @@ function setup() {
 }
 type T = ReturnType<typeof setup>;
 
+/** create/join results flattened to the ids the tests use. */
+function ids(r: { room: { id: string; inviteToken: string }; member: { id: string }; sessionToken: string }) {
+  return {
+    token: r.sessionToken,
+    roomId: r.room.id as Id<"rooms">,
+    memberId: r.member.id as Id<"members">,
+    inviteToken: r.room.inviteToken,
+  };
+}
+
 async function newRoom(t: T) {
-  return await t.mutation(api.rooms.create, { name: "Alex" });
+  return ids(await t.mutation(api.rooms.create, { name: "Alex" }));
+}
+
+async function joinRoom(t: T, inviteToken: string, name: string) {
+  return ids(await t.mutation(api.rooms.join, { inviteToken, name }));
 }
 
 async function addLine(t: T, token: string, text: string) {
-  return await t.mutation(api.lines.add, { token, text, at: Date.now() });
+  return await t.mutation(api.lines.add, { sessionToken: token, text, at: Date.now() });
 }
 
 async function runScheduled(t: T) {
@@ -74,8 +88,8 @@ describe("rooms and membership", () => {
   test("members never see each other's tokens", async () => {
     const t = setup();
     const host = await newRoom(t);
-    await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Sam" });
-    const view = await t.query(api.rooms.get, { token: host.token });
+    await joinRoom(t, host.inviteToken, "Sam");
+    const view = await t.query(api.rooms.get, { sessionToken: host.token });
     expect(view?.members.map((m) => m.name)).toEqual(["Alex", "Sam"]);
     expect(JSON.stringify(view)).not.toContain(host.token);
   });
@@ -83,9 +97,9 @@ describe("rooms and membership", () => {
   test("a wrong token can't read or write", async () => {
     const t = setup();
     await newRoom(t);
-    await expect(t.query(api.lines.list, { token: "nope" })).rejects.toThrow("Not a member");
+    await expect(t.query(api.lines.list, { sessionToken: "nope" })).rejects.toThrow("Not a member");
     await expect(addLine(t, "nope", "hi")).rejects.toThrow("Not a member");
-    expect(await t.query(api.rooms.get, { token: "nope" })).toBeNull();
+    expect(await t.query(api.rooms.get, { sessionToken: "nope" })).toBeNull();
   });
 
   test("bad nicknames are rejected", async () => {
@@ -97,9 +111,9 @@ describe("rooms and membership", () => {
   test("only the host can burn or start replay", async () => {
     const t = setup();
     const host = await newRoom(t);
-    const sam = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Sam" });
-    await expect(t.mutation(api.rooms.burn, { token: sam.token })).rejects.toThrow("Only the host");
-    await expect(t.mutation(api.replay.start, { token: sam.token })).rejects.toThrow("Only the host");
+    const sam = await joinRoom(t, host.inviteToken, "Sam");
+    await expect(t.mutation(api.rooms.burn, { sessionToken: sam.token })).rejects.toThrow("Only the host");
+    await expect(t.mutation(api.replay.start, { sessionToken: sam.token })).rejects.toThrow("Only the host");
   });
 });
 
@@ -107,11 +121,11 @@ describe("transcript", () => {
   test("lines get increasing seqs and come back in order", async () => {
     const t = setup();
     const host = await newRoom(t);
-    const sam = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Sam" });
+    const sam = await joinRoom(t, host.inviteToken, "Sam");
     await addLine(t, host.token, "one");
     await addLine(t, sam.token, "two");
     await addLine(t, host.token, "three");
-    const lines = await t.query(api.lines.list, { token: sam.token });
+    const lines = await t.query(api.lines.list, { sessionToken: sam.token });
     expect(lines.map((l) => [l.seq, l.speakerName, l.text])).toEqual([
       [1, "Alex", "one"],
       [2, "Sam", "two"],
@@ -132,9 +146,9 @@ describe("late join recap", () => {
   test("someone there from the start gets no recap", async () => {
     const t = setup();
     const host = await newRoom(t);
-    const sam = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Sam" });
+    const sam = await joinRoom(t, host.inviteToken, "Sam");
     await runScheduled(t);
-    expect(await t.query(api.story.myRecap, { token: sam.token })).toBeNull();
+    expect(await t.query(api.story.myRecap, { sessionToken: sam.token })).toBeNull();
   });
 
   test("a late joiner gets a recap covering only lines before they joined", async () => {
@@ -142,16 +156,16 @@ describe("late join recap", () => {
     const host = await newRoom(t);
     await addLine(t, host.token, "one");
     await addLine(t, host.token, "two");
-    const taylor = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Taylor" });
+    const taylor = await joinRoom(t, host.inviteToken, "Taylor");
     await addLine(t, host.token, "three");
     await runScheduled(t);
 
-    const me = await t.query(api.rooms.get, { token: taylor.token });
+    const me = await t.query(api.rooms.get, { sessionToken: taylor.token });
     expect(me?.me.joinedAtSeq).toBe(2);
-    const recap = await t.query(api.story.myRecap, { token: taylor.token });
+    const recap = await t.query(api.story.myRecap, { sessionToken: taylor.token });
     expect(recap?.uptoSeq).toBe(2);
     expect(recap?.text).toContain("2 lines");
-    expect(await t.query(api.story.myRecap, { token: host.token })).toBeNull();
+    expect(await t.query(api.story.myRecap, { sessionToken: host.token })).toBeNull();
   });
 });
 
@@ -159,11 +173,11 @@ describe("replay mode", () => {
   test("plays the whole Kevin script in order", async () => {
     const t = setup();
     const host = await newRoom(t);
-    const started = await t.mutation(api.replay.start, { token: host.token });
+    const started = await t.mutation(api.replay.start, { sessionToken: host.token });
     expect(started.lines).toBe(kevin.lines.length);
     await runScheduled(t);
 
-    const lines = await t.query(api.lines.list, { token: host.token });
+    const lines = await t.query(api.lines.list, { sessionToken: host.token });
     expect(lines.map((l) => l.text)).toEqual(kevin.lines.map((l) => l.text));
     expect(lines.map((l) => l.speakerName)).toEqual(kevin.lines.map((l) => l.speakerName));
     expect(lines.map((l) => l.seq)).toEqual(kevin.lines.map((_, i) => i + 1));
@@ -172,17 +186,17 @@ describe("replay mode", () => {
   test("respects delayMs between lines", async () => {
     const t = setup();
     const host = await newRoom(t);
-    await t.mutation(api.replay.start, { token: host.token });
+    await t.mutation(api.replay.start, { sessionToken: host.token });
     const firstTwo = kevin.lines[0].delayMs + kevin.lines[1].delayMs;
     vi.advanceTimersByTime(firstTwo);
     await t.finishInProgressScheduledFunctions();
-    expect((await t.query(api.lines.list, { token: host.token })).length).toBe(2);
+    expect((await t.query(api.lines.list, { sessionToken: host.token })).length).toBe(2);
   });
 
   test("scripted speakers can't be impersonated", async () => {
     const t = setup();
     const host = await newRoom(t);
-    await t.mutation(api.replay.start, { token: host.token });
+    await t.mutation(api.replay.start, { sessionToken: host.token });
     await runScheduled(t);
     const speakers = await t.run((ctx) => ctx.db.query("members").collect());
     const scripted = speakers.filter((m) => m._id !== host.memberId);
@@ -193,12 +207,12 @@ describe("replay mode", () => {
   test("lines still waiting when the room is burned never arrive", async () => {
     const t = setup();
     const host = await newRoom(t);
-    await t.mutation(api.replay.start, { token: host.token });
+    await t.mutation(api.replay.start, { sessionToken: host.token });
     vi.advanceTimersByTime(10_000);
     await t.finishInProgressScheduledFunctions();
     expect((await rowCounts(t)).lines).toBeGreaterThan(0);
 
-    await t.mutation(api.rooms.burn, { token: host.token });
+    await t.mutation(api.rooms.burn, { sessionToken: host.token });
     await runScheduled(t);
     expect((await rowCounts(t)).lines).toBe(0);
   });
@@ -209,7 +223,7 @@ describe("burn", () => {
     const t = setup();
     const host = await newRoom(t);
     const line = await addLine(t, host.token, "one");
-    const taylor = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Taylor" });
+    const taylor = await joinRoom(t, host.inviteToken, "Taylor");
     await runScheduled(t);
     await t.mutation(internal.ai.saveRecalls, {
       lineId: line!.lineId,
@@ -221,12 +235,12 @@ describe("burn", () => {
     });
     expect(await rowCounts(t)).toEqual({ lines: 1, recalls: 1, storyStates: 1, recaps: 1 });
 
-    await t.mutation(api.rooms.burn, { token: host.token });
+    await t.mutation(api.rooms.burn, { sessionToken: host.token });
 
     expect(await rowCounts(t)).toEqual({ lines: 0, recalls: 0, storyStates: 0, recaps: 0 });
     for (const token of [host.token, taylor.token]) {
-      expect(await t.query(api.rooms.get, { token })).toBeNull();
-      await expect(t.query(api.lines.list, { token })).rejects.toThrow();
+      expect(await t.query(api.rooms.get, { sessionToken: token })).toBeNull();
+      await expect(t.query(api.lines.list, { sessionToken: token })).rejects.toThrow();
       await expect(addLine(t, token, "hello?")).rejects.toThrow();
     }
     await expect(
@@ -238,8 +252,8 @@ describe("burn", () => {
     const t = setup();
     const host = await newRoom(t);
     const line = await addLine(t, host.token, "one");
-    const taylor = await t.mutation(api.rooms.join, { inviteToken: host.inviteToken, name: "Taylor" });
-    await t.mutation(api.rooms.burn, { token: host.token });
+    const taylor = await joinRoom(t, host.inviteToken, "Taylor");
+    await t.mutation(api.rooms.burn, { sessionToken: host.token });
 
     await t.mutation(internal.ai.saveRecalls, {
       lineId: line!.lineId,
@@ -264,8 +278,8 @@ describe("burn", () => {
 
     await t.mutation(internal.rooms.burnExpired, {});
 
-    expect(await t.query(api.rooms.get, { token: old.token })).toBeNull();
-    expect(await t.query(api.rooms.get, { token: fresh.token })).not.toBeNull();
+    expect(await t.query(api.rooms.get, { sessionToken: old.token })).toBeNull();
+    expect(await t.query(api.rooms.get, { sessionToken: fresh.token })).not.toBeNull();
   });
 });
 
@@ -281,9 +295,9 @@ describe("AI wiring", () => {
         recalls: [{ personId: "p_kevin", storyIds: ["s_cake"], matchedText: "he", confidence: 0.9 }],
       });
     }
-    const all = await t.query(api.story.recalls, { token: host.token, afterSeq: 0 });
+    const all = await t.query(api.story.recalls, { sessionToken: host.token, afterSeq: 0 });
     expect(all.map((r) => r.seq)).toEqual([1, 2]);
-    const newer = await t.query(api.story.recalls, { token: host.token, afterSeq: 1 });
+    const newer = await t.query(api.story.recalls, { sessionToken: host.token, afterSeq: 1 });
     expect(newer).toHaveLength(1);
     expect(newer[0]).toMatchObject({ seq: 2, lineId: l2!.lineId, roomId: host.roomId, personId: "p_kevin" });
   });
@@ -298,8 +312,8 @@ describe("AI wiring", () => {
         state: storyState(uptoSeq, host.memberId, line!.lineId),
       });
 
-    expect(await t.query(api.story.state, { token: host.token })).toBeNull();
-    const topic = async () => (await t.query(api.story.state, { token: host.token }))?.currentTopic;
+    expect(await t.query(api.story.state, { sessionToken: host.token })).toBeNull();
+    const topic = async () => (await t.query(api.story.state, { sessionToken: host.token }))?.currentTopic;
     await save(5);
     await save(3);
     expect(await topic()).toBe("topic at 5");
@@ -307,7 +321,7 @@ describe("AI wiring", () => {
     expect(await topic()).toBe("topic at 5");
     await save(7);
 
-    const state = await t.query(api.story.state, { token: host.token });
+    const state = await t.query(api.story.state, { sessionToken: host.token });
     expect(state?.uptoSeq).toBe(7);
     expect(state?.stories[0].roomId).toBe(host.roomId);
     expect(state?.people[0].roomId).toBe(host.roomId);
@@ -328,5 +342,147 @@ describe("AI wiring", () => {
     // Once that run has started, the next line schedules a fresh one.
     await addLine(t, host.token, "four");
     expect(await pendingSlowPaths(t)).toBe(1);
+  });
+});
+
+describe("event log (events.listAfter)", () => {
+  async function events(t: T, room: { roomId: Id<"rooms">; token: string }, afterEventSeq = 0) {
+    return await t.query(api.events.listAfter, {
+      roomId: room.roomId,
+      sessionToken: room.token,
+      afterEventSeq,
+    });
+  }
+  const types = (r: Awaited<ReturnType<typeof events>>) => r.events.map((e) => e.event.type);
+
+  test("create and join return what the web client needs, and log member_joined", async () => {
+    const t = setup();
+    const created = await t.mutation(api.rooms.create, { name: "Alex" });
+    expect(created.room).toMatchObject({ status: "active", hostMemberId: created.member.id });
+    expect(created.member).toMatchObject({ name: "Alex", joinedAtSeq: 0, roomId: created.room.id });
+    const host = ids(created);
+    await joinRoom(t, host.inviteToken, "Sam");
+
+    const log = await events(t, host);
+    expect(log.status).toBe("active");
+    expect(log.events.map((e) => e.eventSeq)).toEqual([1, 2]);
+    expect(log.events.map((e) => e.event.type === "member_joined" && e.event.member.name)).toEqual([
+      "Alex",
+      "Sam",
+    ]);
+  });
+
+  test("every change is logged once, in the order it happened", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    const line = (await addLine(t, host.token, "Kevin ate my cake"))!;
+    await t.mutation(internal.ai.saveStoryState, {
+      roomId: host.roomId,
+      state: storyState(1, host.memberId, line.lineId),
+    });
+    await t.mutation(internal.ai.saveRecalls, {
+      lineId: line.lineId,
+      recalls: [{ personId: "p_kevin", storyIds: ["s_cake"], matchedText: "Kevin", confidence: 0.9 }],
+    });
+    const taylor = await joinRoom(t, host.inviteToken, "Taylor");
+    await runScheduled(t);
+
+    const log = await events(t, taylor);
+    expect(types(log)).toEqual([
+      "member_joined",
+      "line_added",
+      "story_state_updated",
+      "recall",
+      "member_joined",
+      "recap_ready",
+    ]);
+    expect(log.events.map((e) => e.eventSeq)).toEqual([1, 2, 3, 4, 5, 6]);
+
+    const byType = Object.fromEntries(log.events.map((e) => [e.event.type, e.event]));
+    expect(byType.line_added).toMatchObject({ line: { seq: 1, text: "Kevin ate my cake", speakerName: "Alex" } });
+    expect(byType.story_state_updated).toMatchObject({ storyState: { roomId: host.roomId, uptoSeq: 1 } });
+    expect(byType.recall).toMatchObject({ recall: { lineId: line.lineId, seq: 1, personId: "p_kevin" } });
+    // The recap's uptoSeq equals the joiner's joinedAtSeq, which is how web matches it.
+    expect(byType.recap_ready).toMatchObject({ recap: { uptoSeq: 1, roomId: host.roomId } });
+  });
+
+  test("afterEventSeq returns only newer events", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    await addLine(t, host.token, "one");
+    await addLine(t, host.token, "two");
+    const newer = await events(t, host, 2);
+    expect(newer.events.map((e) => e.eventSeq)).toEqual([3]);
+    expect(newer.events[0].event).toMatchObject({ type: "line_added", line: { text: "two" } });
+  });
+
+  test("stale story states are not logged", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    const line = (await addLine(t, host.token, "one"))!;
+    const save = (uptoSeq: number) =>
+      t.mutation(internal.ai.saveStoryState, {
+        roomId: host.roomId,
+        state: storyState(uptoSeq, host.memberId, line.lineId),
+      });
+    await save(5);
+    await save(3);
+    expect(types(await events(t, host)).filter((x) => x === "story_state_updated")).toHaveLength(1);
+  });
+
+  test("replay speakers are announced before their first line", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    await t.mutation(api.replay.start, { sessionToken: host.token });
+    await runScheduled(t);
+    const log = await events(t, host);
+    const firstLineOf = new Map<string, number>();
+    const joinedAt = new Map<string, number>();
+    for (const { eventSeq, event } of log.events) {
+      if (event.type === "member_joined") joinedAt.set(event.member.id, eventSeq);
+      if (event.type === "line_added" && !firstLineOf.has(event.line.speakerId)) {
+        firstLineOf.set(event.line.speakerId, eventSeq);
+      }
+    }
+    expect(firstLineOf.size).toBeGreaterThan(1);
+    for (const [speakerId, seq] of firstLineOf) expect(joinedAt.get(speakerId)).toBeLessThan(seq);
+    expect(types(log).filter((x) => x === "line_added")).toHaveLength(kevin.lines.length);
+  });
+
+  test("outsiders and members of other rooms can't read the log", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    const other = await newRoom(t);
+    await expect(events(t, { roomId: host.roomId, token: "nope" })).rejects.toThrow("Not a member");
+    await expect(events(t, { roomId: host.roomId, token: other.token })).rejects.toThrow("Not a member");
+    await expect(
+      t.mutation(api.rooms.burn, { roomId: host.roomId, sessionToken: other.token }),
+    ).rejects.toThrow("Not a member");
+  });
+
+  test("after a burn the log is deleted and every phone gets status burned", async () => {
+    const t = setup();
+    const host = await newRoom(t);
+    const sam = await joinRoom(t, host.inviteToken, "Sam");
+    await addLine(t, host.token, "one");
+    await t.mutation(api.rooms.burn, { roomId: host.roomId, sessionToken: host.token });
+
+    for (const member of [host, sam]) {
+      expect(await events(t, member)).toEqual({ status: "burned", events: [] });
+    }
+    const rows = await t.run((ctx) => ctx.db.query("events").collect());
+    expect(rows).toHaveLength(0);
+  });
+
+  test("replay:startLatest replays into the newest active room", async () => {
+    const t = setup();
+    const older = await newRoom(t);
+    vi.advanceTimersByTime(1000);
+    const newer = await newRoom(t);
+    const started = await t.mutation(internal.replay.startLatest, {});
+    expect(started.roomId).toBe(newer.roomId);
+    await runScheduled(t);
+    expect(types(await events(t, newer)).filter((x) => x === "line_added")).toHaveLength(kevin.lines.length);
+    expect(types(await events(t, older))).toEqual(["member_joined"]);
   });
 });

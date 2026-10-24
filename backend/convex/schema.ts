@@ -61,6 +61,8 @@ export default defineSchema({
     lastSeq: v.number(),
     // True while an AI slow path run is scheduled, so lines don't stack up runs.
     slowPathScheduled: v.boolean(),
+    // Highest eventSeq handed out so far in the events table.
+    lastEventSeq: v.number(),
   })
     .index("by_inviteToken", ["inviteToken"])
     .index("by_status_expiresAt", ["status", "expiresAt"]),
@@ -106,6 +108,15 @@ export default defineSchema({
     matchedText: v.string(),
     confidence: v.number(),
   }).index("by_room_seq", ["roomId", "seq"]),
+
+  // Append-only log of every RoomEvent, written in the same mutation as the
+  // state change it describes. Phones replay it in eventSeq order (web/docs/design.md, issue 4).
+  events: defineTable({
+    roomId: v.id("rooms"),
+    eventSeq: v.number(),
+    // A RoomEvent from shared/schema.ts. Only the server writes it, through appendEvent.
+    event: v.any(),
+  }).index("by_room_eventSeq", ["roomId", "eventSeq"]),
 
   recaps: defineTable({
     roomId: v.id("rooms"),

@@ -3,12 +3,13 @@
 
 import { ConvexError } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import type { QueryCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type {
   Member,
   Recall,
   Recap,
   Room,
+  RoomEvent,
   StoryState,
   TranscriptLine,
 } from "../../shared/schema";
@@ -44,6 +45,14 @@ export async function requireHost(ctx: QueryCtx, token: string) {
   const { member, room } = await requireMember(ctx, token);
   if (room.hostMemberId !== member._id) throw new ConvexError("Only the host can do that");
   return { member, room };
+}
+
+/** Adds a RoomEvent to the room's log with the next eventSeq. Call it in the mutation that made the change. */
+export async function appendEvent(ctx: MutationCtx, roomId: Id<"rooms">, event: RoomEvent) {
+  const room = (await ctx.db.get(roomId))!;
+  const eventSeq = room.lastEventSeq + 1;
+  await ctx.db.patch(roomId, { lastEventSeq: eventSeq });
+  await ctx.db.insert("events", { roomId, eventSeq, event });
 }
 
 /** True if the room is gone or burned. AI results that land after a burn are dropped. */

@@ -35,20 +35,23 @@ No account yet? `CONVEX_AGENT_MODE=anonymous npx convex dev` runs a local backen
 
 `npm test` runs the backend tests in memory (no server needed, timers run instantly). Run it before merging into `main`.
 
-Phones keep the `token` from `rooms.create` or `rooms.join` and pass it to every call. The server checks it every time.
+Phones keep the `sessionToken` from `rooms.create` or `rooms.join` and pass it to every call. The server checks it every time.
+
+Every change is also written to an append-only `events` table, one `RoomEvent` per row with a per-room `eventSeq`, in the same mutation as the change. The web app subscribes to `events.listAfter` and feeds each event to its reducer (see `web/docs/design.md`, issue 4).
 
 | Function | Who calls it | Does |
 | --- | --- | --- |
-| `rooms.create({ name })` | web | New room with the caller as host. Returns `token`, `inviteToken` |
-| `rooms.join({ inviteToken, name })` | web | Join with a nickname. Late joiners get a recap written |
-| `rooms.get({ token })` | web (subscribe) | Room, me and members. `null` means the room ended |
-| `rooms.burn({ token })` | web, host only | Deletes the conversation, ends the room on every phone |
-| `lines.add({ token, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
-| `lines.list({ token })` | web (subscribe) | Transcript in order |
-| `story.state({ token })` | web (subscribe) | Latest `StoryState`, or `null` |
-| `story.recalls({ token, afterSeq })` | web (subscribe) | Recalls after a seq |
-| `story.myRecap({ token })` | web (subscribe) | The caller's recap, or `null` |
-| `replay.start({ token, script? })` | web, host only | Plays `kevin.replay.json` into the room |
+| `rooms.create({ name })` | web | New room with the caller as host. Returns `{ room, member, sessionToken }` |
+| `rooms.join({ inviteToken, name })` | web | Join with a nickname. Same return. Late joiners get a recap written |
+| `events.listAfter({ roomId, sessionToken, afterEventSeq })` | web (subscribe) | `{ status, events }`. `status: "burned"` with no events once the room ends |
+| `rooms.burn({ roomId, sessionToken })` | web, host only | Deletes the conversation, ends the room on every phone |
+| `lines.add({ sessionToken, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
+| `replay.start({ sessionToken, script? })` | host only | Plays `kevin.replay.json` into the room |
+| `rooms.get`, `lines.list`, `story.state`, `story.recalls`, `story.myRecap` | anyone (subscribe) | The same data as plain state queries, handy from the CLI |
+
+A recap belongs to the member whose `joinedAtSeq` equals its `uptoSeq`.
+
+Testing with the web app: create a room in the browser, then run `npx convex run replay:startLatest` to replay the Kevin script into the newest room.
 
 The AI calls in `convex/ai.ts` are stubs marked `STUB`. Everything around them (scheduling, burn checks, the `uptoSeq` guard) is done. Abandoned rooms burn after 12 hours.
 

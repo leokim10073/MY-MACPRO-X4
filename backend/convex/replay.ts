@@ -9,7 +9,7 @@ import type { Id } from "./_generated/dataModel";
 import type { ReplayScript } from "../../shared/schema";
 import kevin from "../../shared/fixtures/kevin.replay.json";
 import { insertLine } from "./lines";
-import { requireHost } from "./lib";
+import { appendEvent, requireHost, toMember } from "./lib";
 
 const scripts: Record<string, ReplayScript> = { kevin };
 
@@ -18,24 +18,45 @@ const scripts: Record<string, ReplayScript> = { kevin };
  * late joiner is skipped: a real person joins late from their own phone instead.
  */
 export const start = mutation({
-  args: { token: v.string(), script: v.optional(v.string()) },
-  handler: async (ctx, { token, script = "kevin" }) => {
-    const { room } = await requireHost(ctx, token);
-    const replay = scripts[script];
-    if (!replay) throw new ConvexError(`No replay script named "${script}"`);
-
-    let delayMs = 0;
-    for (const line of replay.lines) {
-      delayMs += line.delayMs;
-      await ctx.scheduler.runAfter(delayMs, internal.replay.playLine, {
-        roomId: room._id,
-        speakerName: line.speakerName,
-        text: line.text,
-      });
-    }
-    return { lines: replay.lines.length, durationMs: delayMs };
+  args: { sessionToken: v.string(), script: v.optional(v.string()) },
+  handler: async (ctx, { sessionToken, script = "kevin" }) => {
+    const { room } = await requireHost(ctx, sessionToken);
+    return await scheduleReplay(ctx, room._id, script);
   },
 });
+
+/**
+ * For developers testing with the web app, where the host token lives in the
+ * browser: `npx convex run replay:startLatest` replays into the newest active room.
+ */
+export const startLatest = internalMutation({
+  args: { script: v.optional(v.string()) },
+  handler: async (ctx, { script = "kevin" }) => {
+    const room = await ctx.db
+      .query("rooms")
+      .order("desc")
+      .filter((q) => q.eq(q.field("status"), "active"))
+      .first();
+    if (!room) throw new ConvexError("No active room. Create one in the web app first.");
+    return { roomId: room._id, ...(await scheduleReplay(ctx, room._id, script)) };
+  },
+});
+
+async function scheduleReplay(ctx: MutationCtx, roomId: Id<"rooms">, script: string) {
+  const replay = scripts[script];
+  if (!replay) throw new ConvexError(`No replay script named "${script}"`);
+
+  let delayMs = 0;
+  for (const line of replay.lines) {
+    delayMs += line.delayMs;
+    await ctx.scheduler.runAfter(delayMs, internal.replay.playLine, {
+      roomId,
+      speakerName: line.speakerName,
+      text: line.text,
+    });
+  }
+  return { lines: replay.lines.length, durationMs: delayMs };
+}
 
 export const playLine = internalMutation({
   args: { roomId: v.id("rooms"), speakerName: v.string(), text: v.string() },
@@ -57,5 +78,7 @@ async function replaySpeaker(ctx: MutationCtx, roomId: Id<"rooms">, name: string
   if (existing) return existing;
   const room = (await ctx.db.get(roomId))!;
   const id = await ctx.db.insert("members", { roomId, name, joinedAtSeq: room.lastSeq });
-  return (await ctx.db.get(id))!;
+  const member = (await ctx.db.get(id))!;
+  await appendEvent(ctx, roomId, { type: "member_joined", member: toMember(member) });
+  return member;
 }

@@ -7,9 +7,9 @@ import { requireMember, toRecall, toRecap, toStoryState } from "./lib";
 
 /** Latest people, stories and current topic. Null until the first slow path run. */
 export const state = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const { room } = await requireMember(ctx, token);
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const { room } = await requireMember(ctx, sessionToken);
     const state = await ctx.db
       .query("storyStates")
       .withIndex("by_room", (q) => q.eq("roomId", room._id))
@@ -20,9 +20,9 @@ export const state = query({
 
 /** Recalls from lines after `afterSeq`, oldest first. Pass the last seq the phone has seen. */
 export const recalls = query({
-  args: { token: v.string(), afterSeq: v.number() },
-  handler: async (ctx, { token, afterSeq }) => {
-    const { room } = await requireMember(ctx, token);
+  args: { sessionToken: v.string(), afterSeq: v.number() },
+  handler: async (ctx, { sessionToken, afterSeq }) => {
+    const { room } = await requireMember(ctx, sessionToken);
     const recalls = await ctx.db
       .query("recalls")
       .withIndex("by_room_seq", (q) => q.eq("roomId", room._id).gt("seq", afterSeq))
@@ -33,9 +33,9 @@ export const recalls = query({
 
 /** The caller's own catch-up recap. Null if they weren't late or it isn't written yet. */
 export const myRecap = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const { member } = await requireMember(ctx, token);
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const { member } = await requireMember(ctx, sessionToken);
     const recap = await ctx.db
       .query("recaps")
       .withIndex("by_member", (q) => q.eq("memberId", member._id))

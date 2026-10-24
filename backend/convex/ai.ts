@@ -13,7 +13,7 @@ import type { QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { RECAP_MAX_WORDS } from "../../shared/schema";
 import type { StoryState, TranscriptLine } from "../../shared/schema";
-import { isRoomClosed, toLine, toStoryState } from "./lib";
+import { appendEvent, isRoomClosed, toLine, toRecall, toRecap, toStoryState } from "./lib";
 import { openQuestion, person, story } from "./schema";
 
 const newRecall = v.object({
@@ -95,7 +95,8 @@ export const saveRecalls = internalMutation({
     const line = await ctx.db.get(lineId);
     if (!line || (await isRoomClosed(ctx, line.roomId))) return;
     for (const recall of recalls) {
-      await ctx.db.insert("recalls", { ...recall, roomId: line.roomId, lineId, seq: line.seq });
+      const id = await ctx.db.insert("recalls", { ...recall, roomId: line.roomId, lineId, seq: line.seq });
+      await appendEvent(ctx, line.roomId, { type: "recall", recall: toRecall((await ctx.db.get(id))!) });
     }
   },
 });
@@ -139,8 +140,11 @@ export const saveStoryState = internalMutation({
     if (saved && saved.uptoSeq >= state.uptoSeq) return;
 
     const doc = { ...state, roomId, updatedAt: Date.now() };
-    if (saved) await ctx.db.replace(saved._id, doc);
-    else await ctx.db.insert("storyStates", doc);
+    let id = saved?._id;
+    if (id) await ctx.db.replace(id, doc);
+    else id = await ctx.db.insert("storyStates", doc);
+    const storyState = toStoryState((await ctx.db.get(id))!);
+    await appendEvent(ctx, roomId, { type: "story_state_updated", storyState });
   },
 });
 
@@ -182,7 +186,8 @@ export const saveRecap = internalMutation({
   handler: async (ctx, { memberId, uptoSeq, text }) => {
     const member = await ctx.db.get(memberId);
     if (!member || (await isRoomClosed(ctx, member.roomId))) return;
-    await ctx.db.insert("recaps", { roomId: member.roomId, memberId, uptoSeq, text });
+    const id = await ctx.db.insert("recaps", { roomId: member.roomId, memberId, uptoSeq, text });
+    await appendEvent(ctx, member.roomId, { type: "recap_ready", recap: toRecap((await ctx.db.get(id))!) });
   },
 });
 

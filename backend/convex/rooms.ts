@@ -5,7 +5,14 @@ import { internal } from "./_generated/api";
 import { internalMutation, mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { ROOM_TTL_MS, randomToken, requireHost, toMember, toRoom } from "./lib";
+import {
+  ROOM_TTL_MS,
+  appendEvent,
+  randomToken,
+  requireHost,
+  toMember,
+  toRoom,
+} from "./lib";
 
 function cleanName(name: string) {
   const trimmed = name.trim();
@@ -15,7 +22,27 @@ function cleanName(name: string) {
   return trimmed;
 }
 
-/** Creates a room with the caller as host. The phone keeps `token` and sends it with every call. */
+/** Inserts a member with a fresh sessionToken. joinResult logs member_joined. */
+async function addMember(ctx: MutationCtx, roomId: Id<"rooms">, name: string) {
+  const room = (await ctx.db.get(roomId))!;
+  const sessionToken = randomToken();
+  const memberId = await ctx.db.insert("members", {
+    roomId,
+    name: cleanName(name),
+    joinedAtSeq: room.lastSeq,
+    token: sessionToken,
+  });
+  return { memberId, sessionToken };
+}
+
+async function joinResult(ctx: MutationCtx, memberId: Id<"members">, sessionToken: string) {
+  const member = (await ctx.db.get(memberId))!;
+  const room = (await ctx.db.get(member.roomId))!;
+  await appendEvent(ctx, room._id, { type: "member_joined", member: toMember(member) });
+  return { room: toRoom(room), member: toMember(member), sessionToken };
+}
+
+/** Creates a room with the caller as host. The phone keeps `sessionToken` and sends it with every call. */
 export const create = mutation({
   args: { name: v.string() },
   handler: async (ctx, { name }) => {
@@ -25,17 +52,11 @@ export const create = mutation({
       expiresAt: Date.now() + ROOM_TTL_MS,
       lastSeq: 0,
       slowPathScheduled: false,
+      lastEventSeq: 0,
     });
-    const token = randomToken();
-    const memberId = await ctx.db.insert("members", {
-      roomId,
-      name: cleanName(name),
-      joinedAtSeq: 0,
-      token,
-    });
+    const { memberId, sessionToken } = await addMember(ctx, roomId, name);
     await ctx.db.patch(roomId, { hostMemberId: memberId });
-    const room = (await ctx.db.get(roomId))!;
-    return { token, memberId, roomId, inviteToken: room.inviteToken };
+    return await joinResult(ctx, memberId, sessionToken);
   },
 });
 
@@ -49,27 +70,21 @@ export const join = mutation({
       .unique();
     if (!room || room.status !== "active") throw new ConvexError("This room has ended");
 
-    const token = randomToken();
-    const memberId = await ctx.db.insert("members", {
-      roomId: room._id,
-      name: cleanName(name),
-      joinedAtSeq: room.lastSeq,
-      token,
-    });
+    const { memberId, sessionToken } = await addMember(ctx, room._id, name);
     if (room.lastSeq > 0) {
       await ctx.scheduler.runAfter(0, internal.ai.writeRecap, { memberId });
     }
-    return { token, memberId, roomId: room._id };
+    return await joinResult(ctx, memberId, sessionToken);
   },
 });
 
 /** The room, its members and who "me" is. Returns null once the room is burned, so the page can show the ended screen. */
 export const get = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
     const member = await ctx.db
       .query("members")
-      .withIndex("by_token", (q) => q.eq("token", token))
+      .withIndex("by_token", (q) => q.eq("token", sessionToken))
       .unique();
     if (!member) return null;
     const room = await ctx.db.get(member.roomId);
@@ -85,9 +100,10 @@ export const get = query({
 
 /** Host only. Ends the room for everyone and deletes the conversation. */
 export const burn = mutation({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const { room } = await requireHost(ctx, token);
+  args: { roomId: v.optional(v.id("rooms")), sessionToken: v.string() },
+  handler: async (ctx, { roomId, sessionToken }) => {
+    const { room } = await requireHost(ctx, sessionToken);
+    if (roomId && roomId !== room._id) throw new ConvexError("Not a member of this room");
     await burnRoom(ctx, room._id);
   },
 });
@@ -107,9 +123,11 @@ export const burnExpired = internalMutation({
 });
 
 /**
- * Marks the room burned, deletes transcript, story state, recalls and recaps,
- * and invalidates every member token so nothing can be read or written again.
- * AI results that arrive later are dropped by the isRoomClosed checks in ai.ts.
+ * Marks the room burned, deletes transcript, story state, recalls, recaps and
+ * the event log, and invalidates every member token so nothing can be read or
+ * written again. Phones learn about the burn from events.listAfter returning
+ * status "burned". AI results that arrive later are dropped by the
+ * isRoomClosed checks in ai.ts.
  */
 async function burnRoom(ctx: MutationCtx, roomId: Id<"rooms">) {
   await ctx.db.patch(roomId, { status: "burned" });
@@ -126,12 +144,16 @@ async function burnRoom(ctx: MutationCtx, roomId: Id<"rooms">) {
     .query("storyStates")
     .withIndex("by_room", (q) => q.eq("roomId", roomId))
     .collect();
+  const events = await ctx.db
+    .query("events")
+    .withIndex("by_room_eventSeq", (q) => q.eq("roomId", roomId))
+    .collect();
   const members = await ctx.db
     .query("members")
     .withIndex("by_room", (q) => q.eq("roomId", roomId))
     .collect();
 
-  for (const doc of [...lines, ...recalls, ...states]) await ctx.db.delete(doc._id);
+  for (const doc of [...lines, ...recalls, ...states, ...events]) await ctx.db.delete(doc._id);
   for (const member of members) {
     const recaps = await ctx.db
       .query("recaps")

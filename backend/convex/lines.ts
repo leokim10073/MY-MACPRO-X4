@@ -6,13 +6,13 @@ import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
-import { SLOW_PATH_DELAY_MS, requireMember, toLine } from "./lib";
+import { SLOW_PATH_DELAY_MS, appendEvent, requireMember, toLine } from "./lib";
 
-/** Voice sends each finished phrase here (a NewTranscriptLine, minus roomId and speakerId, which come from the token). */
+/** Voice sends each finished phrase here (a NewTranscriptLine, minus roomId and speakerId, which come from the sessionToken). */
 export const add = mutation({
-  args: { token: v.string(), text: v.string(), at: v.number() },
-  handler: async (ctx, { token, text, at }) => {
-    const { member, room } = await requireMember(ctx, token);
+  args: { sessionToken: v.string(), text: v.string(), at: v.number() },
+  handler: async (ctx, { sessionToken, text, at }) => {
+    const { member, room } = await requireMember(ctx, sessionToken);
     const trimmed = text.trim();
     if (trimmed.length === 0) return null;
     if (trimmed.length > 2000) throw new ConvexError("Line is too long");
@@ -22,9 +22,9 @@ export const add = mutation({
 
 /** The room's transcript in order. */
 export const list = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const { room } = await requireMember(ctx, token);
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const { room } = await requireMember(ctx, sessionToken);
     const lines = await ctx.db
       .query("transcriptLines")
       .withIndex("by_room_seq", (q) => q.eq("roomId", room._id))
@@ -54,6 +54,8 @@ export async function insertLine(
     at,
   });
   await ctx.db.patch(room._id, { lastSeq: seq, slowPathScheduled: true });
+  const line = (await ctx.db.get(lineId))!;
+  await appendEvent(ctx, room._id, { type: "line_added", line: toLine(line) });
 
   await ctx.scheduler.runAfter(0, internal.ai.fastPath, { lineId });
   if (!room.slowPathScheduled) {
