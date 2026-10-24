@@ -4,6 +4,7 @@ import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import Transcript from '../components/Transcript'
+import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
 import { visibleChips } from '../recall/popup'
 import { usePopup } from '../recall/usePopup'
@@ -43,29 +44,32 @@ export default function RoomScreen({ state, self }: Props) {
       </div>
       <div className="room-dock">
         <div className="room-popup-slot">
-          {popup && popupPerson && (
-            <RecallPopup
-              key={popup.expiresAt}
-              person={popupPerson}
-              chips={visibleChips(popup, state.storyState?.stories ?? [])}
-              focusStoryId={popup.focusStoryId}
-              onChip={tapChip}
-              onDismiss={dismiss}
+          {openStory ? (
+            <StoryCard
+              key={openStory.id}
+              story={openStory}
+              people={state.storyState?.people ?? []}
+              self={self}
+              onClose={closeStory}
             />
+          ) : (
+            popup &&
+            popupPerson && (
+              <RecallPopup
+                key={popup.expiresAt}
+                person={popupPerson}
+                chips={visibleChips(popup, state.storyState?.stories ?? [])}
+                focusStoryId={popup.focusStoryId}
+                onChip={tapChip}
+                onDismiss={dismiss}
+              />
+            )
           )}
         </div>
         <div className="room-talk">
           <PushToTalkButton onPressChange={setTalking} />
         </div>
       </div>
-      {openStory && (
-        <div className="story-sheet" role="dialog" aria-label={openStory.keyword}>
-          <p>{openStory.summary}</p>
-          <button type="button" onClick={closeStory}>
-            Close
-          </button>
-        </div>
-      )}
     </main>
   )
 }
