@@ -256,3 +256,4 @@ Phone checks from [stage2-plan.md](stage2-plan.md), in order.
 | Milestone | Date | Result |
 | --- | --- | --- |
 | M1: the call | 2026-10-24 | **Pass.** Two phones with headsets hear each other, the participant list is correct, speaking lights up, Leave works |
+| M2: transcription | 2026-10-24 | **Skipped by the owner, treated as pass.** Not run on phones; the M3 check covers two phones transcribing together |

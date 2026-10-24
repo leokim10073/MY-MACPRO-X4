@@ -96,6 +96,7 @@ let openMic: OpenMic | null = null
 let unsubscribeCall: (() => void) | null = null
 /** What Krisp's debug log said about background voice cancellation. Test page only. */
 let bvc: 'unknown' | 'on' | 'blocked' = 'unknown'
+let krispBufferDrops = 0
 
 function bindModes() {
   for (const radio of document.querySelectorAll<HTMLInputElement>('input[name="mode"]')) {
@@ -141,13 +142,28 @@ $('join-call').addEventListener('click', () => {
         if (!res.ok) throw new Error(`Send failed (${res.status})`)
       },
       keyterms: () => buildKeyterms(members, fixture.storyState.people),
-      createCall: () => new CallSession({ krispDebugLogs: true }),
+      createCall: () =>
+        new CallSession({
+          krispDebugLogs: true,
+          onBufferDrop: () => {
+            krispBufferDrops++
+            renderCall()
+          },
+        }),
     })
     unsubscribeCall = openMic.subscribe(renderCall)
   }
   bvc = 'unknown'
+  krispBufferDrops = 0
   // No await before join: iOS needs audio started inside this tap.
   void openMic.join()
+})
+
+// On change, not input: every new value is a message to Ink.
+$('start-threshold').addEventListener('change', (e) => {
+  const value = Number((e.target as HTMLInputElement).value)
+  $('start-threshold-value').textContent = value.toFixed(2)
+  openMic?.setStartThreshold(value)
 })
 
 $('leave-call').addEventListener('click', () => void openMic?.leave())
@@ -171,6 +187,11 @@ function renderCall() {
   $('call-error').textContent = s.error ?? ''
   $('call-noise').textContent = s.noiseFilter
     ? `Noise filter: ${s.noiseFilter}${s.noiseFilter === 'krisp' ? ` · BVC: ${bvc}` : ''} · Ink connections: ${s.debug.inkConnects}`
+    : ''
+  const d = s.debug
+  $('call-gate').textContent = inCall
+    ? `Gate: ${d.gateDb.toFixed(0)} dB · speech: ${d.speechDb === null ? 'learning' : `${d.speechDb.toFixed(0)} dB`}` +
+      ` · level: ${d.levelDb.toFixed(0)} dB · Krisp buffer drops: ${krispBufferDrops}`
     : ''
   renderPeople(s.participants)
   $('call-failed').replaceChildren(

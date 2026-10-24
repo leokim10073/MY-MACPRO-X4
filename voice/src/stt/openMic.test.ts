@@ -136,8 +136,17 @@ describe('OpenMic', () => {
 
   it('frames reach Ink while in the call', async () => {
     const s = await inCall()
-    s.call.emit(1600, 1000)
-    expect(s.last().audio.length).toBeGreaterThan(0)
+    // The gate holds 200 ms back, so the first chunk comes out after the third.
+    for (let i = 0; i < 3; i++) s.call.emit(1600, 1000)
+    expect(s.last().audio.length).toBe(1600)
+  })
+
+  it('quiet frames reach Ink as zeros', async () => {
+    const s = await inCall()
+    for (let i = 0; i < 3; i++) s.call.emit(1600, 10)
+    const sent = s.last().audio
+    expect(sent.length).toBe(1600)
+    expect(sent.every((v) => v === 0)).toBe(true)
   })
 
   it('join failure leaves nothing running', async () => {

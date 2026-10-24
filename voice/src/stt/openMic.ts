@@ -1,6 +1,8 @@
 import type { Id, NewTranscriptLine, TranscriptLine } from '../../../shared/schema'
 import { CallSession, type CallEvents, type CallLike, type CallParticipant, type NoiseFilterKind } from '../call/callSession'
-import { GATE_START_DB, TURN_START_THRESHOLD } from '../config'
+import { Chunker } from '../audio/chunker'
+import { LoudnessGate } from '../audio/loudnessGate'
+import { STT_CHUNK_MS, STT_SAMPLE_RATE, TURN_START_THRESHOLD } from '../config'
 import type { CallToken } from '../server/livekit'
 import { LineSender, type FailedLine } from './lineSender'
 import { openBrowserSocket, type OpenSocket } from './socket'
@@ -57,7 +59,7 @@ const MAYBE_MISSING = 'The end of that may be missing.'
 /**
  * The live call for one phone (stage 2), the counterpart of PushToTalk:
  *
- *   "Join call" → LiveKit call with Krisp → the same cleaned mic → Ink turn detection → lines
+ *   "Join call" → LiveKit call with Krisp → the same cleaned mic → loudness gate → Ink turn detection → lines
  *
  * Each phone transcribes only its owner, so every line has the right speaker. Mute closes Ink
  * (D16); leave lets the last turn finish; stop (burn) drops everything. Read state with
@@ -75,13 +77,16 @@ export class OpenMic {
     sending: 0,
     failed: [],
     error: null,
-    debug: { gateDb: GATE_START_DB, speechDb: null, levelDb: -120, inkConnects: 0 },
+    debug: { gateDb: 0, speechDb: null, levelDb: -120, inkConnects: 0 },
   }
   private readonly listeners = new Set<() => void>()
   private readonly sender: LineSender
   private readonly openSocket: OpenSocket
   private readonly now: () => number
   private readonly createCall: () => CallLike
+  /** Learns this phone's owner across mutes and reconnects; reset only for a new mic. */
+  private readonly gate = new LoudnessGate()
+  private readonly gateChunker = new Chunker((STT_SAMPLE_RATE * STT_CHUNK_MS) / 1000, (c) => this.gated(c))
 
   private call: CallLike | null = null
   private unsubscribeFrames: (() => void) | null = null
@@ -100,6 +105,7 @@ export class OpenMic {
     this.sender = new LineSender(opts.sendLine, () =>
       this.update({ sending: this.sender.pending, failed: this.sender.failedLines }),
     )
+    this.state = { ...this.state, debug: { ...this.state.debug, gateDb: this.gate.thresholdDb } }
   }
 
   subscribe = (listener: () => void): (() => void) => {
@@ -216,7 +222,10 @@ export class OpenMic {
       if (!this.stopped) this.update({ status: 'left', isListening: false })
       return
     }
-    this.unsubscribeFrames = call.onFrame((frame) => this.session?.push(frame))
+    this.unsubscribeFrames = call.onFrame((frame) => {
+      // Muted: nothing goes to Ink and nothing is learned.
+      if (this.session) this.gateChunker.push(frame)
+    })
     this.update({ noiseFilter: kind })
     this.startTurns()
   }
@@ -233,11 +242,14 @@ export class OpenMic {
       {
         onStart: () => {
           at = this.now()
+          this.gate.turnStarted()
         },
         onUpdate: (text) => {
           if (this.session === session) this.update({ preview: text })
         },
         onEnd: (text, complete) => {
+          this.gate.turnEnded()
+          this.updateDebug()
           if (this.stopped) return
           this.sender.submit({ roomId: this.opts.roomId, speakerId: this.opts.speakerId, text, at: at || this.now() })
           at = 0
@@ -270,7 +282,10 @@ export class OpenMic {
         this.refreshStatus()
       },
       onDropped: (message) => void this.teardown('error', message),
-      onMicRestarted: () => {},
+      onMicRestarted: () => {
+        this.gate.reset()
+        this.updateDebug()
+      },
       onNeedsTap: (needsTap) => this.update({ needsTap }),
     }
   }
@@ -287,6 +302,19 @@ export class OpenMic {
     this.update({ status, isListening: false, preview: '', participants: [], needsTap: false, error })
     await session?.close()
     await call?.leave().catch(() => {})
+  }
+
+  private gated(chunk: Int16Array<ArrayBuffer>): void {
+    const out = this.gate.process(chunk)
+    this.updateDebug()
+    if (out) this.session?.push(out)
+  }
+
+  private updateDebug(): void {
+    const { thresholdDb, speechDb, levelDb } = this.gate
+    const d = this.state.debug
+    if (d.gateDb === thresholdDb && d.speechDb === speechDb && d.levelDb === levelDb) return
+    this.update({ debug: { ...d, gateDb: thresholdDb, speechDb, levelDb } })
   }
 
   private inCall(): boolean {
