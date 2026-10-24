@@ -9,7 +9,7 @@ import type { RoomClient } from '../room/RoomClient'
 import { fixtureEvents } from '../room/testFixtures'
 
 // The clean-slate heading of BurnedScreen.
-const BURNED = 'Room burned.'
+const BURNED = "Tea's gone."
 
 beforeEach(() => {
   vi.useFakeTimers()

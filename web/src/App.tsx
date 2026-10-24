@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { readInviteToken } from './config'
+import WindowLogo from './components/art/WindowLogo'
 import type { RoomClient } from './room/RoomClient'
 import { inviteUrl, type ClientKind } from './room/createRoomClient'
 import { useClosing } from './room/useClosing'
@@ -101,13 +102,19 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
 
   if (!self) {
     // Creating the new room: show nothing from the Join form until it answers (or fails).
-    if (autoCreate !== undefined && !error) return (
+    if (autoCreate !== undefined && !error) {
+      return (
         <main className="burned" aria-busy="true">
+          <div className="burned-top" aria-hidden="true">
+            <WindowLogo size={32} />
+            <span className="burned-brand">Gossip Window</span>
+          </div>
           <p role="status" className="sr-only">
             Creating room…
           </p>
         </main>
       )
+    }
     return (
       <JoinScreen
         inviteToken={readInviteToken(search)}

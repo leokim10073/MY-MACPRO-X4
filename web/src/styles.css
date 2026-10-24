@@ -1406,35 +1406,65 @@ button.primary {
   to { opacity: 0; }
 }
 
-/* Burning Room: clean slate */
+/* Final screen (after the last sip) and the restart transit: cream, brand mark, the empty cup. */
 .burned {
   min-height: 100dvh;
-  max-width: none;
-  margin: 0;
-  padding: 48px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: var(--gw-color-ink);
-  color: var(--gw-color-card);
+  gap: var(--gw-space-6);
+  padding: max(var(--gw-space-3), env(safe-area-inset-top)) var(--gw-gutter-mobile)
+    calc(var(--gw-space-8) + env(safe-area-inset-bottom));
+  background: var(--gw-surface-page);
+  color: var(--gw-text);
+}
+
+.burned-top {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: var(--gw-space-2);
+  max-width: var(--gw-page-max);
+  width: 100%;
+  margin: 0 auto;
+  min-height: 52px;
+}
+
+.burned-brand {
+  font: 700 22px var(--gw-font-display);
+  letter-spacing: 0.01em;
+}
+
+.burned-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: var(--gw-console-width);
+  margin: auto 0;
+  padding: var(--gw-space-6) var(--gw-space-5);
   text-align: center;
+  animation: gw-dialog-rise var(--gw-dur-settle) var(--gw-ease-bounce) both;
 }
 
 .burned h1 {
-  margin: 0 0 8px;
-  font-size: 32px;
+  margin: var(--gw-space-3) 0 var(--gw-space-2);
+  font: 600 32px/1.1 var(--gw-font-display);
+}
+
+.burned h1:focus {
+  outline: none;
 }
 
 .burned-lead {
-  margin: 0 0 16px;
-  font-size: 18px;
+  margin: 0 0 var(--gw-space-2);
+  font-size: 17px;
 }
 
 .burned-note {
   max-width: 320px;
-  margin: 0 0 32px;
-  color: var(--gw-color-ink-muted);
+  margin: 0 0 var(--gw-space-6);
+  color: var(--gw-text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1442,37 +1472,22 @@ button.primary {
 .burned-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--gw-space-3);
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
 }
 
 .burned-primary,
 .burned-secondary {
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
+  width: 100%;
+  min-height: 52px;
+  font-size: 17px;
 }
 
-.burned-primary {
-  border: 0;
-  background: var(--gw-color-coral);
-  color: var(--gw-color-ink);
-  font-weight: 600;
-}
-
-.burned-secondary {
-  border: 1px solid var(--gw-color-ink-muted);
-  background: transparent;
-  color: var(--gw-color-card);
-}
-
-.burned-primary:focus-visible,
-.burned-secondary:focus-visible {
-  outline: 3px solid var(--gw-color-yellow);
-  outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .burned-card {
+    animation: none;
+  }
 }
 
 /* Visually hidden, still read by screen readers. */

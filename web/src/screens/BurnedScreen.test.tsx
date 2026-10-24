@@ -7,18 +7,22 @@ afterEach(cleanup)
 describe('BurnedScreen', () => {
   it('renders the clean-slate copy', () => {
     render(<BurnedScreen onNewRoom={() => {}} onHome={() => {}} />)
-    expect(screen.getByRole('heading', { name: 'Room burned.' })).toBeTruthy()
-    expect(screen.getByText('Conversation deleted.')).toBeTruthy()
-    expect(
-      screen.getByText("Deleted from Gossip Window. Screenshots or recordings people made aren't affected."),
-    ).toBeTruthy()
+    expect(screen.getByRole('heading', { name: "Tea's gone." })).toBeTruthy()
+    expect(screen.getByText('This room, its conversation, and AI catch-ups have been deleted.')).toBeTruthy()
+    expect(screen.getByText("Screenshots or recordings people made aren't affected.")).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Start a new room' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Back home' })).toBeTruthy()
   })
 
+  it('shows the brand mark and the empty cup', () => {
+    const { container } = render(<BurnedScreen />)
+    expect(container.querySelector('.burned-brand')?.textContent).toBe('Gossip Window')
+    expect(container.querySelector('.lsc--empty')).toBeTruthy()
+  })
+
   it('focuses the heading on mount', () => {
     render(<BurnedScreen />)
-    const h1 = screen.getByRole('heading', { name: 'Room burned.' })
+    const h1 = screen.getByRole('heading', { name: "Tea's gone." })
     expect(h1.getAttribute('tabindex')).toBe('-1')
     expect(document.activeElement).toBe(h1)
   })
@@ -36,6 +40,6 @@ describe('BurnedScreen', () => {
   it('renders no buttons without handlers', () => {
     render(<BurnedScreen />)
     expect(screen.queryByRole('button')).toBeNull()
-    expect(screen.getByText('Room burned.')).toBeTruthy()
+    expect(screen.getByText("Tea's gone.")).toBeTruthy()
   })
 })
