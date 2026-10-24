@@ -88,7 +88,7 @@
   --gw-text-muted: var(--gw-color-ink-muted);
   --gw-action-primary: var(--gw-color-violet);
   --gw-action-on-primary: var(--gw-color-on-violet);
-  --gw-accent-last-sip: var(--gw-color-peach); /* the host's Last Sip control and closing strokes */
+  --gw-accent-last-sip: var(--gw-color-peach); /* the host's Last Sip control, its dialog button, the Host tag */
   --gw-accent-presence: var(--gw-color-mint); /* who is speaking */
   --gw-tea-liquid: var(--gw-color-tea); /* the tea in the Last Sip cup */
   --gw-border-sm: 2px solid var(--gw-color-ink); /* smaller components: chips, inputs, small buttons */

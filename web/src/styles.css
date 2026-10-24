@@ -1135,10 +1135,11 @@ button {
 }
 
 /*
- * Last Sip closing over the board. One 2.9 s choreography that starts when the closing layer mounts (the existing
- * closing window: useClosing swaps to the final screen at DONE_MS = 2900 ms). The spec's 3.2 s beats are scaled
- * to fit: wash 0–230 ms · cup rises 230–590 · board gathers into strokes 590–1180 · strokes spiral in and the tea
- * drains 950–1720 · cup tips 1720–2220 · lands with a 6px then 2px settle 2220–2580 · hold 2580–2900.
+ * Last Sip closing over the board: one 2.9 s choreography that starts when the closing layer mounts (the existing
+ * closing window; useClosing swaps to the final screen at DONE_MS = 2900 ms, untouched). Shares of the window:
+ * 0–8% wash, controls settle · 8–30% cards stack away behind the cup, cup rises with a tiny overshoot ·
+ * 30–55% a short "cheers" lift, then the cup tips ~33° and pours a short amber arc · 55–75% it swings back upright,
+ * empty, and a steam curl pops and vanishes · 75–90% it lands on the saucer (6px, then 2px) · 90–100% hold.
  */
 .lsc-closing-layer {
   position: absolute;
@@ -1175,32 +1176,12 @@ button {
   transform-origin: 50% 100%;
 }
 
-.lsc-strokes {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.lsc-stroke {
-  fill: none;
-  stroke-width: 14;
+/* The pour arc is drawn only while the cup is tipped; it never leaves the cup's box. */
+.lsc-pour {
+  opacity: 0;
   stroke-linecap: round;
-  stroke-dasharray: 600;
-}
-
-.lsc-stroke--lavender {
-  stroke: var(--gw-color-lavender);
-}
-
-.lsc-stroke--peach {
-  stroke: var(--gw-accent-last-sip);
-}
-
-.lsc-stroke--ink {
-  stroke: var(--gw-color-ink);
-  stroke-width: 6;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
 }
 
 /* Status, bound to the closing state: "Room ended." and who ended it. */
@@ -1244,22 +1225,20 @@ button {
   animation: lsc-surface 2900ms ease-in both;
 }
 
+.lsc-closing.is-animated .lsc-pour {
+  animation: lsc-pour 2900ms ease-out both;
+}
+
 .lsc-closing.is-animated .lsc-steam {
-  animation: lsc-steam 2900ms linear both;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lsc-steam 2900ms ease-out both;
 }
 
-.lsc-closing.is-animated .lsc-strokes {
-  transform-origin: 50% 44%;
-  animation: lsc-spiral 2900ms ease-in both;
-}
-
-.lsc-closing.is-animated .lsc-stroke {
-  animation: lsc-draw 2900ms ease-out both;
-}
-
-/* The board's own content (stage, transcript, cards) gathers away under the strokes; avatars are not pulled in. */
+/* The board's cards shrink and slide into a neat stack that drops behind the cup; avatars are not pulled in. */
 .room-board.is-closing > :not(.lsc-closing-layer) {
-  animation: lsc-gather 2900ms ease-in both;
+  transform-origin: 50% 44%;
+  animation: lsc-stack 2900ms var(--gw-ease-out) both;
 }
 
 .room-board.is-closing .room-stage {
@@ -1268,56 +1247,57 @@ button {
 
 @keyframes lsc-wash {
   0% { opacity: 0; }
-  8% { opacity: 1; }
-  41% { opacity: 1; }
-  60%, 100% { opacity: 0.4; }
+  8%, 60% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes lsc-stack {
+  0%, 8% { opacity: 1; transform: none; }
+  20% { opacity: 0.7; transform: translateY(4%) scale(0.7); }
+  30%, 100% { opacity: 0; transform: translateY(10%) scale(0.45); }
 }
 
 @keyframes lsc-rise {
   0%, 8% { opacity: 0; transform: translateY(48px); }
-  20% { opacity: 1; transform: translateY(-4px); }
-  24%, 100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes lsc-gather {
-  0%, 20% { opacity: 1; transform: none; }
-  41%, 100% { opacity: 0; transform: scale(0.94); }
-}
-
-@keyframes lsc-draw {
-  0%, 20% { opacity: 0; stroke-dashoffset: 600; }
-  41% { opacity: 1; stroke-dashoffset: 0; }
-  100% { opacity: 1; stroke-dashoffset: 0; }
-}
-
-@keyframes lsc-spiral {
-  0%, 33% { opacity: 1; transform: rotate(0) scale(1); }
-  59% { opacity: 0; transform: rotate(300deg) scale(0.12); }
-  100% { opacity: 0; transform: rotate(300deg) scale(0.12); }
-}
-
-@keyframes lsc-drain {
-  0%, 33% { transform: translateY(0); }
-  59%, 100% { transform: translateY(72px); }
-}
-
-@keyframes lsc-surface {
-  0%, 33% { fill: var(--gw-tea-liquid); }
-  59%, 100% { fill: var(--gw-surface-sunken); }
-}
-
-@keyframes lsc-steam {
-  0%, 59% { opacity: 0.55; }
-  76%, 100% { opacity: 0; }
+  26% { opacity: 1; transform: translateY(-4px); }
+  30%, 100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes lsc-tip {
-  0%, 59% { transform: none; }
-  76% { transform: rotate(-28deg); }
-  82% { transform: rotate(0) translateY(-6px); }
-  85% { transform: translateY(0); }
-  87% { transform: translateY(-2px); }
-  89%, 100% { transform: none; }
+  0%, 30% { transform: none; }
+  34% { transform: translateY(-6px) rotate(-3deg); }
+  38% { transform: translateY(-6px) rotate(3deg); }
+  42% { transform: none; }
+  50%, 55% { transform: rotate(-33deg); }
+  68% { transform: rotate(4deg); }
+  75% { transform: none; }
+  79% { transform: translateY(-6px); }
+  83% { transform: none; }
+  86% { transform: translateY(-2px); }
+  90%, 100% { transform: none; }
+}
+
+@keyframes lsc-pour {
+  0%, 46% { opacity: 0; stroke-dashoffset: 40; }
+  50% { opacity: 1; stroke-dashoffset: 0; }
+  55%, 100% { opacity: 0; stroke-dashoffset: 0; }
+}
+
+@keyframes lsc-drain {
+  0%, 46% { transform: translateY(0); }
+  55%, 100% { transform: translateY(72px); }
+}
+
+@keyframes lsc-surface {
+  0%, 46% { fill: var(--gw-tea-liquid); }
+  55%, 100% { fill: var(--gw-surface-sunken); }
+}
+
+@keyframes lsc-steam {
+  0%, 30% { opacity: 0.55; transform: none; }
+  40%, 60% { opacity: 0; transform: none; }
+  66% { opacity: 0.8; transform: translateY(-4px) scale(1.05); }
+  75%, 100% { opacity: 0; transform: translateY(-10px); }
 }
 
 /* Reduced motion: a ~200 ms crossfade to the empty cup; same status. */

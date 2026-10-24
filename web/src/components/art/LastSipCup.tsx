@@ -10,10 +10,12 @@ interface Props {
   size?: number
   mood?: CupMood
   className?: string
+  /** Draw the short tea arc at the rim (hidden until the closing animation shows it while the cup tips). */
+  pour?: boolean
 }
 
 /** Decorative: the surrounding copy carries the meaning. Drawn in a 160×140 box. */
-export default function LastSipCup({ size = 120, mood = 'waiting', className }: Props) {
+export default function LastSipCup({ size = 120, mood = 'waiting', className, pour = false }: Props) {
   const clip = useId()
   const hasTea = mood !== 'empty'
   return (
@@ -48,6 +50,9 @@ export default function LastSipCup({ size = 120, mood = 'waiting', className }: 
             stroke={INK}
             strokeWidth="4"
           />
+          {pour && (
+            <path className="lsc-pour" d="M30 47 q-12 4 -15 22" fill="none" stroke="var(--gw-tea-liquid)" strokeWidth="7" />
+          )}
           <circle cx="62" cy="80" r="4" fill={INK} />
           <circle cx="90" cy="80" r="4" fill={INK} />
           {mood === 'waiting' && <path className="lsc-brow" d="M83 69 q7 -6 14 -2" fill="none" stroke={INK} strokeWidth="3.5" />}

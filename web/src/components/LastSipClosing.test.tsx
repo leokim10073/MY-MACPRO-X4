@@ -20,18 +20,19 @@ describe('LastSipClosing', () => {
     expect(status.textContent).toBe('Room ended. Taylor ended the room.')
   })
 
-  it('animated: the cup starts full and the strokes are drawn, all decorative', () => {
+  it('animated: a full cup that tips and pours, all decorative, with no strokes', () => {
     const { container } = render(<LastSipClosing active animated endedBy="You ended the room." />)
     const art = container.querySelector('.lsc-closing.is-animated')!
     expect(art.getAttribute('aria-hidden')).toBe('true')
     expect(art.querySelector('.lsc--waiting')).toBeTruthy()
-    expect(art.querySelectorAll('.lsc-stroke').length).toBe(3)
+    expect(art.querySelector('.lsc-cup .lsc-pour')).toBeTruthy()
+    expect(art.querySelector('.lsc-stroke, .lsc-strokes')).toBeNull()
   })
 
-  it('reduced motion: a plain crossfade to the empty cup, no strokes', () => {
+  it('reduced motion: a plain crossfade to the empty cup, no pour', () => {
     const { container } = render(<LastSipClosing active animated={false} endedBy="You ended the room." />)
     expect(container.querySelector('.lsc-closing.is-animated')).toBeNull()
     expect(container.querySelector('.lsc-closing .lsc--empty')).toBeTruthy()
-    expect(container.querySelector('.lsc-stroke')).toBeNull()
+    expect(container.querySelector('.lsc-pour')).toBeNull()
   })
 })

@@ -33,6 +33,13 @@ describe('LastSipCup', () => {
     expect(container.querySelector('.lsc-steam-dots')).toBeNull()
   })
 
+  it('draws the pour arc inside the cup only when asked', () => {
+    const { container, rerender } = render(<LastSipCup />)
+    expect(container.querySelector('.lsc-pour')).toBeNull()
+    rerender(<LastSipCup pour />)
+    expect(container.querySelector('.lsc-cup .lsc-pour')).toBeTruthy()
+  })
+
   it('carries its mood as a class for styling', () => {
     const { container } = render(<LastSipCup mood="failed" className="x" />)
     const svg = container.querySelector('svg')!
