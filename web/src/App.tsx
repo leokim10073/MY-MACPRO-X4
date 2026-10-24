@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function App({ client, kind, search = window.location.search }: Props) {
-  const { state, self, room, error, create, join, burn } = useRoom(client)
+  const { state, self, room, error, connection, create, join, burn } = useRoom(client)
 
   if (!self) {
     return (
@@ -30,5 +30,15 @@ export default function App({ client, kind, search = window.location.search }: P
     kind === 'convex' && room
       ? inviteUrl(window.location.origin, window.location.pathname, kind, room.inviteToken)
       : undefined
-  return <RoomScreen state={state} self={self} room={room!} onBurn={() => void burn()} inviteUrl={invite} />
+  return (
+    <RoomScreen
+      state={state}
+      self={self}
+      room={room!}
+      onBurn={() => void burn()}
+      inviteUrl={invite}
+      connection={connection}
+      onRejoin={() => window.location.reload()}
+    />
+  )
 }

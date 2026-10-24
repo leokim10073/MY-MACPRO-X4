@@ -60,6 +60,22 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     ])
     expect(recapFor(state, self)?.uptoSeq).toBe(2)
 
+    // Check-in 1: the size of the largest listAfter update. Prints only the number, never the payload.
+    let largestBytes = 0
+    const stopMeasuring = raw.onUpdate(
+      api.events.listAfter,
+      { roomId: host.room.id, sessionToken: host.sessionToken, afterEventSeq: 0 },
+      (log) => {
+        largestBytes = Math.max(largestBytes, new TextEncoder().encode(JSON.stringify(log)).length)
+      },
+    )
+    await new Promise<void>((resolve) => {
+      const tick = () => (largestBytes > 0 ? resolve() : setTimeout(tick, 50))
+      tick()
+    })
+    stopMeasuring()
+    console.log(`largest listAfter payload: ${largestBytes} bytes`)
+
     await raw.mutation(api.rooms.burn, { roomId: host.room.id, sessionToken: host.sessionToken })
     await waitFor(events, (es) => es.some((e) => e.type === 'room_burned'))
     expect(events.reduce(roomReducer, initialRoomState)).toEqual({ ...initialRoomState, status: 'burned' })

@@ -1,6 +1,7 @@
 import { getFunctionName } from 'convex/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Room, RoomEvent, TranscriptLine } from '../../../../shared/schema'
+import type { ConnectionStatus } from '../RoomClient'
 import { initialRoomState, roomReducer } from '../state'
 import { ConvexRoomClient } from './ConvexRoomClient'
 
@@ -26,7 +27,13 @@ const line = (seq: number): TranscriptLine => ({
 /** Stands in for ConvexClient: records calls and lets the test push query results. */
 function fakeConvex() {
   const calls: Array<{ name: string; args: unknown }> = []
-  const subscriptions: Array<{ name: string; args: unknown; push: (v: unknown) => void; stopped: boolean }> = []
+  const subscriptions: Array<{
+    name: string
+    args: unknown
+    push: (v: unknown) => void
+    fail: (e: Error) => void
+    stopped: boolean
+  }> = []
   const convex = {
     mutation: vi.fn(async (ref: unknown, args: unknown) => {
       const name = getFunctionName(ref as never)
@@ -34,8 +41,14 @@ function fakeConvex() {
       if (name === 'rooms:create' || name === 'rooms:join') return { room, member: alex, sessionToken: 'secret' }
       return null
     }),
-    onUpdate: vi.fn((ref: unknown, args: unknown, callback: (v: unknown) => void) => {
-      const sub = { name: getFunctionName(ref as never), args, push: callback, stopped: false }
+    onUpdate: vi.fn((ref: unknown, args: unknown, callback: (v: unknown) => void, onError?: (e: Error) => void) => {
+      const sub = {
+        name: getFunctionName(ref as never),
+        args,
+        push: callback,
+        fail: (e: Error) => onError?.(e),
+        stopped: false,
+      }
       subscriptions.push(sub)
       return () => {
         sub.stopped = true
@@ -46,12 +59,42 @@ function fakeConvex() {
   return { convex, calls, subscriptions }
 }
 
-function setup() {
+interface ConnState {
+  isWebSocketConnected: boolean
+  hasEverConnected: boolean
+}
+
+/** `withConnectionState` adds a fake `subscribeToConnectionState` the test drives with `setConnection`. */
+function setup({ withConnectionState = false } = {}) {
   const fake = fakeConvex()
-  const client = new ConvexRoomClient(fake.convex as never)
+  const connection = { listeners: [] as Array<(s: ConnState) => void>, unsubscribed: 0 }
+  const convex = withConnectionState
+    ? {
+        ...fake.convex,
+        subscribeToConnectionState: vi.fn((cb: (s: ConnState) => void) => {
+          connection.listeners.push(cb)
+          return () => {
+            connection.unsubscribed += 1
+            connection.listeners = connection.listeners.filter((l) => l !== cb)
+          }
+        }),
+      }
+    : fake.convex
+  const client = new ConvexRoomClient(convex as never)
   const events: RoomEvent[] = []
   client.subscribe((e) => events.push(e))
-  return { ...fake, client, events }
+  const statuses: ConnectionStatus[] = []
+  const setConnection = (s: ConnState) => [...connection.listeners].forEach((l) => l(s))
+  return { ...fake, client, events, statuses, connection, setConnection }
+}
+
+const lines = (from: number, to: number): Array<[number, RoomEvent]> =>
+  Array.from({ length: to - from + 1 }, (_, i) => [from + i, { type: 'line_added', line: line(from + i) }])
+const afterSeq = (sub: { args: unknown }) => (sub.args as { afterEventSeq: number }).afterEventSeq
+
+function setVisibility(state: 'hidden' | 'visible') {
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  document.dispatchEvent(new Event('visibilitychange'))
 }
 
 const log = (...events: Array<[number, RoomEvent]>) => ({
@@ -136,5 +179,167 @@ describe('ConvexRoomClient', () => {
     client.dispose()
     expect(subscriptions[0].stopped).toBe(true)
     expect(convex.close).toHaveBeenCalled()
+  })
+})
+
+describe('ConvexRoomClient following the log', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it('on a gap, emits the prefix, resubscribes from the last seq and stops the old subscription', async () => {
+    const { client, subscriptions, events } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 2)))
+    subscriptions[0].push(log(...lines(1, 2), ...lines(5, 5)))
+
+    expect(events).toHaveLength(2)
+    expect(subscriptions).toHaveLength(2)
+    expect(subscriptions[0].stopped).toBe(true)
+    expect(subscriptions[1]).toMatchObject({
+      name: 'events:listAfter',
+      args: { roomId: 'room1', sessionToken: 'secret', afterEventSeq: 2 },
+    })
+
+    subscriptions[1].push(log(...lines(3, 5)))
+    expect(events.map((e) => e.type === 'line_added' && e.line.seq)).toEqual([1, 2, 3, 4, 5])
+  })
+
+  it('does not resubscribe again for a gap a fresh subscription from the same seq still shows', async () => {
+    const { client, subscriptions } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 2), ...lines(5, 5)))
+    expect(subscriptions).toHaveLength(2)
+    subscriptions[1].push(log(...lines(5, 5)))
+    expect(subscriptions).toHaveLength(2)
+    expect(subscriptions[1].stopped).toBe(false)
+  })
+
+  it('on a window-sized update, emits everything then resubscribes from the last seq', async () => {
+    const { client, subscriptions, events } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 201)))
+    expect(events).toHaveLength(201)
+    expect(subscriptions[0].stopped).toBe(true)
+    expect(afterSeq(subscriptions[1])).toBe(201)
+  })
+
+  it('ignores a late callback from a replaced subscription', async () => {
+    const { client, subscriptions, events } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 1), ...lines(3, 3)))
+    expect(subscriptions).toHaveLength(2)
+    subscriptions[0].push(log(...lines(1, 3)))
+    subscriptions[0].fail(new Error('stale'))
+    expect(events).toHaveLength(1)
+    expect(subscriptions).toHaveLength(2)
+  })
+
+  it('emits nothing twice when a fresh subscription resends the log from 0', async () => {
+    const { client, subscriptions, events } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 201)))
+    // A server that ignored afterEventSeq would resend everything on the new subscription.
+    subscriptions[1].push(log(...lines(1, 202)))
+    expect(events.map((e) => e.type === 'line_added' && e.line.seq)).toEqual(
+      Array.from({ length: 202 }, (_, i) => i + 1),
+    )
+  })
+
+  it('resubscribes from the last seq when the page comes back after more than 30 s hidden', async () => {
+    vi.useFakeTimers()
+    const { client, subscriptions } = setup()
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 3)))
+
+    setVisibility('hidden')
+    vi.advanceTimersByTime(10_000)
+    setVisibility('visible')
+    expect(subscriptions).toHaveLength(1)
+
+    setVisibility('hidden')
+    vi.advanceTimersByTime(31_000)
+    setVisibility('visible')
+    expect(subscriptions).toHaveLength(2)
+    expect(subscriptions[0].stopped).toBe(true)
+    expect(afterSeq(subscriptions[1])).toBe(3)
+
+    client.dispose()
+    setVisibility('hidden')
+    vi.advanceTimersByTime(31_000)
+    setVisibility('visible')
+    expect(subscriptions).toHaveLength(2)
+  })
+
+  it('a subscription error gives lost and stops the subscription, without logging the error', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { client, subscriptions, statuses } = setup()
+    client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    subscriptions[0].fail(new Error('Not a member of this room'))
+    expect(statuses).toEqual(['connecting', 'lost'])
+    expect(subscriptions[0].stopped).toBe(true)
+    expect(consoleError).not.toHaveBeenCalled()
+  })
+})
+
+describe('ConvexRoomClient connection status', () => {
+  it('without the connection API, is connecting until the first log, then online', async () => {
+    const { client, subscriptions, statuses } = setup()
+    const unsubscribe = client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    subscriptions[0].push(log(...lines(1, 1)))
+    subscriptions[0].push(log(...lines(1, 2)))
+    expect(statuses).toEqual(['connecting', 'online'])
+    unsubscribe()
+  })
+
+  it('maps the Convex connection state: connecting, online, reconnecting, online', () => {
+    const { client, statuses, setConnection } = setup({ withConnectionState: true })
+    client.onConnectionChange((s) => statuses.push(s))
+    setConnection({ hasEverConnected: false, isWebSocketConnected: false })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: false })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    expect(statuses).toEqual(['connecting', 'online', 'reconnecting', 'online'])
+  })
+
+  it('a new listener hears the current status at once, and stops hearing after unsubscribing', () => {
+    const { client, setConnection } = setup({ withConnectionState: true })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    const heard: ConnectionStatus[] = []
+    const unsubscribe = client.onConnectionChange((s) => heard.push(s))
+    unsubscribe()
+    setConnection({ hasEverConnected: true, isWebSocketConnected: false })
+    expect(heard).toEqual(['online'])
+  })
+
+  it('lost is sticky', async () => {
+    const { client, subscriptions, statuses, setConnection } = setup({ withConnectionState: true })
+    client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    subscriptions[0].fail(new Error('Not a member of this room'))
+    setConnection({ hasEverConnected: true, isWebSocketConnected: false })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    expect(statuses).toEqual(['connecting', 'online', 'lost'])
+  })
+
+  it('emits nothing more after a burn', async () => {
+    const { client, subscriptions, statuses, setConnection } = setup({ withConnectionState: true })
+    client.onConnectionChange((s) => statuses.push(s))
+    await client.createRoom('Alex')
+    setConnection({ hasEverConnected: true, isWebSocketConnected: true })
+    subscriptions[0].push({ status: 'burned', events: [] })
+    setConnection({ hasEverConnected: true, isWebSocketConnected: false })
+    expect(statuses).toEqual(['connecting', 'online'])
+  })
+
+  it('dispose unsubscribes from the connection state', () => {
+    const { client, connection } = setup({ withConnectionState: true })
+    client.dispose()
+    expect(connection.unsubscribed).toBe(1)
   })
 })
