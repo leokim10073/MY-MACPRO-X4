@@ -233,3 +233,91 @@ button.primary {
     animation: none;
   }
 }
+
+/* Recall pop-up: sits in its own slot above push-to-talk, never over it */
+.room-popup-slot:empty {
+  display: none;
+}
+
+.recall-popup {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(127, 127, 127, 0.22);
+  animation-name: recall-fade;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.recall-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recall-dismiss {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: inherit;
+}
+
+.recall-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recall-chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+}
+
+.recall-chip[aria-current='true'] {
+  background: #1c7ed6;
+  border-color: #1c7ed6;
+  color: #fff;
+  font-weight: 700;
+}
+
+@keyframes recall-fade {
+  0%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recall-popup {
+    animation: none;
+  }
+}
+
+.story-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 60dvh;
+  overflow-y: auto;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.story-sheet button {
+  min-height: 44px;
+  padding: 0 16px;
+}
