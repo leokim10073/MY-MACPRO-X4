@@ -33,6 +33,20 @@ Replaying [../shared/fixtures/kevin.replay.json](../shared/fixtures/kevin.replay
 - `r3`: "show up at the wrong restaurant" → Kevin, focused on **Airport**
 - Line 3's "Kevin from work" is **not** merged into Roommate Kevin.
 
+## Running it
+
+```bash
+cd ai && npm install
+cp .env.example .env   # then paste your ANTHROPIC_API_KEY; .env is git-ignored
+npm test               # validation/assembly tests, no API key needed
+npm run eval           # replay kevin and compare with kevin.expected.json
+npm run eval -- kevin --isolate   # recalls against the expected StoryState (tests Haiku alone)
+```
+
+Recall confidence isn't the model's own number. The model answers plain questions for each recall (how the person is referred to, whether only one known person fits, whether the line just continues the current story), and `scoreRecall` in [src/detectRecalls.ts](src/detectRecalls.ts) turns them into a confidence with fixed rules: name or alias 0.95, story reference 0.9, pronoun 0.8, more than one person could fit 0.5 (below the pop-up threshold). Lines that continue the current story, and lines about people who are in the room, are not recalls.
+
+Backend calls `detectRecalls`, `buildStoryState` and `writeRecap` from [index.ts](index.ts) inside a Convex action, with the key set by `npx convex env set ANTHROPIC_API_KEY ...`. Models: `claude-haiku-5-5` (fast path) and `claude-sonnet-5-5` (slow path, recap); override with `AI_FAST_MODEL` / `AI_SLOW_MODEL`.
+
 ## Notes
 
 - Keep API keys on the server.

@@ -16,6 +16,7 @@ import type * as lines from "../lines.js";
 import type * as replay from "../replay.js";
 import type * as rooms from "../rooms.js";
 import type * as story from "../story.js";
+import type * as voice from "../voice.js";
 
 import type {
   ApiFromModules,
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   replay: typeof replay;
   rooms: typeof rooms;
   story: typeof story;
+  voice: typeof voice;
 }>;
 
 /**

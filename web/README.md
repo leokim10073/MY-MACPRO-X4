@@ -37,6 +37,8 @@ The mock is the default. Add `?client=convex` to use the backend in `backend/`. 
 
 Extras for Convex: `?type=1` shows a "Type a line" box; `?replay=1` shows a host-only "Start Kevin replay" button.
 
+Push-to-talk and the narrated recap work only against the backend (it needs `CARTESIA_API_KEY`, see `backend/README.md`); on the mock the talk button just animates. The mic needs HTTPS, which the dev server already uses.
+
 `?client=mock`, the legacy `?mock`, an unknown value or no param all give the mock. `?client=convex&mock` is still Convex. Tests build their client explicitly (the mock). `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.
 
 For the stage setup, bookmarks, rollback to the mock and the pre-flight checklist, see [docs/demo-runbook.md](docs/demo-runbook.md).

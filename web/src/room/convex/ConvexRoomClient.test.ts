@@ -99,6 +99,18 @@ describe('ConvexRoomClient', () => {
     expect(states[3]).toEqual({ ...initialRoomState, status: 'burned' })
   })
 
+  it('voice adds lines and fetches speech-to-text tokens with the session', async () => {
+    const { client, calls } = setup()
+    await expect(client.voice.addLine('hi', 1)).rejects.toThrow('not in a room')
+    await client.createRoom('Alex')
+    await client.voice.addLine('Kevin ate my cake', 42)
+    expect(await client.voice.sttToken()).toEqual({ token: 'stt', expiresAt: 99 })
+    expect(calls.slice(-2)).toEqual([
+      { name: 'lines:add', args: { sessionToken: 'secret', text: 'Kevin ate my cake', at: 42 } },
+      { name: 'voice:sttToken', args: { sessionToken: 'secret' } },
+    ])
+  })
+
   it('dispose stops the subscription and closes the connection', async () => {
     const { client, convex, subscriptions } = setup()
     await client.createRoom('Alex')

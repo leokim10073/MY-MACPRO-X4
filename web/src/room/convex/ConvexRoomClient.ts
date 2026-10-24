@@ -4,12 +4,12 @@
 // dedupe, ordering, gap and window checks; this class owns the subscription.
 import { ConvexClient } from 'convex/browser'
 import type { RoomEvent } from '../../../../shared/schema'
-import type { ConnectionStatus, JoinResult, RoomClient } from '../RoomClient'
+import type { ConnectionStatus, JoinResult, RoomClient, VoiceTransport } from '../RoomClient'
 import { backendApi as api } from './backendApi'
 import { callBackend } from './callBackend'
 import { follow, type FollowerState } from './logFollower'
 
-type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'close'> &
+type Convex = Pick<ConvexClient, 'onUpdate' | 'mutation' | 'action' | 'close'> &
   Partial<Pick<ConvexClient, 'subscribeToConnectionState'>>
 interface Joined extends Omit<JoinResult, 'self'> {
   member: JoinResult['self']
@@ -70,6 +70,19 @@ export class ConvexRoomClient implements RoomClient {
     return this.start(await callBackend(() => this.convex.mutation(api.rooms.join, { inviteToken, name })))
   }
 
+  /** Push-to-talk's way in. Lines go through addLine, so voice gets the same timeout and burn guard as typed lines. */
+  readonly voice: VoiceTransport = {
+    // Rejects before a join so push-to-talk's retries surface the mistake; after a burn addLine is a no-op.
+    addLine: async (text, at) => {
+      this.requireSession()
+      await this.addLine(text, at)
+    },
+    sttToken: () => {
+      const { sessionToken } = this.requireSession()
+      return callBackend(() => this.convex.action(api.voice.sttToken, { sessionToken }))
+    },
+  }
+
   /** The event log reports the burn back, which ends the room on this phone and every other one. */
   async burn(): Promise<void> {
     const session = this.session
@@ -110,6 +123,11 @@ export class ConvexRoomClient implements RoomClient {
       this.listeningForVisibility = true
     }
     return { room: joined.room, self: joined.member }
+  }
+
+  private requireSession() {
+    if (!this.session) throw new Error('ConvexRoomClient: not in a room')
+    return this.session
   }
 
   private subscribeFrom(afterEventSeq: number): void {

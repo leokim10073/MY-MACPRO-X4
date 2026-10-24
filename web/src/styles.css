@@ -198,6 +198,33 @@ button.primary {
 
 .room-talk {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.talk-preview,
+.talk-error {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.talk-preview {
+  opacity: 0.7;
+}
+
+.talk-error {
+  color: #e03131;
+}
+
+.talk-retry {
+  font-size: 14px;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e03131;
+  background: transparent;
+  color: inherit;
 }
 
 .ptt {
@@ -250,6 +277,15 @@ button.primary {
 .recap-text {
   margin: 0 0 4px;
   font-size: 16px;
+}
+
+.recap-audio {
+  width: 100%;
+  margin: 0 0 8px;
+}
+
+.listening-live {
+  font-weight: 600;
 }
 
 .recap-loading {

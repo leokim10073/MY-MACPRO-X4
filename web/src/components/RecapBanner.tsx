@@ -19,7 +19,6 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
     )
   }
 
-  // Audio playback (recap.audioUrl) comes in Phase 2.
   return (
     <section className="recap-banner" aria-label="Catch-up">
       <div className="recap-head">
@@ -29,7 +28,13 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
         </button>
       </div>
       {recap ? (
-        <p className="recap-text">{recap.text}</p>
+        <>
+          {recap.audioUrl && (
+            // Phones may block autoplay; the controls let the latecomer start it with a tap.
+            <audio className="recap-audio" src={recap.audioUrl} controls autoPlay preload="auto" />
+          )}
+          <p className="recap-text">{recap.text}</p>
+        </>
       ) : (
         <p className="recap-text recap-loading" aria-live="polite">Catching you up…</p>
       )}

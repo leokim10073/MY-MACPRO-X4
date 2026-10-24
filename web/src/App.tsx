@@ -48,6 +48,7 @@ export default function App({ client, kind, search = window.location.search }: P
       onAddLine={addLine}
       showReplay={params.get('replay') === '1' && !!startReplay}
       onStartReplay={startReplay}
+      voice={client.voice}
     />
   )
 }

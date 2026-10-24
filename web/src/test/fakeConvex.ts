@@ -45,6 +45,10 @@ export function fakeConvex(joinAs: { room: Room; member: Member } = { room, memb
         sub.stopped = true
       }
     }),
+    action: vi.fn(async (ref: unknown, args: unknown) => {
+      calls.push({ name: getFunctionName(ref as never), args })
+      return { token: 'stt', expiresAt: 99 }
+    }),
     close: vi.fn(async () => {}),
   }
   return { convex, calls, subscriptions }

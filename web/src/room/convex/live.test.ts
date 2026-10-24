@@ -81,6 +81,24 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     expect(events.reduce(roomReducer, initialRoomState)).toEqual({ ...initialRoomState, status: 'burned' })
   })
 
+  it('push-to-talk lines and speech-to-text tokens go through the backend', async () => {
+    const phone = new ConvexRoomClient(url!)
+    closers.push(() => phone.dispose())
+    const events: RoomEvent[] = []
+    phone.subscribe((e) => events.push(e))
+    await phone.createRoom('Alex')
+
+    await phone.voice.addLine('Said into the mic', Date.now())
+    await waitFor(events, (es) => es.some((e) => e.type === 'line_added'))
+    const line = events.find((e) => e.type === 'line_added')
+    expect(line?.type === 'line_added' && line.line.text).toBe('Said into the mic')
+
+    const token = await phone.voice.sttToken()
+    expect(token.token.length).toBeGreaterThan(20)
+    expect(token.expiresAt).toBeGreaterThan(Date.now())
+    await phone.burn()
+  })
+
   it('a host phone sees its own room and can burn it', async () => {
     const phone = new ConvexRoomClient(url!)
     closers.push(() => phone.dispose())

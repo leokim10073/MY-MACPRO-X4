@@ -37,4 +37,9 @@ export const backendApi = {
       { lines: number; durationMs: number }
     >('replay:start'),
   },
+  voice: {
+    sttToken: makeFunctionReference<'action', { sessionToken: string }, { token: string; expiresAt: number }>(
+      'voice:sttToken',
+    ),
+  },
 }
