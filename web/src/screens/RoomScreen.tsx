@@ -190,7 +190,7 @@ export default function RoomScreen({
         </header>
         <ConnectionBanner status={connection} onRejoin={onRejoin} />
         {error && (
-          <p role="alert" className="error">
+          <p role="alert" className="error gw-alert">
             Couldn't end the room. Please try again.
           </p>
         )}

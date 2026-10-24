@@ -15,7 +15,7 @@ export function TeacupShape() {
         <path d="M92 52 q20 2 16 18 q-4 14 -22 10" fill="none" stroke="var(--gw-color-card)" strokeWidth="2.5" />
         {/* cup */}
         <path d="M22 40 h76 q-2 44 -38 50 q-36 -6 -38 -50 z" fill="var(--gw-color-card)" stroke={INK} strokeWidth="4" />
-        <path d="M30 70 q30 22 60 0 q-6 18 -30 20 q-24 -2 -30 -20z" fill="rgba(41,36,61,0.1)" />
+        <path d="M30 70 q30 22 60 0 q-6 18 -30 20 q-24 -2 -30 -20z" fill="color-mix(in srgb, var(--gw-color-ink) 10%, transparent)" />
         {/* tea surface */}
         <ellipse cx="60" cy="40" rx="38" ry="8" fill="var(--gw-color-tea)" stroke={INK} strokeWidth="4" />
         {/* stripe */}

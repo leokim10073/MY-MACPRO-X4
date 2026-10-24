@@ -28,53 +28,10 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-.app {
-  min-height: 100dvh;
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
 button {
   min-height: 44px;
   min-width: 44px;
   font: inherit;
-}
-
-.join {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.join form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.join input {
-  min-height: 44px;
-  padding: 8px 12px;
-  font: inherit;
-  font-size: 16px;
-}
-
-.join .notice {
-  margin: 0;
-  font-size: 16px;
-}
-
-.join .error {
-  margin: 0;
-  color: #c0392b;
-}
-
-button.primary {
-  width: 100%;
-  min-height: 48px;
-  font-size: 16px;
 }
 
 /* Room screen: Tea Party, every value from theme/tokens.css. */
@@ -173,17 +130,10 @@ button.primary {
   font-weight: 600;
 }
 
-/* Errors in the room (failed end, failed typed line) */
-.room .error {
+/* Errors in the room (failed end): the shared gw-alert look, placed under the header. */
+.room > .error {
   flex: none;
   margin: 0 var(--gw-space-4) var(--gw-space-2);
-  padding: var(--gw-space-3);
-  border: 2px solid var(--gw-color-danger-ink);
-  border-radius: var(--gw-radius-sm);
-  background: var(--gw-color-danger-tint);
-  color: var(--gw-color-danger-ink);
-  font-weight: 600;
-  font-size: 15px;
 }
 
 /* Dev-only replay control */
@@ -866,14 +816,6 @@ button.primary {
 
 .type-line .error {
   flex-basis: 100%;
-  margin: 0;
-  padding: var(--gw-space-2) var(--gw-space-3);
-  border: 2px solid var(--gw-color-danger-ink);
-  border-radius: var(--gw-radius-sm);
-  background: var(--gw-color-danger-tint);
-  color: var(--gw-color-danger-ink);
-  font-weight: 600;
-  font-size: 14px;
 }
 
 /* Leave confirmation: an outlined Tea Party panel with the same button language. */
@@ -967,31 +909,6 @@ button.primary {
   display: block;
   font-family: var(--gw-font-display);
   font-weight: 600;
-}
-
-@keyframes shhh-finger-drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2.5px); }
-}
-
-@keyframes shhh-ring-contract {
-  0%, 100% { r: 30px; }
-  50% { r: 27px; }
-}
-
-.shhh-icon-animated .shhh-finger {
-  animation: shhh-finger-drift 2.6s ease-in-out infinite;
-}
-
-.shhh-icon-animated .shhh-ring {
-  animation: shhh-ring-contract 2.6s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .shhh-icon-animated .shhh-finger,
-  .shhh-icon-animated .shhh-ring {
-    animation: none;
-  }
 }
 
 /* The host's Last Sip control: peach, outlined, a small hard shadow; subordinate to the speaking control. */

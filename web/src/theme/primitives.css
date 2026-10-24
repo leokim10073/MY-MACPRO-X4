@@ -3,10 +3,13 @@
  * Every value comes from theme/tokens.css. Join keeps its own gw-* classes; later stages use these.
  */
 
-/* One focus treatment for the whole flow (Join's own rule draws the same ring). */
+/*
+ * One focus treatment for the whole flow (Join's own rule draws the same ring). !important because many controls
+ * carry a hard ink box-shadow in more specific rules; while focused the ring replaces it, exactly as on Join.
+ */
 :focus-visible {
   outline: none;
-  box-shadow: var(--gw-focus-ring);
+  box-shadow: var(--gw-focus-ring) !important;
 }
 
 /* Buttons: lift → physical press into the shadow → settle. */
@@ -43,10 +46,6 @@
 .gw-btn--primary {
   background: var(--gw-action-primary);
   color: var(--gw-action-on-primary);
-}
-
-.gw-btn--secondary {
-  background: var(--gw-surface-secondary);
 }
 
 .gw-btn--peach {

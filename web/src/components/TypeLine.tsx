@@ -28,7 +28,7 @@ export default function TypeLine({ onAddLine }: Props) {
       <input id="type-line" type="text" autoComplete="off" value={text} onChange={(e) => setText(e.target.value)} />
       <button type="submit">Send</button>
       {failed && (
-        <p role="alert" className="error">
+        <p role="alert" className="error gw-alert">
           Couldn't send.
         </p>
       )}
