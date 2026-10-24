@@ -27,8 +27,8 @@ function Face({ expression }: { expression: Expression }) {
     case 'surprise':
       return (
         <g>
-          <circle cx="39" cy="50" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
-          <circle cx="61" cy="50" r="6" fill="#fff" stroke={INK} strokeWidth="3" />
+          <circle cx="39" cy="50" r="6" fill="var(--gw-color-white)" stroke={INK} strokeWidth="3" />
+          <circle cx="61" cy="50" r="6" fill="var(--gw-color-white)" stroke={INK} strokeWidth="3" />
           <circle cx="40" cy="51" r="2.6" fill={INK} />
           <circle cx="62" cy="51" r="2.6" fill={INK} />
           <path d="M33 40 q5 -4 10 -2 M57 38 q5 -2 10 2" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
@@ -76,7 +76,7 @@ function Accessory({ accessory, color }: { accessory: Accessory; color: string }
       )
     case 'glasses':
       return (
-        <g fill="rgba(255,255,255,0.35)" stroke={INK} strokeWidth="3">
+        <g fill="color-mix(in srgb, var(--gw-color-white) 35%, transparent)" stroke={INK} strokeWidth="3">
           <circle cx="39" cy="50" r="9" />
           <circle cx="61" cy="50" r="9" />
           <path d="M48 50 h4" />
@@ -139,8 +139,8 @@ export default function Avatar({ look, size = 48, className }: Props) {
         </defs>
         <circle cx="50" cy="56" r="36" fill={look.color} />
         <g clipPath={`url(#${clip})`}>
-          <ellipse cx="62" cy="88" rx="44" ry="24" fill="rgba(41,36,61,0.14)" />
-          <ellipse cx="36" cy="34" rx="12" ry="7" fill="rgba(255,255,255,0.55)" transform="rotate(-25 36 34)" />
+          <ellipse cx="62" cy="88" rx="44" ry="24" fill="color-mix(in srgb, var(--gw-color-ink) 14%, transparent)" />
+          <ellipse cx="36" cy="34" rx="12" ry="7" fill="color-mix(in srgb, var(--gw-color-white) 55%, transparent)" transform="rotate(-25 36 34)" />
         </g>
         <circle cx="50" cy="56" r="36" fill="none" stroke={INK} strokeWidth="4" />
         <ellipse cx="29" cy="62" rx="5.5" ry="3.5" fill="var(--gw-color-pink)" opacity="0.85" />

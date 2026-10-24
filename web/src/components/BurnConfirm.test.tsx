@@ -16,19 +16,26 @@ describe('BurnConfirm', () => {
     setup()
     const dialog = screen.getByRole('dialog')
     expect(dialog.getAttribute('aria-modal')).toBe('true')
-    const title = screen.getByText('Burn this room for everyone?')
+    const title = screen.getByText('Ready for the last sip?')
     expect(dialog.getAttribute('aria-labelledby')).toBe(title.id)
     expect(
       screen.getByText(
-        'This ends the conversation for everyone and deletes its transcript, stories and catch-ups. People may still remember what was said.',
+        "End this room for everyone and permanently delete its conversation, transcript, and AI catch-ups. This can't be undone.",
       ),
     ).toBeTruthy()
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep talking' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep chatting' }))
+  })
+
+  it('shows the full waiting cup, and the three-dot steam while ending', () => {
+    const { rerender, container } = render(<BurnConfirm pending={false} onBurn={() => {}} onKeep={() => {}} />)
+    expect(container.querySelector('.lsc--waiting')).toBeTruthy()
+    rerender(<BurnConfirm pending={true} onBurn={() => {}} onKeep={() => {}} />)
+    expect(container.querySelector('.lsc--pending')).toBeTruthy()
   })
 
   it('Keep talking, Escape and a scrim click each call onKeep once', () => {
     const a = setup()
-    fireEvent.click(screen.getByRole('button', { name: 'Keep talking' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Keep chatting' }))
     expect(a.onKeep).toHaveBeenCalledTimes(1)
     cleanup()
     const b = setup()
@@ -50,9 +57,9 @@ describe('BurnConfirm', () => {
     const onBurn = vi.fn()
     const onKeep = vi.fn()
     const { rerender } = render(<BurnConfirm pending={false} onBurn={onBurn} onKeep={onKeep} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     rerender(<BurnConfirm pending={true} onBurn={onBurn} onKeep={onKeep} />)
-    const burning = screen.getByRole('button', { name: 'Burning…' }) as HTMLButtonElement
+    const burning = screen.getByRole('button', { name: 'Ending room…' }) as HTMLButtonElement
     expect(burning.disabled).toBe(true)
     fireEvent.click(burning)
     expect(onBurn).toHaveBeenCalledTimes(1)
@@ -60,7 +67,7 @@ describe('BurnConfirm', () => {
 
   it('latches: two clicks on the enabled button with no rerender call onBurn once', () => {
     const { onBurn } = setup()
-    const button = screen.getByRole('button', { name: 'Burn room' })
+    const button = screen.getByRole('button', { name: 'End & delete room' })
     fireEvent.click(button)
     fireEvent.click(button)
     expect(onBurn).toHaveBeenCalledTimes(1)
@@ -70,17 +77,17 @@ describe('BurnConfirm', () => {
     const onBurn = vi.fn()
     const onKeep = vi.fn()
     const { rerender } = render(<BurnConfirm pending={false} onBurn={onBurn} onKeep={onKeep} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     rerender(<BurnConfirm pending={true} onBurn={onBurn} onKeep={onKeep} />)
     rerender(<BurnConfirm pending={false} onBurn={onBurn} onKeep={onKeep} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+    fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     expect(onBurn).toHaveBeenCalledTimes(2)
   })
 
   it('keeps Tab and Shift+Tab inside the sheet', () => {
     setup()
-    const keep = screen.getByRole('button', { name: 'Keep talking' })
-    const burn = screen.getByRole('button', { name: 'Burn room' })
+    const keep = screen.getByRole('button', { name: 'Keep chatting' })
+    const burn = screen.getByRole('button', { name: 'End & delete room' })
     expect(document.activeElement).toBe(keep)
     fireEvent.keyDown(keep, { key: 'Tab', shiftKey: true })
     expect(document.activeElement).toBe(burn)

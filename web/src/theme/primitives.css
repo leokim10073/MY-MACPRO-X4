@@ -1,0 +1,181 @@
+/*
+ * Shared Tea Party primitives: buttons, focus, dialog, panel, chip, alert.
+ * Every value comes from theme/tokens.css. Join keeps its own gw-* classes; later stages use these.
+ */
+
+/*
+ * One focus treatment for the whole flow (Join's own rule draws the same ring). !important because many controls
+ * carry a hard ink box-shadow in more specific rules; while focused the ring replaces it, exactly as on Join.
+ */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--gw-focus-ring) !important;
+}
+
+/* Buttons: lift → physical press into the shadow → settle. */
+.gw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gw-space-2);
+  min-height: 48px;
+  padding: 0 var(--gw-space-5);
+  border: var(--gw-border);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  box-shadow: var(--gw-shadow-button);
+  font: 700 16px var(--gw-font-body);
+  cursor: pointer;
+  transition:
+    transform var(--gw-dur-press) ease-out,
+    box-shadow var(--gw-dur-press) ease-out;
+}
+
+.gw-btn:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+}
+
+.gw-btn:disabled {
+  background: var(--gw-color-disabled);
+  color: var(--gw-color-on-disabled);
+  cursor: not-allowed;
+}
+
+.gw-btn--primary {
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+}
+
+.gw-btn--peach {
+  background: var(--gw-accent-last-sip);
+}
+
+/* Quiet: outlined, no raised shadow (secondary actions in dialogs and headers). */
+.gw-btn--quiet {
+  border: var(--gw-border-sm);
+  background: var(--gw-surface-raised);
+  box-shadow: none;
+}
+
+.gw-btn--quiet:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Dialogs: a bottom sheet on phones, a centered card on wider screens. */
+.gw-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--gw-scrim);
+}
+
+.gw-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-3);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--gw-space-6) var(--gw-space-5) calc(var(--gw-space-6) + env(safe-area-inset-bottom));
+  border: var(--gw-border);
+  border-bottom: 0;
+  border-radius: var(--gw-radius-lg) var(--gw-radius-lg) 0 0;
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  animation: gw-dialog-rise var(--gw-dur-pop) var(--gw-ease-out) both;
+}
+
+.gw-dialog h2 {
+  margin: 0;
+  font: 600 22px/1.2 var(--gw-font-display);
+}
+
+.gw-dialog p {
+  margin: 0;
+  color: var(--gw-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.gw-dialog-actions {
+  display: flex;
+  gap: var(--gw-space-3);
+  margin-top: var(--gw-space-2);
+}
+
+.gw-dialog-actions > * {
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .gw-scrim {
+    justify-content: center;
+    padding: var(--gw-space-6);
+  }
+
+  .gw-dialog {
+    max-width: 440px;
+    border-bottom: var(--gw-border);
+    border-radius: var(--gw-radius-lg);
+    box-shadow: var(--gw-shadow-card);
+    padding-bottom: var(--gw-space-6);
+  }
+}
+
+@keyframes gw-dialog-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* A raised outlined card for important context. */
+.gw-panel {
+  border: var(--gw-border);
+  border-radius: var(--gw-radius-lg);
+  background: var(--gw-surface-raised);
+  box-shadow: var(--gw-shadow-card);
+}
+
+/* A flat informational chip. */
+.gw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gw-space-1);
+  min-height: 32px;
+  padding: 0 var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: 600 13px var(--gw-font-body);
+}
+
+/* Errors and failures. */
+.gw-alert {
+  margin: 0;
+  padding: var(--gw-space-3);
+  border: 2px solid var(--gw-color-danger-ink);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-color-danger-tint);
+  color: var(--gw-color-danger-ink);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gw-btn,
+  .gw-dialog {
+    transition: none;
+    animation: none;
+  }
+
+  .gw-btn:active:not(:disabled) {
+    transform: none;
+  }
+}

@@ -14,7 +14,7 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
   if (collapsed) {
     return (
       <button type="button" className="recap-toggle" onClick={onExpand}>
-        Catch-up (tap to show)
+        Catch me up
       </button>
     )
   }
@@ -22,8 +22,11 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
   return (
     <section className="recap-banner" aria-label="Catch-up">
       <div className="recap-head">
-        <h2>While you were away</h2>
-        <button type="button" className="recap-dismiss" onClick={onDismiss}>
+        <div>
+          <h2>Just joined?</h2>
+          <p className="recap-sub">Get the story so far.</p>
+        </div>
+        <button type="button" className="recap-dismiss gw-btn gw-btn--quiet" onClick={onDismiss}>
           Dismiss
         </button>
       </div>

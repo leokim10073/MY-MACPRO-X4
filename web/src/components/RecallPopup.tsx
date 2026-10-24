@@ -19,6 +19,7 @@ export default function RecallPopup({ person, chips, focusStoryId, onChip, onDis
       style={{ animationDuration: `${RECALL_CHIP_TIMEOUT_MS}ms` }}
     >
       <div className="recall-head">
+        <span className="recall-label">Quick context</span>
         <strong className="recall-name">{person.name}</strong>
         <button type="button" className="recall-dismiss" aria-label="Dismiss" onClick={onDismiss}>
           ×

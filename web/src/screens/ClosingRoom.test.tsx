@@ -5,7 +5,6 @@ import type { VoiceTransport } from '../room/RoomClient'
 import { initialRoomState, roomReducer, type RoomState } from '../room/state'
 import { fixtureEvents } from '../room/testFixtures'
 import * as useVoiceModule from '../voice/useVoice'
-import BurnIgnition from '../components/BurnIgnition'
 import RoomScreen from './RoomScreen'
 
 type Closing = { phase: 'ignite' | 'burning' | 'settle' | 'done'; startedAt: number; seed: number }
@@ -31,18 +30,31 @@ afterEach(() => {
 })
 
 describe('closing room', () => {
-  it('closes talk and shows the ignition line', () => {
+  it('closes talk and shows that the room ended', () => {
     render(view(base, ignite))
     const closed = screen.getByRole('button', { name: 'Room closed' }) as HTMLButtonElement
     expect(closed.disabled).toBe(true)
     expect(screen.queryByRole('button', { name: 'Hold to talk' })).toBeNull()
-    expect(screen.getByText("That's between us.")).toBeTruthy()
+    expect(screen.getByText('Room ended.')).toBeTruthy()
   })
 
-  it('drops the ignition line once burning starts, and keeps the room closed', () => {
-    render(view(base, { ...ignite, phase: 'burning' }))
-    expect(screen.queryByText("That's between us.")).toBeNull()
-    expect(screen.getByRole('button', { name: 'Room closed' })).toBeTruthy()
+  it('keeps the ended status through every closing phase, and the room closed', () => {
+    for (const phase of ['burning', 'settle'] as const) {
+      const { unmount } = render(view(base, { ...ignite, phase }))
+      expect(screen.getByText('Room ended.')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Room closed' })).toBeTruthy()
+      unmount()
+    }
+  })
+
+  it('attributes the ending: the host sees "You", others see the host\'s name', () => {
+    const { unmount } = render(view(base, ignite))
+    expect(screen.getByText('You ended the room.')).toBeTruthy()
+    unmount()
+    const guest = base.members.find((m) => m.id !== 'm_taylor')!
+    const host = base.members.find((m) => m.id === 'm_taylor')!
+    render(<RoomScreen state={base} self={guest} room={room} onBurn={() => {}} closing={ignite} />)
+    expect(screen.getByText(`${host.name} ended the room.`)).toBeTruthy()
   })
 
   it('hides the pop-up when closing starts', () => {
@@ -74,7 +86,7 @@ describe('closing room', () => {
 
   it('closes the burn sheet when closing starts', () => {
     const { rerender } = render(view(base))
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
     expect(screen.getByRole('dialog')).toBeTruthy()
     rerender(view(base, ignite))
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -103,9 +115,9 @@ describe('closing room', () => {
     const live = { status: 'talking', isListening: true, preview: '', sending: 0, failed: [], error: null } as const
     vi.spyOn(useVoiceModule, 'useVoice').mockReturnValue({ state: live, press: () => {} })
     const { rerender } = render(view(base))
-    expect(screen.getByText('Listening · mic on')).toBeTruthy()
+    expect(screen.getByText("You're speaking.")).toBeTruthy()
     rerender(view(base, ignite))
-    expect(screen.queryByText('Listening · mic on')).toBeNull()
+    expect(screen.queryByText("You're speaking.")).toBeNull()
     expect(screen.queryByText('Listening')).toBeNull()
     expect(document.querySelector('.listening-dot')).toBeNull()
   })
@@ -124,27 +136,24 @@ describe('closing room', () => {
     expect(container.querySelector('.recap-banner')).toBeNull()
   })
 
-  it('keeps the ignition live region mounted and fills it only while igniting', () => {
+  it('keeps the closing live region mounted and fills it once closing starts', () => {
     const { container, rerender } = render(view(base))
-    const region = container.querySelector('.burn-ignition')!
+    const region = container.querySelector('.lsc-closing-status')!
     expect(region.getAttribute('role')).toBe('status')
     expect(region.textContent).toBe('')
-    expect(region.classList.contains('burn-ignition-active')).toBe(false)
     rerender(view(base, ignite))
-    expect(container.querySelector('.burn-ignition')).toBe(region)
-    expect(region.textContent).toContain("That's between us.")
-    expect(region.classList.contains('burn-ignition-active')).toBe(true)
+    expect(container.querySelector('.lsc-closing-status')).toBe(region)
+    expect(region.textContent).toContain('Room ended.')
     rerender(view(base, { ...ignite, phase: 'burning' }))
-    expect(region.textContent).toBe('')
-    expect(region.classList.contains('burn-ignition-active')).toBe(false)
+    expect(region.textContent).toContain('Room ended.')
   })
 
-  it('drops the ember only when animated', () => {
-    const { container, rerender } = render(<BurnIgnition animated />)
-    expect(container.querySelector('.burn-ember-drop')).toBeTruthy()
-    rerender(<BurnIgnition animated={false} />)
-    expect(container.querySelector('.burn-ember')).toBeTruthy()
-    expect(container.querySelector('.burn-ember-drop')).toBeNull()
+  it('draws the cup over the board only while closing', () => {
+    const { container, rerender } = render(view(base))
+    expect(container.querySelector('.room-board .lsc-closing')).toBeNull()
+    rerender(view(base, ignite))
+    expect(container.querySelector('.room-board .lsc-closing')).toBeTruthy()
+    expect(container.querySelector('.room-board.is-closing')).toBeTruthy()
   })
 
   it('keeps the header and banner outside the board, and the transcript and pop-up slot inside', () => {

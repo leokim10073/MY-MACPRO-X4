@@ -67,14 +67,15 @@ describe('Leave on the room screen', () => {
     expect(screen.getByRole('alertdialog').textContent).not.toContain("You're the host")
   })
 
-  it('keeps Burn and Leave as separate controls divided by a rule', () => {
-    const { container } = roomScreen('m_taylor', { onLeave: () => {} })
-    const burn = screen.getByRole('button', { name: 'Burn room…' })
+  it('keeps Burn and Leave as separate controls in separate header rows', () => {
+    roomScreen('m_taylor', { onLeave: () => {} })
+    const burn = screen.getByRole('button', { name: 'Last Sip…' })
     const leave = screen.getByRole('button', { name: 'Leave' })
     expect(burn.className).toContain('burn')
     expect(leave.className).toContain('leave')
     expect(leave.className).not.toContain('burn')
-    expect(container.querySelector('.room-actions .actions-divider')).toBeTruthy()
+    expect(leave.closest('.room-header-top')).toBeTruthy()
+    expect(burn.closest('.room-header-sub')).toBeTruthy()
   })
 
   it('hides Leave when the app cannot start a fresh session', () => {

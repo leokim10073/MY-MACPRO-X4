@@ -8,7 +8,7 @@ import ShhhBadge from './ShhhBadge'
 
 afterEach(cleanup)
 
-const LINE = 'This room stays private until the host burns it.'
+const LINE = 'The host calls the last sip. They can end this room and delete its conversation for everyone.'
 
 describe('ShhhBadge', () => {
   it('hides the line at first', () => {

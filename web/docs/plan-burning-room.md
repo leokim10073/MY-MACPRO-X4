@@ -1,5 +1,7 @@
 # Burning Room Implementation Plan
 
+> **Superseded (visuals).** Historical plan. The `--br-*` tokens, canvas burn, ember ignition and charcoal screens it describes were replaced by the Tea Party "Last Sip" design on branch `chore/gossip-window-tea-party-cohesion`; colours now come only from `src/theme/tokens.css`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task by task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add the Burning Room to the web app. That means the entry ritual, the Shhh badge, a host-only "Burn room…" confirmation sheet, a server-confirmed burn animation over a frozen copy of the room, and the "Room burned." clean slate.

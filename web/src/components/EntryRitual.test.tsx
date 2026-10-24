@@ -10,17 +10,12 @@ afterEach(() => {
 })
 
 describe('EntryRitual', () => {
-  it('renders the heading and the four rules in order, exactly', () => {
+  it('renders the compact welcome: heading, Last Sip line and the cup', () => {
     const { container } = render(<EntryRitual onEnter={() => {}} />)
-    expect(screen.getByRole('heading', { name: 'Shhh. Keep it in the room.' })).toBeTruthy()
-    const items = Array.from(container.querySelectorAll('ul > li')).map((li) => li.textContent)
-    expect(items).toEqual([
-      'This room stays private until the host burns it.',
-      'When it burns, the transcript, stories and catch-ups are deleted for everyone.',
-      "Only text is kept while it's open, never audio.",
-      "Burning can't reach screenshots, recordings or memories.",
-    ])
-    expect(container.querySelector('.shhh-icon-animated')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: "Your seat's ready." })).toBeTruthy()
+    expect(screen.getByText('The host can end and delete this room for everyone with Last Sip.')).toBeTruthy()
+    expect(container.querySelector('.entry-welcome .lsc')).toBeTruthy()
+    expect(container.querySelector('ul')).toBeNull()
   })
 
   it('focuses Enter room on mount', () => {
@@ -46,14 +41,14 @@ describe('entry ritual in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    expect(screen.getByText('Shhh. Keep it in the room.')).toBeTruthy()
+    expect(screen.getByText("Your seat's ready.")).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Hold to talk' })).toBeNull()
     const room = document.querySelector('main.room')!
     expect(room.getAttribute('aria-hidden')).toBe('true')
     expect(room.hasAttribute('inert')).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
-    expect(screen.queryByText('Shhh. Keep it in the room.')).toBeNull()
+    expect(screen.queryByText("Your seat's ready.")).toBeNull()
     expect(screen.getByRole('button', { name: 'Hold to talk' })).toBeTruthy()
     expect(room.hasAttribute('aria-hidden')).toBe(false)
     expect(room.hasAttribute('inert')).toBe(false)

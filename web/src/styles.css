@@ -1,7 +1,16 @@
+/* The whole flow stays warm and light whatever the OS colour scheme is. */
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+  font-family: var(--gw-font-body);
   line-height: 1.4;
+  color: var(--gw-text);
+  background: var(--gw-surface-page);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--gw-font-display);
 }
 
 * {
@@ -19,56 +28,13 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-.app {
-  min-height: 100dvh;
-  padding: 16px;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
 button {
   min-height: 44px;
   min-width: 44px;
   font: inherit;
 }
 
-.join {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.join form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.join input {
-  min-height: 44px;
-  padding: 8px 12px;
-  font: inherit;
-  font-size: 16px;
-}
-
-.join .notice {
-  margin: 0;
-  font-size: 16px;
-}
-
-.join .error {
-  margin: 0;
-  color: #c0392b;
-}
-
-button.primary {
-  width: 100%;
-  min-height: 48px;
-  font-size: 16px;
-}
-
-/* Room screen */
+/* Room screen: Tea Party, every value from theme/tokens.css. */
 .room {
   display: flex;
   flex-direction: column;
@@ -76,22 +42,110 @@ button.primary {
   overflow: hidden;
   max-width: 480px;
   margin: 0 auto;
+  background: var(--gw-surface-page);
+  color: var(--gw-text);
   font-size: 17px;
 }
 
+/* Desktop: a centered framed room on the cream page. */
+@media (min-width: 760px) {
+  .room {
+    max-width: 680px;
+    height: calc(100dvh - 2 * var(--gw-space-6));
+    margin: var(--gw-space-6) auto;
+    border: var(--gw-border);
+    border-radius: var(--gw-radius-lg);
+    background: var(--gw-color-room);
+    box-shadow: var(--gw-shadow-card);
+  }
+}
+
+/* Header: row 1 brand + Leave; row 2 count, listening, and the host's Last Sip or the "Host ends room" chip. */
 .room-header {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+  padding: max(var(--gw-space-3), env(safe-area-inset-top)) var(--gw-space-4) var(--gw-space-2);
+}
+
+.room-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  padding-top: max(12px, env(safe-area-inset-top));
+  gap: var(--gw-space-3);
+}
+
+.room-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--gw-space-2);
+  min-width: 0;
+}
+
+.room-header h1 {
+  margin: 0;
+  font: 700 21px var(--gw-font-display);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.room-header-sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gw-space-2);
+  min-height: 44px;
+}
+
+.room-count {
+  background: var(--gw-accent-presence);
+}
+
+.room-actions,
+.shhh-badge {
+  margin-left: auto;
+}
+
+.room-actions {
+  display: flex;
+  align-items: center;
+}
+
+.leave {
+  min-height: 44px;
+  padding: 0 var(--gw-space-4);
+  font-size: 15px;
 }
 
 .room-invite {
   margin: 0;
-  padding: 0 16px 8px;
+  padding: 0 var(--gw-space-4) var(--gw-space-2);
   font-size: 14px;
   overflow-wrap: anywhere;
+}
+
+.room-invite a {
+  color: var(--gw-color-violet-ink);
+  font-weight: 600;
+}
+
+/* Errors in the room (failed end): the shared gw-alert look, placed under the header. */
+.room > .error {
+  flex: none;
+  margin: 0 var(--gw-space-4) var(--gw-space-2);
+}
+
+/* Dev-only replay control */
+.replay {
+  flex: none;
+  margin: 0 var(--gw-space-4) var(--gw-space-2);
+  min-height: 44px;
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font-weight: 600;
 }
 
 /* One fixed-height line in both states, so switching between them never shifts the room. */
@@ -100,43 +154,69 @@ button.primary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--gw-space-3);
   height: 44px;
-  margin: 0 16px 8px;
-  padding: 0 12px;
-  border-radius: 8px;
+  margin: 0 var(--gw-space-4) var(--gw-space-2);
+  padding: 0 var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
+  color: var(--gw-text);
+  font-weight: 600;
   font-size: 14px;
-  background: rgba(127, 127, 127, 0.12);
 }
 
 .connection-banner--reconnecting {
-  opacity: 0.8;
+  border-style: dashed;
+}
+
+.connection-banner--lost {
+  border-color: var(--gw-color-danger-ink);
+  background: var(--gw-color-danger-tint);
+  color: var(--gw-color-danger-ink);
 }
 
 .connection-banner-rejoin {
   min-height: 36px;
-  padding: 0 12px;
+  padding: 0 var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font-weight: 700;
   font-size: 14px;
 }
 
-.room-header h1 {
-  margin: 0;
-  font-size: 18px;
+/* Reconnecting: the people tile is muted while the banner explains why. */
+.connection-banner--reconnecting ~ .room-board .room-stage {
+  opacity: 0.6;
 }
 
 .listening {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--gw-space-2);
   font-size: 14px;
+  font-weight: 600;
+  color: var(--gw-text-muted);
 }
 
 .listening-dot {
   width: 10px;
   height: 10px;
+  border: 2px solid var(--gw-color-ink);
   border-radius: 50%;
-  background: #e03131;
+  background: var(--gw-color-coral);
   animation: listening-pulse 1.6s ease-in-out infinite;
+}
+
+.listening-live {
+  color: var(--gw-color-violet-ink);
+  font-weight: 700;
+}
+
+.listening-live .listening-dot {
+  background: var(--gw-action-primary);
 }
 
 @keyframes listening-pulse {
@@ -145,10 +225,15 @@ button.primary {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .listening-dot {
-    animation: none;
-  }
+/* The conversation board: soft white, outlined, a restrained hard shadow. */
+.room-board {
+  margin: 0 var(--gw-space-4) var(--gw-space-2);
+  border: var(--gw-border);
+  border-radius: var(--gw-radius-lg);
+  background: var(--gw-surface-raised);
+  box-shadow: 4px 4px 0 var(--gw-color-ink);
+  /* clip, not hidden: hidden would make the board a scroll container and drop its minimum height to 0. */
+  overflow: clip;
 }
 
 .room-transcript {
@@ -161,7 +246,7 @@ button.primary {
 .transcript {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 16px 24px;
+  padding: var(--gw-space-2) var(--gw-space-3) var(--gw-space-5);
 }
 
 .transcript ol {
@@ -170,83 +255,38 @@ button.primary {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--gw-space-1);
+}
+
+.transcript li {
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border-radius: var(--gw-radius-sm);
+}
+
+.transcript li:nth-child(odd) {
+  background: var(--gw-surface-sunken);
 }
 
 .transcript .speaker {
   display: block;
+  color: var(--gw-text-muted);
   font-size: 13px;
-  font-weight: 600;
-  opacity: 0.65;
+  font-weight: 700;
 }
 
 .transcript .text {
   display: block;
+  font-size: 16px;
   line-height: 1.5;
 }
 
 .transcript-empty {
-  opacity: 0.6;
+  margin-top: var(--gw-space-8);
+  color: var(--gw-text-muted);
   text-align: center;
-  margin-top: 32px;
 }
 
-.room-dock {
-  flex: none;
-  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
-}
-
-.room-talk {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.talk-preview,
-.talk-error {
-  margin: 0;
-  font-size: 14px;
-  overflow-wrap: anywhere;
-}
-
-.talk-preview {
-  opacity: 0.7;
-}
-
-.talk-error {
-  color: #e03131;
-}
-
-.talk-retry {
-  font-size: 14px;
-  text-align: left;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e03131;
-  background: transparent;
-  color: inherit;
-}
-
-.ptt {
-  width: 100%;
-  min-height: 64px;
-  font-size: 18px;
-  font-weight: 600;
-  border-radius: 32px;
-  border: 0;
-  background: #1c7ed6;
-  color: #fff;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-
-.ptt[aria-pressed='true'] {
-  background: #e03131;
-}
-
-/* Recap banner: compact, scrolls internally, never covers the dock */
+/* Recap ("Just joined?"): a lavender AI card, kept distinct from people's speech. */
 .room-banner {
   flex: none;
   max-height: 30dvh;
@@ -254,38 +294,45 @@ button.primary {
 }
 
 .recap-banner {
-  margin: 0 16px 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(127, 127, 127, 0.14);
+  margin: var(--gw-space-3) var(--gw-space-3) 0;
+  padding: var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
 }
 
 .recap-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--gw-space-2);
 }
 
 .recap-head h2 {
   margin: 0;
+  font: 600 17px var(--gw-font-display);
+}
+
+.recap-sub {
+  margin: 0;
+  color: var(--gw-text-muted);
   font-size: 14px;
-  font-weight: 600;
-  opacity: 0.75;
+}
+
+.recap-dismiss {
+  min-height: 40px;
+  padding: 0 var(--gw-space-3);
+  font-size: 14px;
 }
 
 .recap-text {
-  margin: 0 0 4px;
+  margin: var(--gw-space-2) 0 0;
   font-size: 16px;
 }
 
 .recap-audio {
   width: 100%;
-  margin: 0 0 8px;
-}
-
-.listening-live {
-  font-weight: 600;
+  margin: var(--gw-space-2) 0 0;
 }
 
 .recap-loading {
@@ -298,22 +345,32 @@ button.primary {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .recap-loading {
-    animation: none;
-  }
+.recap-toggle {
+  display: block;
+  min-height: 44px;
+  margin: var(--gw-space-3) var(--gw-space-3) 0;
+  padding: 0 var(--gw-space-4);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
+  color: var(--gw-text);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: left;
 }
 
-/* Recall pop-up: sits in its own slot above push-to-talk, never over it */
+/* Recall pop-up ("Quick context"): sits in its own slot above the controls, never over them. */
 .room-popup-slot:empty {
   display: none;
 }
 
 .recall-popup {
-  margin-bottom: 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(127, 127, 127, 0.22);
+  margin-bottom: var(--gw-space-2);
+  padding: var(--gw-space-2) var(--gw-space-3) var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
+  box-shadow: var(--gw-shadow-sm);
   animation-name: recall-fade;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
@@ -322,39 +379,53 @@ button.primary {
 .recall-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--gw-space-2);
+}
+
+.recall-label {
+  color: var(--gw-color-violet-ink);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recall-name {
+  font-family: var(--gw-font-display);
+  font-weight: 600;
 }
 
 .recall-dismiss {
   min-width: 44px;
   min-height: 44px;
+  margin-left: auto;
   border: 0;
   background: none;
-  font-size: 22px;
   color: inherit;
+  font-size: 22px;
 }
 
 .recall-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--gw-space-2);
 }
 
 .recall-chip {
   min-height: 44px;
-  padding: 0 16px;
-  border-radius: 22px;
-  border: 1px solid rgba(127, 127, 127, 0.5);
-  background: transparent;
-  color: inherit;
+  padding: 0 var(--gw-space-4);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font-weight: 600;
   font-size: 16px;
   touch-action: manipulation;
 }
 
 .recall-chip[aria-current='true'] {
-  background: #1c7ed6;
-  border-color: #1c7ed6;
-  color: #fff;
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
   font-weight: 700;
 }
 
@@ -368,21 +439,22 @@ button.primary {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .recall-popup {
-    animation: none;
-  }
+.recall-hint {
+  margin: var(--gw-space-2) 0 0;
+  color: var(--gw-text-muted);
+  font-size: 14px;
 }
 
 .story-card {
   max-height: 45dvh;
   overflow-y: auto;
-  margin-bottom: 8px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: Canvas;
-  color: CanvasText;
-  border: 1px solid rgba(127, 127, 127, 0.4);
+  margin-bottom: var(--gw-space-2);
+  padding: var(--gw-space-3) var(--gw-space-4);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  box-shadow: var(--gw-shadow-sm);
 }
 
 .story-card:focus-within {
@@ -390,8 +462,8 @@ button.primary {
 }
 
 .story-title {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 var(--gw-space-2);
+  font: 600 20px var(--gw-font-display);
 }
 
 .story-title:focus {
@@ -400,17 +472,16 @@ button.primary {
 
 .story-about {
   display: block;
-  font-size: 14px;
-  font-weight: 400;
-  opacity: 0.7;
+  color: var(--gw-text-muted);
+  font: 400 14px var(--gw-font-body);
 }
 
 .story-card h3 {
-  margin: 12px 0 4px;
-  font-size: 13px;
+  margin: var(--gw-space-3) 0 var(--gw-space-1);
+  color: var(--gw-text-muted);
+  font: 700 12px var(--gw-font-body);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  opacity: 0.7;
+  letter-spacing: 0.08em;
 }
 
 .story-list {
@@ -419,86 +490,95 @@ button.primary {
 }
 
 .story-when {
-  margin: 12px 0 0;
+  margin: var(--gw-space-3) 0 0;
+  color: var(--gw-text-muted);
   font-size: 13px;
-  opacity: 0.7;
 }
 
 .story-guesses {
-  margin-top: 8px;
-  padding: 4px 12px 8px;
-  border: 1px dashed rgba(127, 127, 127, 0.7);
-  border-radius: 8px;
+  margin-top: var(--gw-space-2);
+  padding: var(--gw-space-1) var(--gw-space-3) var(--gw-space-2);
+  border: 2px dashed var(--gw-color-ink-muted);
+  border-radius: var(--gw-radius-sm);
   font-style: italic;
 }
 
 .story-card .story-guess-label {
-  opacity: 1;
-  color: GrayText;
+  color: var(--gw-text-muted);
 }
 
 .story-card .story-close {
   min-height: 44px;
   min-width: 44px;
-  margin-top: 12px;
-  padding: 0 16px;
+  margin-top: var(--gw-space-3);
+  padding: 0 var(--gw-space-4);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font-weight: 600;
 }
 
-.recap-toggle {
-  display: block;
-  min-height: 44px;
-  margin: 0 16px 8px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 12px;
-  background: rgba(127, 127, 127, 0.14);
-  color: inherit;
-  font-size: 14px;
-  text-align: left;
-}
-
-/* Room stage: speaker tile + everyone's avatars. A normal row between recap and transcript. */
+/* People: speaker tile + everyone's illustrated avatars. */
 .room-stage {
   flex: none;
-  max-height: 112px;
-  margin: 0 16px 8px;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(127, 127, 127, 0.1);
+  max-height: 120px;
+  margin: var(--gw-space-3) var(--gw-space-3) var(--gw-space-1);
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-sunken);
   overflow: hidden;
+  transition: opacity var(--gw-dur-pop) ease-out;
 }
 
 .room-stage.compact {
-  max-height: 48px;
-  padding: 4px 8px;
+  max-height: 56px;
+  padding: var(--gw-space-1) var(--gw-space-2);
 }
 
 .stage-speaker {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--gw-space-3);
 }
 
 .stage-big-avatar {
+  position: relative;
   flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: #1c7ed6;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
-  box-shadow: 0 0 0 3px rgba(28, 126, 214, 0.35);
-  transition: box-shadow 0.2s, background 0.2s;
+  transition: box-shadow var(--gw-dur-pop) ease-out;
 }
 
-.stage-speaker.quiet .stage-big-avatar {
-  background: rgba(127, 127, 127, 0.35);
-  color: inherit;
-  box-shadow: none;
+/* Speaking: a mint halo and a small static audio mark; the tile itself never moves. */
+.stage-speaker:not(.quiet) .stage-big-avatar {
+  box-shadow: 0 0 0 4px var(--gw-accent-presence);
+}
+
+.stage-speaker:not(.quiet) .stage-big-avatar::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gw-color-ink);
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--gw-color-ink), var(--gw-color-ink)) 4px 7px / 2px 4px no-repeat,
+    linear-gradient(var(--gw-color-ink), var(--gw-color-ink)) 7px 4px / 2px 8px no-repeat,
+    var(--gw-accent-presence);
+}
+
+.stage-empty-seat {
+  width: 44px;
+  height: 44px;
+  border: 2.5px dashed var(--gw-color-ink-muted);
+  border-radius: 50%;
 }
 
 .stage-speaker-text {
@@ -509,36 +589,36 @@ button.primary {
 }
 
 .stage-speaker-text strong {
-  font-size: 17px;
+  font: 600 17px var(--gw-font-display);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .stage-status {
+  color: var(--gw-text-muted);
   font-size: 13px;
-  opacity: 0.75;
 }
 
 .stage-speaker:not(.quiet) .stage-status {
-  color: #1c7ed6;
-  opacity: 1;
+  color: var(--gw-text);
+  font-weight: 700;
 }
 
 .stage-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  color: var(--gw-text-muted);
   font-size: 13px;
-  opacity: 0.8;
   white-space: nowrap;
 }
 
 .stage-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--gw-space-2);
+  margin-top: var(--gw-space-2);
 }
 
 .room-stage.compact .stage-row {
@@ -547,52 +627,60 @@ button.primary {
 
 .stage-avatars {
   display: flex;
-  gap: 8px;
+  gap: var(--gw-space-2);
   margin: 0;
-  padding: 3px 3px 8px;
+  padding: 4px 4px var(--gw-space-2);
   overflow-x: auto;
   flex: 1;
   min-width: 0;
 }
 
 .room-stage.compact .stage-avatars {
-  padding-bottom: 3px;
+  padding-bottom: 4px;
 }
 
 .avatar {
   position: relative;
   flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 1px solid rgba(127, 127, 127, 0.45);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.avatar.me {
-  background: #2f9e44;
-  border-color: #2f9e44;
-  color: #fff;
 }
 
 .avatar.speaking {
-  box-shadow: 0 0 0 3px #1c7ed6;
+  box-shadow: 0 0 0 3px var(--gw-accent-presence);
 }
 
 .avatar-you {
   position: absolute;
-  bottom: -7px;
-  padding: 0 3px;
-  border-radius: 4px;
-  background: Canvas;
-  color: CanvasText;
+  bottom: -8px;
+  padding: 0 4px;
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-color-ink);
+  color: var(--gw-surface-raised);
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* The host's tile: a small Host tag on top, mirroring the You tag below. */
+.avatar-host {
+  position: absolute;
+  top: -9px;
+  padding: 0 4px;
+  border: 1.5px solid var(--gw-color-ink);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-accent-last-sip);
+  color: var(--gw-text);
+  font-size: 9px;
+  font-weight: 700;
   line-height: 1.3;
+}
+
+.room-stage.compact .avatar-host {
+  display: none;
 }
 
 .room-stage.compact .avatar-you {
@@ -601,19 +689,19 @@ button.primary {
 
 .stage-count {
   flex: none;
+  color: var(--gw-text-muted);
   font-size: 13px;
-  opacity: 0.8;
 }
 
 .room-stage:not(.compact) .stage-count {
   display: none;
 }
 
-/* Short screens: keep only the avatar row so the transcript and hold-to-talk keep their room. */
+/* Short screens: keep only the avatar row so the transcript and the speaking control keep their room. */
 @media (max-height: 700px) {
   .room-stage {
-    max-height: 48px;
-    padding: 4px 8px;
+    max-height: 56px;
+    padding: var(--gw-space-1) var(--gw-space-2);
   }
 
   .room-stage .stage-speaker {
@@ -632,109 +720,171 @@ button.primary {
     display: none;
   }
 
-  /* With the stage added, recap + pop-up + hold-to-talk must still fit on an iPhone SE (568px). */
+  /* With the stage added, recap + pop-up + the speaking control must still fit on an iPhone SE (568px). */
   .room-banner {
     max-height: 22dvh;
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .stage-big-avatar {
-    transition: none;
+  .room-header-sub {
+    min-height: 40px;
   }
 }
 
-/* Header actions: neutral Leave on the right for everyone; the host's red Burn sits apart, behind a divider. */
-.room-header {
-  flex-wrap: wrap;
-  gap: 8px;
+/* Controls: anchored at the bottom. */
+.room-dock {
+  flex: none;
+  padding: var(--gw-space-2) var(--gw-space-4) calc(var(--gw-space-4) + env(safe-area-inset-bottom));
 }
 
-.room-actions {
+.room-talk {
   display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+}
+
+.talk-preview,
+.talk-error {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.talk-preview {
+  color: var(--gw-text-muted);
+}
+
+.talk-error {
+  color: var(--gw-color-danger-ink);
+  font-weight: 600;
+}
+
+.talk-retry {
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border: 2px solid var(--gw-color-danger-ink);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-color-danger-tint);
+  color: var(--gw-color-danger-ink);
+  font-size: 14px;
+  text-align: left;
+}
+
+/* The speaking control: violet, outlined, presses down into its shadow while held. */
+.ptt {
+  width: 100%;
+  min-height: 60px;
+  margin-bottom: 5px;
+  border: var(--gw-border);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+  box-shadow: var(--gw-shadow-button);
+  font: 700 19px var(--gw-font-body);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform var(--gw-dur-press) ease-out,
+    box-shadow var(--gw-dur-press) ease-out,
+    background-color var(--gw-dur-press) ease-out;
+}
+
+.ptt[aria-pressed='true'] {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+  background: var(--gw-color-violet-ink);
+}
+
+/* Dev-only typed line (?type=1) */
+.type-line {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin-left: auto;
+  gap: var(--gw-space-2);
+  margin-bottom: var(--gw-space-2);
 }
 
-.actions-divider {
-  width: 1px;
-  height: 28px;
-  background: rgba(127, 127, 127, 0.45);
-}
-
-.leave {
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid rgba(127, 127, 127, 0.5);
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
+.type-line label {
+  flex-basis: 100%;
+  font-weight: 700;
   font-size: 14px;
 }
 
+.type-line input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: 500 16px var(--gw-font-body);
+}
+
+.type-line button {
+  min-height: 44px;
+  padding: 0 var(--gw-space-4);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+  font-weight: 700;
+}
+
+.type-line .error {
+  flex-basis: 100%;
+}
+
+/* Leave confirmation: an outlined Tea Party panel with the same button language. */
 .leave-confirm {
   flex: none;
-  margin: 0 16px 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(127, 127, 127, 0.45);
-  background: Canvas;
-  color: CanvasText;
+  margin: 0 var(--gw-space-4) var(--gw-space-3);
+  padding: var(--gw-space-3) var(--gw-space-4) var(--gw-space-4);
   font-size: 15px;
 }
 
+.leave-confirm strong {
+  font: 600 18px var(--gw-font-display);
+}
+
 .leave-confirm p {
-  margin: 4px 0 8px;
+  margin: var(--gw-space-1) 0 var(--gw-space-3);
+  color: var(--gw-text-muted);
   font-size: 14px;
 }
 
 .leave-confirm-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--gw-space-3);
 }
 
 .leave-confirm-actions button {
   flex: 1;
-  min-height: 44px;
-  border-radius: 8px;
-  border: 1px solid rgba(127, 127, 127, 0.5);
-  background: transparent;
-  color: inherit;
+  min-height: 48px;
   font-size: 15px;
 }
 
-.leave-confirm-actions .leave-go {
-  border-color: CanvasText;
-  font-weight: 600;
+@media (prefers-reduced-motion: reduce) {
+  .listening-dot,
+  .recap-loading,
+  .recall-popup {
+    animation: none;
+  }
+
+  .stage-big-avatar,
+  .room-stage,
+  .ptt {
+    transition: none;
+  }
+
+  .ptt[aria-pressed='true'] {
+    transform: none;
+  }
 }
 
-.recall-hint {
-  margin: 6px 0 0;
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.link-button {
-  min-height: 44px;
-  border: 0;
-  background: none;
-  color: inherit;
-  text-decoration: underline;
-  font-size: 15px;
-}
-
-/* Burning Room */
-:root {
-  --br-charcoal: #111114;
-  --br-ivory: #f5efe7;
-  --br-ember: #ff762e;
-  --br-gold: #ffe6af;
-  --br-red: #ad3527;
-  --br-char: #241c1a;
-  --br-ash: #8d8580;
-}
-
+/* Room ending (Last Sip) and room chrome added by the Burning Room work; colours from theme/tokens.css. */
+/* The non-host's "Host ends room" chip: informational, no raised shadow. */
 .shhh-badge {
   position: relative;
   display: inline-flex;
@@ -742,16 +892,9 @@ button.primary {
 }
 
 .shhh-badge-button {
-  width: 44px;
-  height: 44px;
-  padding: 5px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--br-charcoal);
+  min-height: 44px;
+  background: var(--gw-surface-raised);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .shhh-badge p:empty {
@@ -759,223 +902,193 @@ button.primary {
   padding: 0;
   border: 0;
   margin: 0;
-}
-
-.shhh-badge-button:focus-visible {
-  outline: 2px solid var(--br-ember);
-  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .shhh-badge p {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   z-index: 5;
   width: max-content;
-  max-width: min(260px, 80vw);
-  margin: 6px 0 0;
-  padding: 10px 12px;
-  border: 1px solid var(--br-ash);
-  border-radius: 12px;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
+  max-width: min(280px, 80vw);
+  margin: var(--gw-space-2) 0 0;
+  padding: var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  box-shadow: var(--gw-shadow-sm);
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-@keyframes shhh-finger-drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2.5px); }
+.shhh-badge p strong {
+  display: block;
+  font-family: var(--gw-font-display);
+  font-weight: 600;
 }
 
-@keyframes shhh-ring-contract {
-  0%, 100% { r: 30px; }
-  50% { r: 27px; }
+/* The host's Last Sip control: peach, outlined, a small hard shadow; subordinate to the speaking control. */
+.room-actions .burn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gw-space-1);
+  min-height: 44px;
+  padding: 0 var(--gw-space-3) 0 var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-accent-last-sip);
+  color: var(--gw-text);
+  box-shadow: var(--gw-shadow-sm);
+  font: 700 15px var(--gw-font-body);
+  cursor: pointer;
+  transition:
+    transform var(--gw-dur-press) ease-out,
+    box-shadow var(--gw-dur-press) ease-out;
 }
 
-.shhh-icon-animated .shhh-finger {
-  animation: shhh-finger-drift 2.6s ease-in-out infinite;
+.room-actions .burn:hover {
+  transform: translateY(-1px);
 }
 
-.shhh-icon-animated .shhh-ring {
-  animation: shhh-ring-contract 2.6s ease-in-out infinite;
+.room-actions .burn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+}
+
+/* Last Sip dialog: shared gw-dialog styling, plus the cup. */
+.burn-sheet {
+  align-items: stretch;
+  text-align: left;
+}
+
+.burn-sheet-cup {
+  align-self: center;
+  transition: transform var(--gw-dur-pop) var(--gw-ease-bounce);
+}
+
+/* Waiting: the cup leans a little when you point at the room-ending action. */
+.burn-sheet:has(.burn-go:hover:not(:disabled)) .burn-sheet-cup {
+  transform: rotate(-6deg);
+}
+
+.burn-go {
+  white-space: nowrap;
+}
+
+/* Failed end: the failure stays inside the open dialog, above the actions. */
+.burn-sheet-error {
+  font-size: 14px;
+}
+
+/* Pending: the button stays sunk into its shadow while the room ends. */
+.burn-go:disabled {
+  background: var(--gw-accent-last-sip);
+  color: var(--gw-text);
+  transform: translateY(5px);
+  box-shadow: 0 0 0 var(--gw-color-ink);
+  cursor: progress;
+}
+
+.lsc-steam-dots circle {
+  animation: lsc-dot 1.2s ease-in-out infinite;
+}
+
+.lsc-steam-dots circle:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.lsc-steam-dots circle:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes lsc-dot {
+  50% {
+    opacity: 0.25;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shhh-icon-animated .shhh-finger,
-  .shhh-icon-animated .shhh-ring {
+  .room-actions .burn,
+  .burn-sheet-cup {
+    transition: none;
+  }
+
+  .room-actions .burn:hover,
+  .room-actions .burn:active,
+  .burn-sheet:has(.burn-go:hover:not(:disabled)) .burn-sheet-cup,
+  .burn-go:disabled {
+    transform: none;
+  }
+
+  .lsc-steam-dots circle {
     animation: none;
   }
 }
 
-.room-actions .burn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--br-ember);
-  border-radius: 12px;
-  /* Charcoal fill like the badge: the gold label then holds contrast on a light or dark room. */
-  background: var(--br-charcoal);
-  color: var(--br-gold);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.room-actions .burn svg path {
-  fill: var(--br-ember);
-}
-
-.burn-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  background: rgba(5, 5, 7, 0.62);
-}
-
-.burn-sheet {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 480px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px 20px 26px;
-  border-top: 1px solid rgba(255, 118, 46, 0.4);
-  border-radius: 22px 22px 0 0;
-  background: var(--br-char);
-  color: var(--br-ivory);
-}
-
-.burn-sheet h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.burn-sheet p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-}
-
-.burn-sheet-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.burn-sheet-actions button {
-  flex: 1;
-  min-height: 52px;
-  border-radius: 14px;
-  font: inherit;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.burn-keep {
-  border: 1px solid rgba(245, 239, 231, 0.25);
-  background: transparent;
-  color: var(--br-ivory);
-}
-
-.burn-go {
-  border: 0;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
-  font-weight: 600;
-}
-
-.burn-go:disabled {
-  background: var(--br-red);
-  color: var(--br-ivory);
-  cursor: default;
-}
-
-.room-actions .burn:focus-visible,
-.burn-sheet-actions button:focus-visible {
-  outline: 2px solid var(--br-ember);
-  outline-offset: 2px;
-}
-
+/* Entry: a compact illustrated welcome over the room (the room behind stays inert until Enter). */
 .entry-ritual {
   position: fixed;
   inset: 0;
   z-index: 30;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
+  padding: var(--gw-space-6) var(--gw-gutter-mobile) calc(var(--gw-space-6) + env(safe-area-inset-bottom));
   overflow-y: auto;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
-  text-align: center;
+  background: var(--gw-scrim);
 }
 
-.entry-ritual h2 {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 600;
-}
-
-.entry-ritual ul {
-  max-width: 340px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.entry-welcome {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: var(--gw-space-3);
+  width: 100%;
+  max-width: 360px;
+  margin: auto;
+  padding: var(--gw-space-6) var(--gw-space-5);
+  text-align: center;
+  animation: gw-dialog-rise var(--gw-dur-settle) var(--gw-ease-bounce) both;
+}
+
+.entry-welcome h2 {
+  margin: 0;
+  font: 600 26px/1.15 var(--gw-font-display);
+}
+
+.entry-welcome p {
+  margin: 0 0 var(--gw-space-2);
+  color: var(--gw-text-muted);
   font-size: 16px;
   line-height: 1.45;
 }
 
-.entry-ritual li:first-child {
-  color: var(--br-gold);
-}
-
 .entry-ritual-enter {
-  min-width: 200px;
-  min-height: 52px;
-  padding: 0 28px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
-  font: inherit;
-  font-size: 17px;
-  font-weight: 600;
-  cursor: pointer;
+  width: 100%;
+  min-height: 56px;
+  font-size: 18px;
 }
 
-.entry-ritual-enter:focus-visible {
-  outline: 2px solid var(--br-gold);
-  outline-offset: 3px;
-}
-
+/* After Enter, the cup shrinks toward the brand mark once, then goes away. */
 .entry-ritual-exit {
   position: fixed;
   z-index: 30;
-  top: 38%;
+  top: 40%;
   left: 50%;
   width: 96px;
-  height: 96px;
-  margin: -48px 0 0 -48px;
+  height: 84px;
+  margin: -42px 0 0 -48px;
   pointer-events: none;
   transform-origin: center;
-  animation: entry-ritual-shrink 250ms ease-in forwards;
+  animation: entry-ritual-shrink var(--gw-dur-pop) var(--gw-ease-out) forwards;
 }
 
 @keyframes entry-ritual-shrink {
   to {
-    top: 34px;
-    left: 40px;
+    top: 32px;
+    left: 34px;
     transform: scale(0.4);
     opacity: 0.6;
   }
@@ -984,6 +1097,10 @@ button.primary {
 @media (prefers-reduced-motion: reduce) {
   .entry-ritual-exit {
     display: none;
+  }
+
+  .entry-welcome {
+    animation: none;
   }
 }
 
@@ -1008,114 +1125,266 @@ button.primary {
   margin-bottom: -8px;
 }
 
+/* The speaking control once the room is closing: visibly deactivated. */
 .ptt:disabled {
-  background: var(--br-char);
-  color: var(--br-ash);
+  border-color: var(--gw-color-ink-muted);
+  background: var(--gw-color-disabled);
+  color: var(--gw-color-on-disabled);
+  box-shadow: none;
+  transform: translateY(5px);
 }
 
-.burn-ignition {
+/*
+ * Last Sip closing over the board: one 2.9 s choreography that starts when the closing layer mounts (the existing
+ * closing window; useClosing swaps to the final screen at DONE_MS = 2900 ms, untouched). Shares of the window:
+ * 0–8% wash, controls settle · 8–30% cards stack away behind the cup, cup rises with a tiny overshoot ·
+ * 30–55% a short "cheers" lift, then the cup tips ~33° and pours a short amber arc · 55–75% it swings back upright,
+ * empty, and a steam curl pops and vanishes · 75–90% it lands on the saucer (6px, then 2px) · 90–100% hold.
+ */
+.lsc-closing-layer {
   position: absolute;
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  background: rgba(17, 17, 20, 0);
-  transition: background-color 180ms ease-out;
 }
 
-/* Dim the board behind the icon and line so they don't clash with the transcript. */
-.burn-ignition-active {
-  background: rgba(17, 17, 20, 0.78);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .burn-ignition {
-    transition: none;
-  }
-}
-
-.burn-ignition-copy {
-  position: absolute;
-  top: 18%;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: var(--br-ivory);
-  font-size: 17px;
-  font-weight: 500;
-}
-
-.burn-ember {
-  position: absolute;
-  left: 50%;
-  top: 98.5%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: var(--br-gold);
-  box-shadow: 0 0 0 6px rgba(255, 118, 46, 0.22);
-}
-
-.burn-ember-drop {
-  top: 23%;
-  animation: burn-ember-drop 0.5s ease-in 0.1s forwards;
-}
-
-@keyframes burn-ember-drop {
-  to {
-    top: 98.5%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .burn-ember-drop {
-    top: 98.5%;
-    animation: none;
-  }
-}
-
-.burn-overlay {
+.lsc-closing {
   position: absolute;
   inset: 0;
-  z-index: 5;
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
 }
 
-/* Burning Room: clean slate */
-.burned {
-  min-height: 100dvh;
-  max-width: none;
-  margin: 0;
-  padding: 48px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--br-charcoal);
-  color: var(--br-ivory);
+.lsc-closing-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--gw-wash);
+}
+
+.lsc-closing-stage {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.lsc-closing-cup {
+  display: block;
+  overflow: visible;
+}
+
+.lsc-closing .lsc-cup {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* The pour arc is drawn only while the cup is tipped; it never leaves the cup's box. */
+.lsc-pour {
+  opacity: 0;
+  stroke-linecap: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+}
+
+/* Status, bound to the closing state: "Room ended." and who ended it. */
+.lsc-closing-status {
+  position: absolute;
+  left: var(--gw-space-4);
+  right: var(--gw-space-4);
+  bottom: var(--gw-space-5);
+  z-index: 1;
   text-align: center;
 }
 
+.lsc-closing-status strong {
+  display: block;
+  font: 600 24px var(--gw-font-display);
+}
+
+.lsc-closing-status span {
+  color: var(--gw-text-muted);
+  font-size: 15px;
+}
+
+/* Animated choreography */
+.lsc-closing.is-animated .lsc-closing-wash {
+  animation: lsc-wash 2900ms linear both;
+}
+
+.lsc-closing.is-animated .lsc-closing-cup {
+  animation: lsc-rise 2900ms var(--gw-ease-out) both;
+}
+
+.lsc-closing.is-animated .lsc-cup {
+  animation: lsc-tip 2900ms ease-in-out both;
+}
+
+.lsc-closing.is-animated .lsc-tea {
+  animation: lsc-drain 2900ms ease-in both;
+}
+
+.lsc-closing.is-animated .lsc-surface {
+  animation: lsc-surface 2900ms ease-in both;
+}
+
+.lsc-closing.is-animated .lsc-pour {
+  animation: lsc-pour 2900ms ease-out both;
+}
+
+.lsc-closing.is-animated .lsc-steam {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: lsc-steam 2900ms ease-out both;
+}
+
+/* The board's cards shrink and slide into a neat stack that drops behind the cup; avatars are not pulled in. */
+.room-board.is-closing > :not(.lsc-closing-layer) {
+  transform-origin: 50% 44%;
+  animation: lsc-stack 2900ms var(--gw-ease-out) both;
+}
+
+.room-board.is-closing .room-stage {
+  box-shadow: none;
+}
+
+@keyframes lsc-wash {
+  0% { opacity: 0; }
+  8%, 60% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes lsc-stack {
+  0%, 8% { opacity: 1; transform: none; }
+  20% { opacity: 0.7; transform: translateY(4%) scale(0.7); }
+  30%, 100% { opacity: 0; transform: translateY(10%) scale(0.45); }
+}
+
+@keyframes lsc-rise {
+  0%, 8% { opacity: 0; transform: translateY(48px); }
+  26% { opacity: 1; transform: translateY(-4px); }
+  30%, 100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lsc-tip {
+  0%, 30% { transform: none; }
+  34% { transform: translateY(-6px) rotate(-3deg); }
+  38% { transform: translateY(-6px) rotate(3deg); }
+  42% { transform: none; }
+  50%, 55% { transform: rotate(-33deg); }
+  68% { transform: rotate(4deg); }
+  75% { transform: none; }
+  79% { transform: translateY(-6px); }
+  83% { transform: none; }
+  86% { transform: translateY(-2px); }
+  90%, 100% { transform: none; }
+}
+
+@keyframes lsc-pour {
+  0%, 46% { opacity: 0; stroke-dashoffset: 40; }
+  50% { opacity: 1; stroke-dashoffset: 0; }
+  55%, 100% { opacity: 0; stroke-dashoffset: 0; }
+}
+
+@keyframes lsc-drain {
+  0%, 46% { transform: translateY(0); }
+  55%, 100% { transform: translateY(72px); }
+}
+
+@keyframes lsc-surface {
+  0%, 46% { fill: var(--gw-tea-liquid); }
+  55%, 100% { fill: var(--gw-surface-sunken); }
+}
+
+@keyframes lsc-steam {
+  0%, 30% { opacity: 0.55; transform: none; }
+  40%, 60% { opacity: 0; transform: none; }
+  66% { opacity: 0.8; transform: translateY(-4px) scale(1.05); }
+  75%, 100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Reduced motion: a ~200 ms crossfade to the empty cup; same status. */
+.lsc-closing:not(.is-animated) {
+  animation: lsc-crossfade 200ms ease-out both;
+}
+
+@keyframes lsc-crossfade {
+  from { opacity: 0; }
+}
+
+@media (min-width: 760px) {
+  .lsc-closing-cup {
+    width: 180px;
+    height: 158px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-board.is-closing > :not(.lsc-closing-layer) {
+    animation: lsc-crossfade-out 200ms ease-out both;
+  }
+}
+
+@keyframes lsc-crossfade-out {
+  to { opacity: 0; }
+}
+
+/* Final screen (after the last sip) and the restart transit: cream, brand mark, the empty cup. */
+.burned {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gw-space-6);
+  padding: max(var(--gw-space-3), env(safe-area-inset-top)) var(--gw-gutter-mobile)
+    calc(var(--gw-space-8) + env(safe-area-inset-bottom));
+  background: var(--gw-surface-page);
+  color: var(--gw-text);
+}
+
+.burned-top {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: var(--gw-space-2);
+  max-width: var(--gw-page-max);
+  width: 100%;
+  margin: 0 auto;
+  min-height: 52px;
+}
+
+.burned-brand {
+  font: 700 22px var(--gw-font-display);
+  letter-spacing: 0.01em;
+}
+
+.burned-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: var(--gw-console-width);
+  margin: auto 0;
+  padding: var(--gw-space-6) var(--gw-space-5);
+  text-align: center;
+  animation: gw-dialog-rise var(--gw-dur-settle) var(--gw-ease-bounce) both;
+}
+
 .burned h1 {
-  margin: 0 0 8px;
-  font-size: 32px;
+  margin: var(--gw-space-3) 0 var(--gw-space-2);
+  font: 600 32px/1.1 var(--gw-font-display);
+}
+
+.burned h1:focus {
+  outline: none;
 }
 
 .burned-lead {
-  margin: 0 0 16px;
-  font-size: 18px;
+  margin: 0 0 var(--gw-space-2);
+  font-size: 17px;
 }
 
 .burned-note {
   max-width: 320px;
-  margin: 0 0 32px;
-  color: var(--br-ash);
+  margin: 0 0 var(--gw-space-6);
+  color: var(--gw-text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1123,37 +1392,22 @@ button.primary {
 .burned-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--gw-space-3);
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
 }
 
-.burned-primary,
-.burned-secondary {
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
+.burned-new,
+.burned-home {
+  width: 100%;
+  min-height: 52px;
+  font-size: 17px;
 }
 
-.burned-primary {
-  border: 0;
-  background: var(--br-ember);
-  color: var(--br-charcoal);
-  font-weight: 600;
-}
-
-.burned-secondary {
-  border: 1px solid var(--br-ash);
-  background: transparent;
-  color: var(--br-ivory);
-}
-
-.burned-primary:focus-visible,
-.burned-secondary:focus-visible {
-  outline: 3px solid var(--br-gold);
-  outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .burned-card {
+    animation: none;
+  }
 }
 
 /* Visually hidden, still read by screen readers. */

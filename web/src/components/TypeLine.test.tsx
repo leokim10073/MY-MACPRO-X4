@@ -76,9 +76,9 @@ describe('replay button', () => {
 describe('burn state', () => {
   it('shows Burning… while pending and the error alert, keeping the room', () => {
     renderRoom({ pending: 'burn', error: { kind: 'unreachable', message: "Can't reach the server." } })
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
-    const b = screen.getByRole('button', { name: 'Burning…' }) as HTMLButtonElement
+    expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
+    const b = screen.getByRole('button', { name: 'Ending room…' }) as HTMLButtonElement
     expect(b.disabled).toBe(true)
-    expect(screen.getByRole('alert').textContent).toContain("Can't reach the server.")
   })
 })

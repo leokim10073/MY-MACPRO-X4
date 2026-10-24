@@ -1,5 +1,6 @@
 import type { Id, Member } from '../../../shared/schema'
-import { initials, isMe, orderMembersForStage } from '../room/derived'
+import { isMe, orderMembersForStage } from '../room/derived'
+import Avatar, { AVATAR_CHOICES, type AvatarLook } from './art/Avatar'
 
 interface Speaker {
   id: Id
@@ -15,10 +16,23 @@ interface Props {
   lastSpeaker: Speaker | null
   /** Avatar row only, for when a story card needs the room. */
   compact?: boolean
+  /** The avatar I picked on Join (this phone only). Without it I get the illustrated fallback too. */
+  selfLook?: AvatarLook
+  /** The room's host, marked with a small Host badge. */
+  hostId?: Id
+}
+
+// Other people's picks aren't shared between phones, so everyone else gets a stable illustrated look picked
+// from their id. Presentational only.
+function lookFor(id: string) {
+  let h = 0
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return AVATAR_CHOICES[h % AVATAR_CHOICES.length]
 }
 
 // Instagram Live-style stage: a big tile for whoever is speaking, then a row of everyone.
-export default function RoomStage({ members, self, speaker, lastSpeaker, compact = false }: Props) {
+export default function RoomStage({ members, self, speaker, lastSpeaker, compact = false, selfLook, hostId }: Props) {
+  const lookOf = (id: Id) => (id === self.id && selfLook ? selfLook : lookFor(id))
   const ordered = orderMembersForStage(members, self, speaker?.id ?? null)
   const shown = speaker ?? lastSpeaker
   const count = members.length
@@ -28,7 +42,7 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
       {!compact && (
         <div className={speaker ? 'stage-speaker' : 'stage-speaker quiet'} data-testid="stage-speaker">
           <div className="stage-big-avatar" aria-hidden="true">
-            {shown ? initials(shown.name) : '·'}
+            {shown ? <Avatar look={lookOf(shown.id)} size={48} /> : <span className="stage-empty-seat" />}
           </div>
           <div className="stage-speaker-text">
             {shown ? (
@@ -53,7 +67,8 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
           {ordered.map((m) => {
             const me = isMe(m, self)
             const talking = m.id === speaker?.id
-            const label = `${m.name}${me ? ' (you)' : ''}${talking ? ', speaking' : ''}`
+            const host = m.id === hostId
+            const label = `${m.name}${me ? ' (you)' : ''}${host ? ', host' : ''}${talking ? ', speaking' : ''}`
             return (
               <span
                 key={m.id}
@@ -61,7 +76,12 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
                 aria-label={label}
                 className={['avatar', me && 'me', talking && 'speaking'].filter(Boolean).join(' ')}
               >
-                <span aria-hidden="true">{initials(m.name)}</span>
+                <Avatar look={lookOf(m.id)} size={34} />
+                {host && (
+                  <span className="avatar-host" aria-hidden="true">
+                    Host
+                  </span>
+                )}
                 {me && <span className="avatar-you" aria-hidden="true">You</span>}
               </span>
             )

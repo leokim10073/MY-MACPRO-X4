@@ -12,17 +12,17 @@ export default function LeaveConfirm({ isHost, onLeave, onStay }: Props) {
   useEffect(() => stay.current?.focus(), [])
 
   return (
-    <div className="leave-confirm" role="alertdialog" aria-labelledby="leave-title" aria-describedby="leave-text">
+    <div className="leave-confirm gw-panel" role="alertdialog" aria-labelledby="leave-title" aria-describedby="leave-text">
       <strong id="leave-title">Leave this room?</strong>
       <p id="leave-text">
         You can rejoin with the invite link, and you'll get a new catch-up.
-        {isHost && " You're the host: if you leave, nobody can burn this room until it expires."}
+        {isHost && " You're the host: if you leave, nobody else can end this room."}
       </p>
       <div className="leave-confirm-actions">
-        <button type="button" ref={stay} onClick={onStay}>
+        <button type="button" ref={stay} className="gw-btn gw-btn--quiet" onClick={onStay}>
           Stay
         </button>
-        <button type="button" className="leave-go" onClick={onLeave}>
+        <button type="button" className="leave-go gw-btn gw-btn--primary" onClick={onLeave}>
           Leave room
         </button>
       </div>

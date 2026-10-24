@@ -92,7 +92,7 @@ describe('RoomScreen', () => {
     expect(screen.getByText(recap.text)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
     expect(screen.queryByText(recap.text)).toBeNull()
-    const toggle = screen.getByRole('button', { name: /Catch-up \(tap to show\)/ })
+    const toggle = screen.getByRole('button', { name: 'Catch me up' })
     fireEvent.click(toggle)
     expect(screen.getByText(recap.text)).toBeTruthy()
   })

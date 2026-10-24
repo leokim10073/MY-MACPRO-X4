@@ -55,15 +55,15 @@ describe('storage guard', () => {
     render(<App {...mock("?speed=1000")} />)
     await enter('Start the party')
     expect(document.body.textContent).toContain(line21())
-    fireEvent.click(screen.getByRole('button', { name: 'Burn room…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Burn room' }))
+      fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
       await vi.advanceTimersByTimeAsync(0)
     })
     await act(async () => {
       await vi.advanceTimersByTimeAsync(DONE_MS)
     })
-    expect(screen.getByText('Room burned.')).toBeTruthy()
+    expect(screen.getByText("Tea's gone.")).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })

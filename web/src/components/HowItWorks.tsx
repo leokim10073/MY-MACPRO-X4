@@ -15,8 +15,8 @@ const STEPS = [
     text: 'Arrive late? Hear a short recap, then tap a word when an old story comes up again.',
   },
   {
-    title: 'Burn',
-    text: "When you're done, the host burns the room and the conversation is deleted for everyone.",
+    title: 'Last Sip',
+    text: "When you're done, the host calls the last sip and the conversation is deleted for everyone.",
   },
 ]
 
