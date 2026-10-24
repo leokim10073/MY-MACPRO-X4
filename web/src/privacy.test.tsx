@@ -63,7 +63,7 @@ describe('storage guard', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(DONE_MS)
     })
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })

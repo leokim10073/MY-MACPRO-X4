@@ -142,7 +142,7 @@ describe('Burned screen', () => {
     // The closing plays over the frozen room (the card closes at once), then the clean slate.
     expect(screen.queryByRole('dialog')).toBeNull()
     await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(screen.queryByRole('dialog')).toBeNull()
     const text = document.body.textContent!
     expect(text.toLowerCase()).not.toContain('cake')

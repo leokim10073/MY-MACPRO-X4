@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Member, Room, RoomEvent } from '../../../shared/schema'
@@ -7,8 +8,8 @@ import { MockRoomClient } from '../room/mock/MockRoomClient'
 import type { RoomClient } from '../room/RoomClient'
 import { fixtureEvents } from '../room/testFixtures'
 
-// The clean-slate heading of today's BurnedScreen. Task 8 rewrites the screen to "Room burned.".
-const BURNED = 'This room has ended.'
+// The clean-slate heading of BurnedScreen.
+const BURNED = 'Room burned.'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -42,7 +43,7 @@ function fakeClient(opts: { host: boolean; burn?: () => Promise<void> }) {
         listener = () => {}
       }
     },
-    createRoom: async () => ({ room, self }),
+    createRoom: async (name) => ({ room, self: { ...self, name } }),
     joinRoom: async () => ({ room, self }),
     burn: opts.burn ?? (async () => {}),
     addLine: async () => {},
@@ -212,4 +213,71 @@ describe('Burn flow in the app', () => {
       expect(hasRoomClosed()).toBe(false)
     }
   })
+
+  it('Back home after a host burn shows Join with Create room and drops room= from the URL', async () => {
+    window.history.replaceState(null, '', '/play?room=demo&client=mock')
+    const second = fakeClient({ host: false }).client
+    const makeClient = vi.fn(() => second)
+    await joinWith(fakeClient({ host: true }).client, 'Create room', makeClient)
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    fireEvent.click(screen.getByRole('button', { name: 'Back home' }))
+    expect(makeClient).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Create room' })).toBeTruthy()
+    expect(window.location.search).not.toContain('room=')
+    expect(window.location.search).toContain('client=mock')
+    expect(window.location.pathname).toBe('/play')
+    window.history.replaceState(null, '', '/')
+  })
+
+  it('Start a new room creates once on a fresh client with the same nickname and shows the ritual', async () => {
+    const createRoom = newRoomCreator()
+    const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom }
+    const makeClient = vi.fn(() => fresh)
+    await joinWith(fakeClient({ host: true }).client, 'Create room', makeClient)
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Start a new room' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(makeClient).toHaveBeenCalledTimes(1)
+    expect(createRoom).toHaveBeenCalledTimes(1)
+    expect(createRoom).toHaveBeenCalledWith('Leo')
+    expect(screen.getByRole('button', { name: 'Enter room' })).toBeTruthy()
+    expect(text()).not.toContain(BURNED)
+  })
+
+  it('Start a new room creates exactly one room under StrictMode', async () => {
+    const createRoom = newRoomCreator()
+    const fresh: RoomClient = { ...fakeClient({ host: true }).client, createRoom }
+    render(
+      <StrictMode>
+        <App client={fakeClient({ host: true }).client} kind="mock" search="" makeClient={() => fresh} />
+      </StrictMode>,
+    )
+    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Create room' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
+    await tapBurn()
+    await advance(2900)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Start a new room' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(createRoom).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Enter room' })).toBeTruthy()
+  })
 })
+
+function newRoomCreator() {
+  return vi.fn(async (name: string) => ({
+    room: { id: 'r2', hostMemberId: 'm2', status: 'active' as const, inviteToken: 'r2', createdAt: 0, expiresAt: 1 },
+    self: { id: 'm2', roomId: 'r2', name, joinedAtSeq: 0, joinedAt: 0 },
+  }))
+}

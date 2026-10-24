@@ -77,7 +77,7 @@ describe('Convex path: late join and burn', () => {
     expect(screen.getByRole('button', { name: 'Room closed' })).toBeTruthy()
     expect(screen.queryByRole('dialog')).toBeNull()
     await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     const text = document.body.textContent ?? ''
     expect(text).not.toMatch(/kevin/i)
     expect(text).not.toMatch(/cake/i)
@@ -100,7 +100,7 @@ describe('storage guard on the Convex path', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
     await push({ status: 'burned', events: [] })
     await act(async () => void (await vi.advanceTimersByTimeAsync(DONE_MS)))
-    expect(screen.getByText('This room has ended.')).toBeTruthy()
+    expect(screen.getByText('Room burned.')).toBeTruthy()
     expect(setItem).toHaveBeenCalledTimes(0)
     expect(open).toHaveBeenCalledTimes(0)
   })

@@ -1089,3 +1089,72 @@ button.primary {
   display: block;
   pointer-events: none;
 }
+
+/* Burning Room: clean slate */
+.burned {
+  min-height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--br-charcoal);
+  color: var(--br-ivory);
+  text-align: center;
+}
+
+.burned h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.burned-lead {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.burned-note {
+  max-width: 320px;
+  margin: 0 0 32px;
+  color: var(--br-ash);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.burned-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.burned-primary,
+.burned-secondary {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.burned-primary {
+  border: 0;
+  background: var(--br-ember);
+  color: var(--br-charcoal);
+  font-weight: 600;
+}
+
+.burned-secondary {
+  border: 1px solid var(--br-ash);
+  background: transparent;
+  color: var(--br-ivory);
+}
+
+.burned-primary:focus-visible,
+.burned-secondary:focus-visible {
+  outline: 3px solid var(--br-gold);
+  outline-offset: 2px;
+}
