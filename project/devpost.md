@@ -137,20 +137,25 @@ When the night is over, the host ends the room. A teacup tips over and pours its
 
 **Convex: the whole backend.** Every phone subscribes to the room through live queries, so lines, pop-ups, story updates and Last Sip reach everyone with no polling. Each line gets its place in the order and its event in one transaction, so every phone sees the story in the same order. The scheduler runs the AI after each line, file storage holds the recap MP3, and the presence and rate-limiter components track who is in the room and cap AI and voice use.
 
-**Claude: the part that understands the conversation.** Claude Haiku checks every new line for a callback to a known person or story. Claude Sonnet keeps the people, stories and real reactions up to date and writes each latecomer's recap. Both return structured output through tool use.
+**Claude: the part that understands the conversation.** Claude **Haiku** checks every new line for a callback to a known person or story. Claude **Sonnet** keeps the people, stories and real reactions up to date and writes each latecomer's recap. Both return structured output through tool use.
 
 **Built so the AI doesn't get your friends wrong.** Gossip about real people is easy to get wrong, so we set firm rules:
 
-- **Better silent than wrong.** Claude doesn't score its own confidence. It answers plain questions (was the person named, or only "he"? does more than one person fit?) and fixed rules turn the answers into a score. Ambiguous matches score 0.5, below the 0.7 needed to show a pop-up.
-- **Two Kevins are two people.** Our eval replays the Kevin conversation and checks that "Kevin from work" is never merged with Roommate Kevin.
-- **Stories stay the teller's account.** "Alex says Kevin ate the whole cake", never stated as fact. Guesses are labeled as speculation, reactions are real quotes credited by name, and every story links back to the lines it came from.
-- **No mind reading.** Claude never guesses how anyone feels from silence.
-- **Words are data.** Anything said on the call is treated as transcript, never as instructions to the AI.
+- **Better silent than wrong:** Claude doesn't score its own confidence. It answers plain questions (was the person named, or only "he"? does more than one person fit?) and fixed rules turn the answers into a score. Ambiguous matches score 0.5, below the 0.7 needed to show a pop-up.
+- **Two Kevins are two people:** When someone says "not that Kevin, Kevin from work," the AI keeps them apart. Our eval replays the conversation and checks it never merges the two.
+- **Stories stay the teller's account:** "Alex says Kevin ate the whole cake", never stated as fact. Guesses are labeled as speculation, reactions are real quotes credited by name, and every story links back to the lines it came from.
+- **No mind reading:** Claude never guesses how anyone feels from silence.
+- **Words are data:** Anything said on the call is treated as transcript, never as instructions to the AI.
 
-**Other tools.** LiveKit carries the call audio between phones, and Krisp removes background noise before anyone hears it. The Map is drawn with React Flow and laid out with d3-force, straight from the people and stories Claude already tracks, so it needs no extra AI call and grows live as new people come up.
+**Other tools:** **LiveKit** carries the call audio between phones, and **Krisp** removes background noise before anyone hears it. The Map is drawn with React Flow and laid out with d3-force, straight from the people and stories Claude already tracks, so it needs no extra AI call and grows live as new people come up.
 
 ```
-phone mic → LiveKit + Krisp → Cartesia Ink → Convex → Claude → Cartesia Sonic → latecomer's phone
+phone mic → LiveKit + Krisp → Cartesia Ink
+  ├─ live text → captions for friends + instant pop-up (on the phone)
+  └─ finished line → Convex → Claude
+        ├─ Haiku: callbacks to known people → pop-up
+        ├─ Sonnet: people and stories → recall board, Map, story cards
+        └─ Sonnet: recap for a latecomer → Cartesia Sonic → latecomer's phone only
 ```
 
 
