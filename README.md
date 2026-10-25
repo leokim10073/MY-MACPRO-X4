@@ -2,15 +2,17 @@
 
 **Late to the call? We'll spill it!**
 
-A voice room for friends telling stories. Join late and you hear a 20-second spoken recap of what you missed. When old gossip comes back, a story card pops up before the sentence is even finished. When the night is over, **Last Sip** pours the tea out and deletes everything.
+A voice room for friends telling stories. Join late and you hear a 20-second spoken recap of what you missed. When old gossip comes back, a story card pops up before the sentence is even finished, and a live map shows who's who. When the night is over, **Last Sip** pours the tea out and deletes everything.
 
 **Live demo:** https://spill-the-tea-call.vercel.app (open it on two or more phones)
 
 ## What it does
 
-1. **Always-on call with live captions.** Everyone joins from their own phone, with no push-to-talk. Friends see your words appear while you're still talking.
-2. **Recap.** A latecomer hears a 20-second "previously on…" read by a neutral narrator, on their phone only. Friends keep talking, and their voices drop while it plays.
-3. **Recall.** When someone mentions a person or story you missed ("after the cake thing with Kevin…"), you get `Kevin · Cake · Airport · Landlord`. Tap a story to see what happened, as the teller told it, with friends' real reactions.
+Everyone joins an always-on call from their own phone, with no push-to-talk, and friends see your words appear while you're still talking. On top of that:
+
+1. **Recap.** A latecomer hears a 20-second "previously on…" read by a neutral narrator, on their phone only. Friends keep talking, and their voices drop while it plays.
+2. **Recall.** When someone mentions a person or story you missed ("after the cake thing with Kevin…"), you get `Kevin · Cake · Airport · Landlord`. Tap a story to see what happened, as the teller told it, with friends' real reactions. Everyone also shares a live recall board: who's being talked about, their stories, and what the group is on now.
+3. **Map.** Switch the board to **Map** for a live web of everyone being talked about. People who share stories are linked, and thicker lines mean more shared stories. It grows as new names come up. Tap a person for their stories, or a line for what two people have been through together.
 4. **Last Sip.** The host ends the room: the call ends for everyone, and the transcript, stories and recap audio are deleted.
 
 ## How it works
@@ -21,7 +23,8 @@ phone mic → LiveKit call (Krisp noise filter)
        turn.update → live captions + instant pop-up on the phone
        turn.end    → transcript line → Convex
                         → Claude Haiku: is this a callback? → recall pop-up
-                        → Claude Sonnet: people, stories, reactions → recap text
+                        → Claude Sonnet: people, stories, reactions → recall board, Map, story cards
+                        → Claude Sonnet: recap text for a latecomer
                         → Cartesia Sonic → recap MP3 → latecomer's phone only
 Convex live queries push every change to every phone.
 ```
@@ -57,6 +60,10 @@ All of the backend is in [`backend/convex/`](backend/convex). It uses:
 | Recap: at most 50 words, only what this person missed | Claude Sonnet | When someone joins late |
 
 Both return structured output through tool use. Claude doesn't score its own confidence: fixed rules turn its answers into a score, and ambiguous matches stay silent. Stories are framed as "Alex says…", reactions are real quotes credited by name, and transcript text is treated as data, never instructions.
+
+### Map
+
+[React Flow](https://reactflow.dev) and d3-force draw the Map straight from the people and stories Claude already tracks, so it needs no extra AI call. It refits the screen as new names come up, and once you drag or zoom, it stays where you put it. Code: [`web/src/graph/`](web/src/graph).
 
 ## Repo layout
 
