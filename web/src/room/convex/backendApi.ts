@@ -38,6 +38,11 @@ export const backendApi = {
       { lines: number; durationMs: number }
     >('replay:start'),
   },
+  call: {
+    callToken: makeFunctionReference<'action', { sessionToken: string }, { url: string; token: string }>(
+      'call:callToken',
+    ),
+  },
   voice: {
     sttToken: makeFunctionReference<'action', { sessionToken: string }, { token: string; expiresAt: number }>(
       'voice:sttToken',

@@ -97,6 +97,11 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     const token = await phone.voice.sttToken()
     expect(token.token.length).toBeGreaterThan(20)
     expect(token.expiresAt).toBeGreaterThan(Date.now())
+
+    // The always-on call: a LiveKit URL and a signed token for this room's call.
+    const call = await phone.voice.callToken!()
+    expect(call.url).toMatch(/^wss:\/\//)
+    expect(call.token.split('.')).toHaveLength(3)
     await phone.burn()
   })
 

@@ -11,7 +11,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/krisp-noise-filter": "0.4.5",
     "convex": "1.48.0",
+    "livekit-client": "2.22.4",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },

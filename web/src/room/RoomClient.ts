@@ -14,6 +14,8 @@ export interface VoiceTransport {
   addLine(text: string, at: number): Promise<void>
   /** A short-lived speech-to-text token; the Cartesia key stays on the server. */
   sttToken(): Promise<{ token: string; expiresAt: number }>
+  /** LiveKit URL and token for this room's voice call. Absent where there is no call (push-to-talk only). */
+  callToken?(): Promise<{ url: string; token: string }>
 }
 
 export interface RoomClient {

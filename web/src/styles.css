@@ -795,6 +795,73 @@ button {
   background: var(--gw-color-violet-ink);
 }
 
+/* Always-on voice call: people in the call, status, mute / leave, and the push-to-talk switch. */
+.call-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+}
+
+.call-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gw-space-1) var(--gw-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--gw-text);
+}
+
+.call-people li {
+  padding: 2px var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-raised);
+}
+
+.call-people li.is-speaking {
+  font-weight: 700;
+  border-color: var(--gw-color-violet-ink);
+}
+
+.call-muted,
+.call-status,
+.call-note {
+  color: var(--gw-text-muted);
+}
+
+.call-status,
+.call-note {
+  margin: 0;
+  font-size: 14px;
+}
+
+.call-buttons {
+  display: flex;
+  gap: var(--gw-space-2);
+  align-items: stretch;
+}
+
+.call-buttons .ptt {
+  flex: 1;
+}
+
+.call-switch {
+  align-self: center;
+  border: 0;
+  background: none;
+  color: var(--gw-text-muted);
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+/* A friend's words while they're still speaking; replaced by the real line. */
+.transcript li.line-live .text {
+  color: var(--gw-text-muted);
+  font-style: italic;
+}
+
 /* Dev-only typed line (?type=1) */
 .type-line {
   display: flex;

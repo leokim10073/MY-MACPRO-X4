@@ -6,9 +6,11 @@ interface Props {
   onDismiss: () => void
   collapsed?: boolean
   onExpand?: () => void
+  /** The narrated recap started or stopped playing (the call lowers friends' voices meanwhile). */
+  onPlayingChange?: (playing: boolean) => void
 }
 
-export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, onExpand }: Props) {
+export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, onExpand, onPlayingChange }: Props) {
   if (!isLatecomer) return null
 
   if (collapsed) {
@@ -34,7 +36,16 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
         <>
           {recap.audioUrl && (
             // Phones may block autoplay; the controls let the latecomer start it with a tap.
-            <audio className="recap-audio" src={recap.audioUrl} controls autoPlay preload="auto" />
+            <audio
+              className="recap-audio"
+              src={recap.audioUrl}
+              controls
+              autoPlay
+              preload="auto"
+              onPlay={() => onPlayingChange?.(true)}
+              onPause={() => onPlayingChange?.(false)}
+              onEnded={() => onPlayingChange?.(false)}
+            />
           )}
           <p className="recap-text">{recap.text}</p>
         </>
