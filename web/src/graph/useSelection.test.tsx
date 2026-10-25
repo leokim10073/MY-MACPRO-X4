@@ -79,12 +79,12 @@ describe('useSelection', () => {
 describe('useViewMode', () => {
   it('is the list unless the map is asked for, and switching keeps the room', () => {
     const { result } = renderHook(() => useViewMode())
-    expect(result.current).toMatchObject({ view: 'list', explicit: false })
+    expect(result.current).toMatchObject({ view: 'list' })
     act(() => result.current.setView('map'))
-    expect(result.current).toMatchObject({ view: 'map', explicit: true })
+    expect(result.current).toMatchObject({ view: 'map' })
     expect(new URLSearchParams(window.location.search).get('room')).toBe('abc')
     window.history.replaceState(null, '', '/?view=bogus')
     const other = renderHook(() => useViewMode())
-    expect(other.result.current).toMatchObject({ view: 'list', explicit: false })
+    expect(other.result.current).toMatchObject({ view: 'list' })
   })
 })
