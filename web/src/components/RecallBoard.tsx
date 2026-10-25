@@ -67,13 +67,20 @@ export default function RecallBoard({ storyState, recalls, self, latestSeq, capt
                     return (
                       <li key={s.id}>
                         <button type="button" className="recall-story" onClick={() => onOpenStory(s.id)}>
-                          <span className="recall-story-top">
-                            <span className="recall-story-keyword">{s.keyword}</span>
-                            {late && missedStory(self, s) && <span className="recall-story-missed">Before you joined</span>}
+                          <span className="recall-story-body">
+                            <span className="recall-story-top">
+                              <span className="recall-story-keyword">{s.keyword}</span>
+                              {late && missedStory(self, s) && (
+                                <span className="recall-story-missed">Before you joined</span>
+                              )}
+                            </span>
+                            <span className="recall-story-summary">
+                              {s.summary}
+                              {others.length > 0 && <span className="recall-story-with"> With {others.join(', ')}.</span>}
+                            </span>
                           </span>
-                          <span className="recall-story-summary">
-                            {s.summary}
-                            {others.length > 0 && <span className="recall-story-with"> With {others.join(', ')}.</span>}
+                          <span className="recall-story-more" aria-hidden="true">
+                            Details ›
                           </span>
                         </button>
                       </li>

@@ -58,6 +58,14 @@ describe('RoomScreen', () => {
     expect(screen.getByRole('list', { name: 'People and their stories' })).toBeTruthy()
   })
 
+  it('each story on the board says it opens the details', () => {
+    setup()
+    const board = screen.getByRole('list', { name: 'People and their stories' })
+    const stories = within(board).getAllByRole('button')
+    expect(stories.length).toBe(3)
+    for (const s of stories) expect(s.textContent).toContain('Details')
+  })
+
   it('shows the newest line as a one-line caption', () => {
     const { container } = setup()
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)

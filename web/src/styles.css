@@ -119,15 +119,28 @@ button {
 }
 
 .room-invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gw-space-2);
   margin: 0;
   padding: 0 var(--gw-space-4) var(--gw-space-2);
-  font-size: 14px;
-  overflow-wrap: anywhere;
 }
 
-.room-invite a {
-  color: var(--gw-color-violet-ink);
-  font-weight: 600;
+.room-invite-copy {
+  font-size: 14px;
+}
+
+.room-invite-url {
+  flex: 1;
+  min-width: 0;
+  padding: var(--gw-space-1) var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: inherit;
+  font-size: 13px;
 }
 
 /* Errors in the room (failed end): the shared gw-alert look, placed under the header. */
@@ -334,8 +347,8 @@ button {
 .recall-story {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: var(--gw-space-1);
+  align-items: center;
+  gap: var(--gw-space-2);
   padding: var(--gw-space-2) var(--gw-space-3);
   border: var(--gw-border-sm);
   border-radius: var(--gw-radius-md);
@@ -344,6 +357,21 @@ button {
   font: inherit;
   text-align: left;
   touch-action: manipulation;
+}
+
+.recall-story-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-1);
+}
+
+.recall-story-more {
+  flex: none;
+  color: var(--gw-color-violet-ink);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .recall-story-top {
@@ -704,7 +732,8 @@ button {
 /* People: speaker tile + everyone's illustrated avatars. */
 .room-stage {
   flex: none;
-  max-height: 120px;
+  /* Room for the avatar row's Host tag above and You tag below (see .stage-avatars). */
+  max-height: 140px;
   margin: var(--gw-space-3) var(--gw-space-3) var(--gw-space-1);
   padding: var(--gw-space-2) var(--gw-space-3);
   border: var(--gw-border-sm);
@@ -811,14 +840,16 @@ button {
   display: flex;
   gap: var(--gw-space-2);
   margin: 0;
-  padding: 4px 4px var(--gw-space-2);
+  /* A scrolling row clips what sticks out, so leave room for the Host tag above and You tag below. */
+  padding: 12px 4px 12px;
   overflow-x: auto;
   flex: 1;
   min-width: 0;
 }
 
 .room-stage.compact .stage-avatars {
-  padding-bottom: 4px;
+  /* Compact hides the Host and You tags, so the row goes back to its tight spacing. */
+  padding: 4px;
 }
 
 .avatar {

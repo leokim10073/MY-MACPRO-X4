@@ -25,6 +25,7 @@ import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
 import CallControls from '../components/CallControls'
+import CopyInvite from '../components/CopyInvite'
 import { useInstantRecalls } from '../recall/useInstantRecalls'
 import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
@@ -98,9 +99,8 @@ export default function RoomScreen({
   // No transport once closing: useVoice stops the mic.
   const voice = useVoice(isClosing ? undefined : transport, room, self, state)
   const call = useCall(isClosing ? undefined : transport, room, self, state)
-  // The call is the default when the backend offers one; push-to-talk stays as a switch.
-  const [usePtt, setUsePtt] = useState(false)
-  const callMode = call !== null && !usePtt
+  // The call is the only way to talk when the backend offers one; push-to-talk is left for the mock.
+  const callMode = call !== null
   const inTheCall = callMode && inCall(call)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmBurn, setConfirmBurn] = useState(false)
@@ -240,11 +240,7 @@ export default function RoomScreen({
             Start Kevin replay
           </button>
         )}
-        {inviteUrl && room.hostMemberId === self.id && (
-          <p className="room-invite">
-            Invite: <a href={inviteUrl}>{inviteUrl}</a>
-          </p>
-        )}
+        {inviteUrl && room.hostMemberId === self.id && <CopyInvite url={inviteUrl} />}
         <div className={isClosing ? 'room-board is-closing' : 'room-board'}>
           <div className="room-banner">
             {!recapDismissed && !isClosing && (
@@ -329,22 +325,9 @@ export default function RoomScreen({
                 Room closed
               </button>
             ) : callMode ? (
-              <CallControls
-                call={call}
-                onUsePushToTalk={() => {
-                  call.leave()
-                  setUsePtt(true)
-                }}
-              />
+              <CallControls call={call} />
             ) : (
-              <>
-                <PushToTalkButton onPressChange={voice?.press ?? noop} />
-                {call && (
-                  <button type="button" className="call-switch" onClick={() => setUsePtt(false)}>
-                    Use the voice call instead
-                  </button>
-                )}
-              </>
+              <PushToTalkButton onPressChange={voice?.press ?? noop} />
             )}
           </div>
         </div>

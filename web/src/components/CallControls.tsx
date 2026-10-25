@@ -3,8 +3,6 @@ import { inCall } from '../voice/useCall'
 
 interface Props {
   call: Call
-  /** Switch to push-to-talk; leaves the call first. */
-  onUsePushToTalk: () => void
 }
 
 // Shown before joining, at the moment of choice (the join screen's notice covers transcripts).
@@ -16,7 +14,7 @@ const STATUS: Partial<Record<Call['state']['status'], string>> = {
   reconnecting: 'Reconnecting…',
 }
 
-export default function CallControls({ call, onUsePushToTalk }: Props) {
+export default function CallControls({ call }: Props) {
   const { state } = call
   const joined = inCall(call)
 
@@ -38,7 +36,6 @@ export default function CallControls({ call, onUsePushToTalk }: Props) {
         </ul>
       )}
       {STATUS[state.status] && <p className="call-status">{STATUS[state.status]}</p>}
-      {joined && <p className="call-note">Keep this screen on during the call.</p>}
       {state.error && (
         <p role="alert" className="talk-error">
           {state.error}
@@ -66,9 +63,6 @@ export default function CallControls({ call, onUsePushToTalk }: Props) {
           </button>
         </>
       )}
-      <button type="button" className="call-switch" onClick={onUsePushToTalk}>
-        Use push-to-talk instead
-      </button>
     </div>
   )
 }
