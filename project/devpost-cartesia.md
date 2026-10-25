@@ -1,6 +1,6 @@
 # Devpost 草稿：Best Use of Cartesia
 
-只給 Cartesia track 用。依據：`project/cartesia.md` 和 `origin/main`（efe90cb）上的程式碼。
+只給 Cartesia track 用。依據：`project/cartesia.md`、`voice/` 的程式碼和測試紀錄（`voice/stage2-options.md` 的 Results、`voice/process.md`），以 `origin/main`（2984733）為準。
 標 ⚠️ 的地方要由你們補上。
 
 ---
@@ -38,75 +38,82 @@ We wanted the latecomer to get the missing context **back as voice**, in the sam
 
 ## What it does
 
-Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on call from their phone, and **Cartesia Ink** turns each phone's speech into lines under the right name, live, while people talk. On top of that, three things you won't find in a meeting tool:
+Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on call from their own phone, no push-to-talk. **Cartesia Ink** transcribes each phone as its owner speaks: friends see your words appear while you're still talking, and every finished turn becomes a line under your name. On top of that, three things you won't find in a meeting tool:
 
 ### 1. Recap: a 20-second "previously on…", spoken
 
-When someone joins late, **Cartesia Sonic** reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. Friends' voices duck while it plays, and **nobody else stops talking**. The latecomer can keep the phone in their pocket and their eyes on their friends.
+When someone joins late, **Cartesia Sonic** reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. It plays **only on the latecomer's phone**, never into the call. Friends' voices drop to 30% while it plays, and **nobody else stops talking**. The latecomer keeps their eyes on their friends, not on a screen.
 
 ### 2. Recall: story cards the moment old gossip comes back
 
-The callbacks keep coming after the recap. When someone who already came up is mentioned again, by name or vaguely ("he", "the roommate", "after the cake thing"), a pop-up shows **Kevin · Cake · Airport · Landlord**, one keyword per story, straight from the live Ink transcript. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. It only shows stories **you** missed.
+The callbacks keep coming after the recap. When Sam starts saying *"after the cake thing with Kevin…"*, a pop-up shows **Kevin · Cake · Airport · Landlord** **before Sam finishes the sentence**: the phone matches Ink's streaming text against the people and stories it already knows. Vague references ("he just texted", "the roommate") are caught a moment later, when the turn ends. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. It only shows stories **you** missed.
 
 ### 3. Last Sip: the tea gets poured out
 
-When the night is over, the host ends the room. A teacup tips over and pours its tea out, and the transcript, stories and recap audio are deleted on every phone. What's said over tea stays over tea.
+When the night is over, the host ends the room. A teacup tips over and pours its tea out, the call ends for everyone, and the transcript, stories and recap audio are deleted. What's said over tea stays over tea.
 
 Success isn't the latecomer reading a summary. It's the latecomer saying *"Wait, the WHOLE cake?"*
 
 ## How we built it
 
-**Voice is the product, and Cartesia is the voice.** Cartesia is both ends of the pipeline: Ink turns the call into text, and Sonic turns the catch-up back into voice.
+**Voice is the product, and Cartesia is both ends of it:** Ink turns the call into text, and Sonic turns the catch-up back into voice.
 
-| Cartesia feature | What it does for us |
+| Cartesia feature | How we use it |
 | --- | --- |
-| **Ink** (`ink-2`) streaming speech-to-text | Every phrase from every phone becomes a transcript line under the speaker's name. It's the only input everything else sees. |
-| **Ink turn detection** | The always-on call needs no button: Ink decides when a turn starts and ends. We raised `turn_start_threshold` to 0.8 so background noise starts fewer turns. |
-| **Ink keyterms** | Member names plus every person and alias mentioned so far ("Kevin", "the landlord") are sent as keyterms, so names stay spelled right as the story grows. |
-| **Short-lived STT tokens** | The phone gets a 120-second token from our backend. The API key never reaches the browser. |
-| **Sonic** (`sonic-3.6`) text-to-speech | Reads the recap aloud in a neutral narrator voice. The MP3 is stored on the backend and played on the latecomer's phone. |
+| **Ink** (`ink-2`) over the **turns WebSocket** | One long-lived connection per phone for the whole call. Streaming `turn.update` text powers the live captions and the mid-sentence pop-up; `turn.end` becomes a transcript line under the speaker's name. |
+| **Ink turn detection** | No button: Ink decides when each turn starts and ends. We raised `turn_start_threshold` to 0.8 so background chatter starts fewer turns. |
+| **Ink keyterms** | Member names plus every person and alias mentioned so far ("Kevin", "the landlord") are sent as keyterms, trimmed to Ink's limits (100 terms, 1,200 characters) and refreshed whenever the connection is renewed, so names stay spelled right as the story grows. |
+| **Access tokens** | The backend checks you're in a live room, then mints a 120-second token that only grants speech-to-text. The phone refreshes it before it expires. The API key never reaches the browser. |
+| **Sonic** (`sonic-3.6`, pinned to a dated snapshot) | Reads the recap as an MP3 in a neutral narrator voice: no emotion tags, no added sounds. Pinning the snapshot means the narrator can't change before the demo. |
 
 ```
-phone mic → AudioWorklet (16 kHz PCM16) → loudness gate → Cartesia Ink
-   → transcript → story tracking + recap text → Cartesia Sonic → latecomer's ear
+phone mic → LiveKit call (Krisp noise + background-voice filter)
+   → the same cleaned audio → 16 kHz PCM16 → loudness gate → Cartesia Ink (turns)
+        turn.update → live captions for friends + instant recall pop-up
+        turn.end    → transcript line → story tracking + recap text
+   → Cartesia Sonic → recap MP3 → plays on the latecomer's phone only
 ```
 
-What the other tools do, so Cartesia's part is clear: LiveKit carries the call audio between phones, Krisp removes background noise, Claude writes the recap text and spots callbacks, and Convex stores and syncs everything.
+Each phone transcribes **its own** mic. We considered one server-side "scribe" for the whole call, but per-phone transcription means every line is under the right name without speaker diarization, and Ink hears the same Krisp-cleaned audio friends hear.
 
-To test Ink without four people talking, we had **Sonic read our scripted Kevin conversation and streamed it into Ink** in real time. All six lines came back correct, names included. Opening a connection took 130–680 ms (about 350 ms on average; audio queues in the meantime), and releasing the button to getting text took about 134 ms on average.
+What the other tools do, so Cartesia's part is clear: LiveKit carries the call audio and live captions between phones, Krisp removes background noise, Claude writes the recap text and spots callbacks, and Convex stores and syncs everything.
+
+**Testing voice without a crowd.** We had **Sonic read our scripted Kevin conversation and streamed it into Ink** in real time. In our push-to-talk prototype all six lines came back correct, names included; opening a connection took 130–680 ms (about 350 ms on average, with audio queued meanwhile), and the final text arrived about 134 ms after the speaker let go.
 
 ## Challenges we ran into
 
-- **A hackathon venue is the worst place for an open mic.** Every phone hears every voice. We built a **loudness gate** that learns the phone owner's speaking level from their own turns and blocks quieter audio from neighbors before it reaches Ink. The threshold sits about 15 dB below the owner's level and moves at most 6 dB per turn, so one loud laugh can't break it.
-- **People talk over each other.** A turn splitter cuts my open turn when a friend jumps in, so the transcript keeps the real order.
-- **Long calls.** Tokens expire and sockets drop. The Ink connection reconnects with backoff (0.5 s → 10 s) and rotates every 10 minutes between turns with a fresh token and the latest keyterms.
-- **Storytelling pauses.** People pause mid-story, and early on one sentence got cut into many turns. Tuning Ink's turn thresholds fixed it.
-- **Phones.** iOS only allows audio from a direct tap, mics restart after the screen locks or you switch apps, and the mic needs HTTPS. We re-attach audio to the new mic track, hold a wake lock and show "Tap to resume" when the system needs a tap.
+- **Choosing who transcribes.** A single server-side scribe would hear everyone at once and have to guess who said what. Giving each phone its own Ink connection solved naming, but meant every phone had to manage its own tokens, reconnects and noise.
+- **A hackathon venue is the worst place for an open mic.** Every phone hears every voice. We stacked three layers before Ink: Krisp with background-voice cancellation, a raised turn-start threshold, and our own **loudness gate** that learns the owner's speaking level from their own turns and blocks quieter voices. The gate sits about 15 dB below the owner's level and moves at most 6 dB per turn, so one loud laugh can't break it.
+- **People talk over each other.** When a friend's line lands while my turn is still open, a turn splitter cuts my turn there, so the transcript keeps the real order instead of one long line that swallows the interruption.
+- **The recap must not leak into the call.** The narrator plays locally on the latecomer's phone and is never published to LiveKit, so friends don't hear it, and their voices are ducked while it plays.
+- **Long calls.** Tokens last 120 s and sockets drop. The Ink connection reconnects with backoff (0.5 s up to 10 s) and opens a fresh connection between turns every 10 minutes, with a new token and the latest keyterms.
+- **Phones.** iOS only starts audio from a direct tap and pauses the mic on lock or app switch, and the mic needs HTTPS. Joining happens inside the tap, audio is re-attached to the new mic track, and "Tap to resume" appears when the system needs it.
 
 ## Accomplishments that we're proud of
 
-- The whole loop runs live: voice → Ink transcript → spoken Sonic recap → recall pop-up → story card → Last Sip.
-- The recall pop-up appears the moment someone says "Kevin", straight from the live call text.
-- **Privacy by design.** Raw audio is never stored, only the transcript, and Last Sip deletes it along with the recap MP3. The API key never touches a phone.
+- **It works on real phones.** In our combined phone test, every turn landed under the right name with live text on every phone; two people talking at once gave separate lines; an interruption split the line in the right order; the recap ducked friends and they didn't hear it; and ending the room ended the call for everyone.
+- **The pop-up beats the sentence.** Because it reads Ink's streaming text, the latecomer sees Kevin's stories while Sam is still talking about him.
+- **Privacy by design.** Raw audio is never stored, only the transcript, and Last Sip deletes it with the recap MP3. Live captions go only to people in the call and aren't saved. The API key never touches a phone.
 - **Clear when it's listening.** A red dot on the Mute button shows whenever the mic is live, and everyone is told on entry that the conversation is transcribed.
 - **Accessible both ways.** The recap is spoken for anyone who can't look at a screen, and shown as text for anyone who can't listen.
 
 ## What we learned
 
-- Speech-to-text quality in a real room depends as much on **what you send** (gating, turn thresholds, keyterms) as on the model.
+- Speech-to-text quality in a real room depends as much on **what you send** (noise filtering, gating, turn thresholds, keyterms) as on the model.
+- Streaming partial text isn't just for captions. It made the recall pop-up feel instant, without an extra AI call.
 - Giving context back **as voice** feels completely different from a text summary. You can listen with the phone in your pocket and keep looking at your friends.
 - Using Sonic to generate test audio for Ink let us test the whole voice pipeline without a room full of people.
 
 ## What's next for Spill the Tea - Late to the call? We’ll spill it!
 
-- **More languages.** Ink and Sonic are English-only in our app for now.
-- **Pick the narrator.** Let the group choose the recap voice, or match the room's vibe.
-- **Faster recaps.** The audio takes a few seconds to generate, so the text shows first. We want to stream Sonic so the voice starts right away.
-- **Louder rooms.** Open mics can still catch a neighbor; earbuds help today, and we want the gate to handle it alone.
+- **Faster recaps.** The recap MP3 takes a few seconds to generate, so the text shows first. Streaming Sonic would let the narrator start talking right away.
+- **Harder rooms.** We haven't yet tested a stranger talking 1 m away, Wi-Fi loss, phone locks mid-call or calls past 12 minutes on real phones. Earbuds help in loud rooms today.
+- **More languages.** Ink and Sonic run in English only in our app for now.
+- **Pick the narrator.** Let the group choose the recap voice.
 - **Not just latecomers.** Recaps for anyone who stepped away for a few minutes.
 ```
 
-⚠️ 數字都來自 repo（`voice/src/config.ts`、`voice/process.md`）。如果有做五人 latecomer 測試，把實際結果加進 Accomplishments；沒測就不要寫。
+⚠️ 數字都來自 repo：`voice/src/config.ts`、`voice/process.md`（Ink latency）、`voice/stage2-options.md`（Results）。如果有做五人 latecomer 測試，把實際結果加進 Accomplishments；沒測就不要寫。
 
 ---
 
@@ -128,12 +135,12 @@ cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, react, v
 ## Project Media（3:2，例如 1500×1000，≤ 5 MB，最多 15 張）
 
 1. 封面圖：Spill the Tea + "Late to the call? We'll spill it!"
-2. 通話中：朋友的話由 Ink 即時變成灰字
+2. 通話中：朋友還在講，Ink 的即時字幕已經出現
 3. 晚到者聽 Sonic recap：recap banner + 播放中
-4. Recall pop-up：**Kevin · Cake · Airport · Landlord**（最重要的一張）
+4. Recall pop-up：**Kevin · Cake · Airport · Landlord**，最好拍到對方話還沒講完（最重要的一張）
 5. Story card：Cake 的內容 + Sam 的反應
 6. Last Sip 倒茶動畫
-7. 語音流程圖：mic → loudness gate → Ink → recap → Sonic
+7. 語音流程圖：mic → Krisp → loudness gate → Ink（turn.update / turn.end）→ recap → Sonic → 晚到者
 8. 隱私說明：Mute 上的紅點 / 入場告知 / 不存音訊
 
 技巧：手機截圖是直的，建議 2–3 支手機並排放在 3:2 的底圖上。
@@ -144,9 +151,11 @@ cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, react, v
 
 ⚠️ 還沒錄。Cartesia 要求 **2 分鐘、demo 優先**：
 
-1. **0:00–1:10 一整段流程，不放投影片。** 三個朋友在聊 Kevin。Taylor 晚到，聽到 Sonic 念的 20 秒 recap；Sam 說 "after the cake thing"，pop-up 跳出 `Kevin · Cake · Airport · Landlord`；Taylor 點 **Cake**，然後開口："Wait, the WHOLE cake?" 最後 host 結束房間，Last Sip 把茶倒掉。
+1. **0:00–1:10 一整段流程，不放投影片。** 三個朋友在聊 Kevin，字幕邊講邊出現。Taylor 晚到，聽到 Sonic 念的 20 秒 recap，其他人沒停下來；Sam 說 "after the cake thing with Kevin…"，話還沒講完 pop-up 就跳出 `Kevin · Cake · Airport · Landlord`；Taylor 點 **Cake**，然後開口："Wait, the WHOLE cake?" 最後 host 結束房間，Last Sip 把茶倒掉。
 2. **1:10–1:40 問題。** 語音沒有 scrollback，晚到的人只能打斷或沉默。
-3. **1:40–2:00 Cartesia 做了什麼。** Ink 把通話變成文字（turn detection、keyterms、loudness gate），Sonic 把 recap 變回聲音。
+3. **1:40–2:00 Cartesia 做了什麼。** Ink 的 turns WebSocket 讓通話不用按鈕、字幕即時、pop-up 比句子快；Sonic 把 recap 變回聲音，只給晚到的人聽。
+
+注意：句中即時 pop-up 只在講到**名字或別名**（Kevin）、或夠長的故事關鍵字（Airport，≥ 6 個字母）時觸發。只說 "after the cake thing" 不會即時跳，要等這句講完由 AI 抓到（`web/src/recall/instant.ts`）。所以台詞要帶 Kevin 的名字。
 
 上傳到 YouTube（Unlisted 或 Public 都能嵌入）。若用 replay 模式錄，影片裡要說明。
 
