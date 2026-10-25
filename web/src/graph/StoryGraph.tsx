@@ -4,6 +4,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useStore,
   type NodeChange,
   type NodeOrigin,
 } from '@xyflow/react'
@@ -114,18 +115,22 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
       }),
     )
   }
-  // Someone new is talked about: fit again so they aren't left off-screen, unless the user has already panned, zoomed
-  // or dragged, in which case the view is theirs and never moves on its own. (fitView waits for the new nodes' size.)
+  // Someone new is talked about, or the canvas changed size (it grows with the cast; a phone turns): fit again so nobody
+  // is left off-screen, unless the user has already panned, zoomed or dragged, in which case the view is theirs and
+  // never moves on its own. The size is React Flow's own measurement, so the fit uses the new size, not the old one.
+  // (fitView itself waits for new nodes to be measured.)
   const { fitView } = useReactFlow()
+  const size = useStore((s) => `${s.width}x${s.height}`)
   const userMoved = useRef(false)
   const castKey = useMemo(() => [...nodeIds].sort().join(' '), [nodeIds])
-  const fittedCast = useRef(castKey)
+  const fitted = useRef({ cast: castKey, size })
   useEffect(() => {
-    const before = new Set(fittedCast.current.split(' '))
-    fittedCast.current = castKey
-    const grew = castKey.split(' ').some((id) => !before.has(id))
-    if (grew && !userMoved.current) void fitView(fitViewOptions)
-  }, [castKey, fitView])
+    const before = fitted.current
+    fitted.current = { cast: castKey, size }
+    const known = new Set(before.cast.split(' '))
+    const grew = castKey.split(' ').some((id) => !known.has(id))
+    if ((grew || size !== before.size) && !userMoved.current) void fitView(fitViewOptions)
+  }, [castKey, size, fitView])
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CharacterNodeType>[]) => setNodes((ns) => applyNodeChanges(changes, ns)),
