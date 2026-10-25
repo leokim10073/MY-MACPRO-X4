@@ -10,7 +10,7 @@ import {
 import '@xyflow/react/dist/style.css'
 import { useCallback, useMemo, useState, type KeyboardEvent } from 'react'
 import CharacterNode, { type CharacterNodeType } from './CharacterNode'
-import RelationshipEdge, { type RelationshipEdgeType } from './RelationshipEdge'
+import RelationshipEdge, { pairLabel, type RelationshipEdgeType } from './RelationshipEdge'
 import { pairKey, type GraphModel } from './types'
 import type { Selection } from './useSelection'
 import { useStableLayout } from './useStableLayout'
@@ -95,13 +95,14 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
       source: e.source,
       target: e.target,
       type: 'relationship',
-      // The chip is the keyboard stop for an edge.
+      // The count badge is the keyboard stop for an edge; a one-story line is reached through the sheet.
       focusable: false,
-      ariaLabel: `${name(e.source)} and ${name(e.target)}`,
+      ariaLabel: pairLabel(name(e.source), name(e.target), e.weight),
       data: {
         ...e,
-        names: [name(e.source), name(e.target)],
+        label: pairLabel(name(e.source), name(e.target), e.weight),
         isSelected: e.id === selectedEdge,
+        isDimmed: false,
         onOpen: () => onSelect({ kind: 'edge', a: e.source, b: e.target }),
       },
     }))

@@ -46,20 +46,35 @@ describe('StoryGraph', () => {
     expect(onSelect).toHaveBeenLastCalledWith({ kind: 'node', id: 'aaron' })
   })
 
-  it('labels the pair with its newest story; the chip selects the edge', async () => {
+  it('shows only a count on a pair with 2+ stories; the badge selects the edge', async () => {
     const { onSelect } = graph()
     await act(async () => {})
-    const chip = screen.getByRole('button', { name: 'Aaron and Ricky: 2 stories, latest Texting' })
-    expect(chip.textContent).toBe('Texting2')
-    fireEvent.click(chip)
+    const badge = screen.getByRole('button', { name: 'Aaron and Ricky, 2 stories' })
+    expect(badge.textContent).toBe('2')
+    // No story titles anywhere on the canvas.
+    expect(document.querySelector('.graph-canvas')!.textContent).not.toMatch(/Coffee|Texting/)
+    fireEvent.click(badge)
     expect(onSelect).toHaveBeenCalledWith({ kind: 'edge', a: 'aaron', b: 'ricky' })
   })
 
-  it('keeps React Flow attribution and hides the lock control', async () => {
+  it('draws a one-story pair as a bare line, and caps big counts at 99+', async () => {
+    const one = deriveGraph(chars, [story('Coffee', ['ricky', 'aaron'], 1)])
+    graph(one)
+    await act(async () => {})
+    expect(document.querySelector('.graph-badge')).toBeNull()
+    expect(document.querySelector('.graph-canvas')!.textContent).not.toContain('Coffee')
+    cleanup()
+    graph(deriveGraph(chars, Array.from({ length: 120 }, (_, i) => story(`s${i}`, ['ricky', 'aaron'], i))))
+    await act(async () => {})
+    expect(document.querySelector('.graph-badge')!.textContent).toBe('99+')
+  })
+
+  it('keeps React Flow attribution; the only control is a fit button', async () => {
     graph()
     await act(async () => {})
     expect(document.querySelector('.react-flow__attribution')).toBeTruthy()
-    expect(document.querySelector('.react-flow__controls-interactive')).toBeNull()
+    expect(document.querySelector('.react-flow__controls')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Fit map to view' })).toBeTruthy()
     expect(localStorage.getItem('graph-layout:v1:r1')).toContain('ricky')
   })
 })

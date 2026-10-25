@@ -151,6 +151,45 @@
   stroke: var(--gw-color-violet);
 }
 
+/* Count badge: numbers only, from two stories up. A 40px target around a 20px circle (a pill from 10). */
+.graph-badge {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.graph-badge-face {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--gw-color-ink) 20%, transparent);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-color-card);
+  color: color-mix(in srgb, var(--gw-color-ink) 70%, transparent);
+  font: 600 12px/1 var(--gw-font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-badge-face.is-wide {
+  padding: 0 6px;
+}
+
+.graph-badge.is-selected .graph-badge-face {
+  border-color: var(--gw-color-violet);
+  background: var(--gw-color-violet);
+  color: var(--gw-color-white);
+}
+
 /* One fit button, desktop pointers only: 32px visible inside a 44px target. */
 .graph-fit-panel {
   margin: 0 8px 22px 0;
