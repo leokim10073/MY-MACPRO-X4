@@ -108,7 +108,7 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
         <main className="burned" aria-busy="true">
           <div className="burned-top" aria-hidden="true">
             <WindowLogo size={32} />
-            <span className="burned-brand">Gossip Window</span>
+            <span className="burned-brand">Spill the Tea</span>
           </div>
           <p role="status" className="sr-only">
             Creating room…

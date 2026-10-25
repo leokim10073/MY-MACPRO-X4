@@ -8,7 +8,7 @@ The official track description:
 
 > Agent, healthtech, fintech, hardware, or full-stack side project. Build it on Convex: database, functions, workflows, sync, search, and file storage in one TypeScript backend that updates live. Use real Convex features like live queries and components to win.
 
-How Gossip Window answers each part:
+How Spill the Tea answers each part:
 
 | The track asks for | What we built |
 | --- | --- |
@@ -52,7 +52,7 @@ None of this has a websocket server, cache or separate API server. It's Convex q
 
 ## Problem it solves (for us as builders)
 
-Gossip Window is a realtime, multi-device app with AI running in the background. Without Convex we'd need a database, a websocket layer, a job queue for AI calls, a cron runner and file storage. With Convex, four people built it in one weekend, each in their own folder, with one shared schema.
+Spill the Tea is a realtime, multi-device app with AI running in the background. Without Convex we'd need a database, a websocket layer, a job queue for AI calls, a cron runner and file storage. With Convex, four people built it in one weekend, each in their own folder, with one shared schema.
 
 ## How we use Convex
 

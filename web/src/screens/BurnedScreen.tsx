@@ -32,7 +32,7 @@ export default function BurnedScreen({ onNewRoom, onHome, isHost = true }: Props
     <main className="burned">
       <div className="burned-top">
         <WindowLogo size={32} />
-        <span className="burned-brand">Gossip Window</span>
+        <span className="burned-brand">Spill the Tea</span>
       </div>
       <div className="burned-card gw-panel">
         <LastSipCup size={150} mood="empty" />
