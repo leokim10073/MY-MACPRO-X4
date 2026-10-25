@@ -155,6 +155,57 @@ button {
   font-size: 13px;
 }
 
+/* Invite: the QR code over a dimmed room, so a friend nearby can scan the host's screen. */
+.invite-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gw-space-4);
+  background: rgb(41 36 61 / 55%);
+}
+
+.invite-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gw-space-3);
+  width: min(340px, 100%);
+  padding: var(--gw-space-4);
+  text-align: center;
+}
+
+.invite-sheet strong {
+  font: 600 20px var(--gw-font-display);
+}
+
+.invite-qr {
+  display: block;
+  width: min(260px, 100%);
+  height: auto;
+  border: var(--gw-border);
+  border-radius: var(--gw-radius-md);
+}
+
+.invite-status {
+  margin: 0;
+  color: var(--gw-text-muted);
+  font-size: 14px;
+}
+
+.invite-sheet .room-invite-url {
+  align-self: stretch;
+  flex: none;
+}
+
+.invite-done {
+  align-self: stretch;
+  min-height: 48px;
+  font-size: 15px;
+}
+
 /* Errors in the room (failed end): the shared gw-alert look, placed under the header. */
 .room > .error {
   flex: none;
