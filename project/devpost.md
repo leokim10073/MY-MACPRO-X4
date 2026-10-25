@@ -1,3 +1,94 @@
+# Devpost 投稿
+
+整個團隊只交這一份 Devpost project，所有 sponsor track 共用。依據：各 track 的檔案（例如 `cartesia.md`）、`voice/` 的程式碼和測試紀錄（`voice/stage2-options.md` 的 Results、`voice/process.md`）。
+標 ⚠️ 的地方要由你們補上。**About the project** 放在檔案最後，從那個標題下一行到檔尾整段直接貼進 Devpost。
+
+---
+
+## Project name
+
+```
+Spill the Tea - Late to the call? We’ll spill it!
+```
+
+## Elevator pitch（≤ 200 字元）
+
+```
+Not a meeting summary. Spill the Tea gives late friends a 20-second spoken recap, pops up story cards when old gossip resurfaces, and pours every word away at the Last Sip.
+```
+（172 字元）
+
+---
+
+⚠️ 數字都來自 repo：`voice/src/config.ts`、`voice/process.md`（Ink latency）、`voice/stage2-options.md`（Results）。如果有做五人 latecomer 測試，把實際結果加進 Accomplishments；沒測就不要寫。
+
+---
+
+## Built with（25 個以內）
+
+```
+cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-haiku, claude-sonnet, anthropic-api, react, vite, typescript, vitest, websockets, web-audio-api, audioworklet
+```
+
+---
+
+## "Try it out" links
+
+- GitHub：`https://github.com/leokim10073/MY-MACPRO-X4` ⚠️ 確認 repo 已公開，且沒有任何 key（Cartesia 等 track 要求 judges 能看到原始碼）
+- Live demo：`https://spill-the-tea-call.vercel.app`
+
+---
+
+## Project Media（3:2，例如 1500×1000，≤ 5 MB，最多 15 張）
+
+1. 封面圖：Spill the Tea + "Late to the call? We'll spill it!"
+2. 通話中：朋友還在講，Ink 的即時字幕已經出現
+3. 晚到者聽 Sonic recap：recap banner + 播放中
+4. Recall pop-up：**Kevin · Cake · Airport · Landlord**，最好拍到對方話還沒講完（最重要的一張）
+5. Story card：Cake 的內容 + Sam 的反應
+6. Last Sip 倒茶動畫
+7. 語音流程圖：mic → Krisp → loudness gate → Ink（turn.update / turn.end）→ recap → Sonic → 晚到者
+8. 隱私說明：Mute 上的紅點 / 入場告知 / 不存音訊
+
+技巧：手機截圖是直的，建議 2–3 支手機並排放在 3:2 的底圖上。
+
+---
+
+## Video demo link
+
+⚠️ 還沒錄。Cartesia 要求 **2 分鐘、demo 優先**：
+
+1. **0:00–1:10 一整段流程，不放投影片。** 三個朋友在聊 Kevin，字幕邊講邊出現。Taylor 晚到，聽到 Sonic 念的 20 秒 recap，其他人沒停下來；Sam 說 "after the cake thing with Kevin…"，話還沒講完 pop-up 就跳出 `Kevin · Cake · Airport · Landlord`；Taylor 點 **Cake**，然後開口："Wait, the WHOLE cake?" 最後 host 結束房間，Last Sip 把茶倒掉。
+2. **1:10–1:40 問題。** 語音沒有 scrollback，晚到的人只能打斷或沉默。
+3. **1:40–2:00 Cartesia 做了什麼。** Ink 的 turns WebSocket 讓通話不用按鈕、字幕即時、pop-up 比句子快；Sonic 把 recap 變回聲音，只給晚到的人聽。
+
+注意：句中即時 pop-up 只在講到**名字或別名**（Kevin）、或夠長的故事關鍵字（Airport，≥ 6 個字母）時觸發。只說 "after the cake thing" 不會即時跳，要等這句講完由 AI 抓到（`web/src/recall/instant.ts`）。所以台詞要帶 Kevin 的名字。
+
+上傳到 YouTube（Unlisted 或 Public 都能嵌入）。若用 replay 模式錄，影片裡要說明。
+
+---
+
+## Sponsor / Special Prizes
+
+```
+Meta, Cartesia, Convex, Anthropic, Microsoft Grand Prize, Microsoft Customer Impact Award, [MLH] Best Use of Gemini API, [MLH] Commit Fellowship Prize Category, [Creao AI] Best AI-First Disruptor, [Creao AI] Best Team Empowerment
+```
+（清單來自 `project/README.md`。Gemini 要等 AI 換成 Gemini 才能勾；Atlassian 只有做了 side project 才勾。）
+
+---
+
+## Additional info：Upload a File（≤ 35 MB）
+
+選填。建議放一個 zip：
+- `README.md`：setup、用到的 Cartesia 功能、已知限制（Cartesia 要求，repo 根目錄目前**還沒有 README**）
+- 語音流程圖
+
+不要放 `.env` 或任何 key。
+
+---
+
+## About the project（下一行到檔尾整段貼進 Markdown 欄位）
+
 ## Inspiration
 
 > You can scroll back a chat. You can't scroll back a conversation.
@@ -18,7 +109,7 @@ Spill the Tea is a voice room for friends telling stories. Everyone joins an alw
 
 ### 1. Recap: a 20-second "previously on…", spoken
 
-When someone joins late, **Cartesia Sonic** reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. It plays **only on the latecomer's phone**, never into the call. Friends' voices drop to 30% while it plays, and **nobody else stops talking**. The latecomer keeps their eyes on both the previous stories and the ongoing topics.
+When someone joins late, **Cartesia Sonic** reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. It plays **only on the latecomer's phone**, never into the call. Friends' voices drop to 30% while it plays, and **nobody else stops talking**. The latecomer hears what they missed while still following what's being said now.
 
 ### 2. Recall: story cards the moment old gossip comes back
 
@@ -81,7 +172,7 @@ What the other tools do, so Cartesia's part is clear: LiveKit carries the call a
 
 - An always-on mic means designing for **what you send**, not just the model: in a room where every phone hears every voice, noise filtering, gating, turn thresholds and keyterms all had to be planned before the first word reached Ink.
 - Streaming partial text isn't just for captions. It made the recall pop-up feel instant, without an extra AI call.
-- Giving context back **as voice** feels completely different from a text summary. You can listen with the phone in your pocket and keep looking at your friends.
+- Giving context back **as voice** feels completely different from a text summary. The recap catches you up by ear, so your eyes stay free for the call, and you only look down at a story card when you want the details.
 - Using Sonic to generate test audio for Ink let us test the whole voice pipeline without a room full of people.
 
 

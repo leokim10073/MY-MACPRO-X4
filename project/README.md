@@ -1,11 +1,11 @@
 # Track submissions
 
-One Devpost submission for **Spill the Tea**, entered into ten sponsor tracks. Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
+One Devpost submission for **Spill the Tea**, entered into ten sponsor tracks; the text to paste is in [devpost.md](devpost.md). Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
 
 | Track | File | Fit | What it needs beyond the shared submission |
 | --- | --- | --- | --- |
 | Meta: Bringing People Closer Together with AI | [meta.md](meta.md) | Strongest, main target | A rock-solid live demo |
-| Best Use of Cartesia | [cartesia.md](cartesia.md), Devpost draft [devpost-cartesia.md](devpost-cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
+| Best Use of Cartesia | [cartesia.md](cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
 | Best Use of Convex | [convex.md](convex.md) | Strong, the whole backend is Convex | A "How we use Convex" section |
 | Anthropic | [anthropic.md](anthropic.md) | Good, community needs naming | A named community, a real conversation with someone in it, Claude's failure modes |
 | Microsoft: Built for the Real World / Customer Impact Award | [microsoft.md](microsoft.md) | Weakest, social isn't a listed domain | Production path and measurable usefulness |
