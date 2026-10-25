@@ -108,7 +108,8 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
       laidOut.map((n) => {
         const live = nodes.find((o) => o.id === n.id)
         if (!live) return n
-        const layoutMoved = syncedFrom.find((o) => o.id === n.id)?.position !== n.position
+        // The node under the pointer always stays there, even if the cast changed and the layout was recomputed.
+        const layoutMoved = !live.dragging && syncedFrom.find((o) => o.id === n.id)?.position !== n.position
         return { ...live, ...n, position: layoutMoved ? n.position : live.position }
       }),
     )

@@ -122,6 +122,18 @@ describe('StoryGraph', () => {
       rerender(<StoryGraph roomId="r1" model={deriveGraph([...chars], [...model.storiesById.values()])} selection={{ kind: 'none' }} {...handlers} />)
     })
     expect(at()).toEqual([x1, y1])
+    // Someone new is talked about mid-drag: the layout is recomputed, and the dragged node still stays put.
+    await act(async () => {
+      rerender(
+        <StoryGraph
+          roomId="r1"
+          model={deriveGraph([...chars, { id: 'cass', name: 'Cass' }], [...model.storiesById.values(), story('Gym', ['cass', 'aaron'], 3)])}
+          selection={{ kind: 'none' }}
+          {...handlers}
+        />,
+      )
+    })
+    expect(at()).toEqual([x1, y1])
     // Held right at the canvas edge: the view stays put, so the node doesn't run off.
     await act(async () => {
       mouse('mousemove', win, 398, 130)
