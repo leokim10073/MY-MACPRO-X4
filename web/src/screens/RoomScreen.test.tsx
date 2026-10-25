@@ -66,6 +66,25 @@ describe('RoomScreen', () => {
     for (const s of stories) expect(s.textContent).toContain('Details')
   })
 
+  it('puts Copy invite next to Leave in the header, for the host only', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const hostRoom = { ...room, hostMemberId: 'm_alex' }
+    const alex = state.members.find((m) => m.id === 'm_alex')!
+    const url = 'https://gossip-window.vercel.app/?client=convex&room=abc'
+    const { container, unmount } = render(
+      <RoomScreen state={state} self={alex} room={hostRoom} onBurn={() => {}} inviteUrl={url} onLeave={() => {}} />,
+    )
+    const actions = container.querySelector('.room-header .room-header-actions')!
+    expect(within(actions as HTMLElement).getByRole('button', { name: 'Copy invite link' })).toBeTruthy()
+    expect(within(actions as HTMLElement).getByRole('button', { name: 'Leave' })).toBeTruthy()
+    expect(document.body.textContent).not.toContain(url)
+    unmount()
+
+    const sam = state.members.find((m) => m.id === 'm_sam')!
+    render(<RoomScreen state={state} self={sam} room={hostRoom} onBurn={() => {}} inviteUrl={url} onLeave={() => {}} />)
+    expect(screen.queryByRole('button', { name: 'Copy invite link' })).toBeNull()
+  })
+
   it('shows the newest line as a one-line caption', () => {
     const { container } = setup()
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)

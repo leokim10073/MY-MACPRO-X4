@@ -71,9 +71,10 @@ button {
 
 .room-header-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gw-space-3);
+  gap: var(--gw-space-2);
 }
 
 .room-brand {
@@ -112,6 +113,16 @@ button {
   align-items: center;
 }
 
+/* Copy invite (host only) and Leave, together on the right; they wrap below the title together on narrow screens. */
+.room-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--gw-space-2);
+  margin-left: auto;
+}
+
 .leave {
   min-height: 44px;
   padding: 0 var(--gw-space-4);
@@ -121,14 +132,21 @@ button {
 .room-invite {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--gw-space-2);
   margin: 0;
-  padding: 0 var(--gw-space-4) var(--gw-space-2);
 }
 
 .room-invite-copy {
-  font-size: 14px;
+  min-height: 44px;
+  padding: 0 var(--gw-space-3);
+  font-size: 15px;
+}
+
+/* With Invite beside it, Leave tightens up so both fit next to the title on a phone. */
+.room-header-actions .room-invite ~ .leave {
+  padding: 0 var(--gw-space-3);
 }
 
 .room-invite-url {
@@ -1015,30 +1033,9 @@ button {
   gap: var(--gw-space-2);
 }
 
-.call-people {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gw-space-1) var(--gw-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-  color: var(--gw-text);
-}
 
-.call-people li {
-  padding: 2px var(--gw-space-2);
-  border: var(--gw-border-sm);
-  border-radius: var(--gw-radius-md);
-  background: var(--gw-surface-raised);
-}
 
-.call-people li.is-speaking {
-  font-weight: 700;
-  border-color: var(--gw-color-violet-ink);
-}
 
-.call-muted,
 .call-status,
 .call-note {
   color: var(--gw-text-muted);
@@ -1050,15 +1047,7 @@ button {
   font-size: 14px;
 }
 
-.call-buttons {
-  display: flex;
-  gap: var(--gw-space-2);
-  align-items: stretch;
-}
 
-.call-buttons .ptt {
-  flex: 1;
-}
 
 .call-switch {
   align-self: center;
