@@ -3,6 +3,7 @@
 // The always-on call, with voice/'s LiveKit helpers replaced by fakes.
 
 import { convexTest } from "convex-test";
+import { withComponents } from "../testComponents";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import schema from "./schema";
@@ -29,7 +30,7 @@ afterEach(() => {
 });
 
 async function room() {
-  const t = convexTest(schema, modules);
+  const t = withComponents(convexTest(schema, modules));
   const host = await t.mutation(api.rooms.create, { name: "Alex" });
   return { t, host };
 }
@@ -78,7 +79,7 @@ describe("burn ends the call", () => {
   });
 
   test("endRoomCall hangs up through LiveKit, and does nothing without keys", async () => {
-    const t = convexTest(schema, modules);
+    const t = withComponents(convexTest(schema, modules));
     await t.action(internal.call.endRoomCall, { roomId: "room1" });
     expect(livekit.endCall).toHaveBeenCalledWith(
       { url: "wss://test.livekit.cloud", apiKey: "key", apiSecret: "secret" },

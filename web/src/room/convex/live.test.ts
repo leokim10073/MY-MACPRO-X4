@@ -105,6 +105,38 @@ describe.skipIf(!url)('ConvexRoomClient against a live backend', () => {
     await phone.burn()
   })
 
+  it('presence: a phone that closes the room shows offline to the others', async () => {
+    const host = new ConvexRoomClient(url!)
+    closers.push(() => host.dispose())
+    const offline: string[][] = []
+    host.onPresenceChange((ids) => offline.push(ids))
+    const { room } = await host.createRoom('Alex')
+
+    // Sam's phone, step by step: join, heartbeat, then the tab-close beacon's disconnect.
+    const raw = new ConvexClient(url!)
+    closers.push(() => void raw.close())
+    const sam = await raw.mutation(api.rooms.join, { inviteToken: room.inviteToken, name: 'Sam' })
+    const tokens = await raw.mutation(api.presence.heartbeat, {
+      sessionToken: sam.sessionToken,
+      sessionId: 'live-test',
+      interval: 15_000,
+    })
+    const people = await raw.query(api.presence.list, { roomToken: tokens.roomToken })
+    expect(people.find((p) => p.memberId === sam.member.id)?.online).toBe(true)
+
+    await raw.mutation(api.presence.disconnect, { presenceToken: tokens.presenceToken })
+    await new Promise<void>((resolve, reject) => {
+      const started = Date.now()
+      const tick = () => {
+        if (offline.some((ids) => ids.includes(sam.member.id))) return resolve()
+        if (Date.now() - started > 10_000) return reject(new Error('Sam never showed offline'))
+        setTimeout(tick, 50)
+      }
+      tick()
+    })
+    await host.burn()
+  })
+
   it('a host phone sees its own room and can burn it', async () => {
     const phone = new ConvexRoomClient(url!)
     closers.push(() => phone.dispose())

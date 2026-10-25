@@ -4,6 +4,7 @@
 // with a controllable scheduler, so replay and slow path timers run instantly.
 
 import { convexTest } from "convex-test";
+import { withComponents } from "../testComponents";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
@@ -16,7 +17,7 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 function setup() {
-  return convexTest(schema, modules);
+  return withComponents(convexTest(schema, modules));
 }
 type T = ReturnType<typeof setup>;
 

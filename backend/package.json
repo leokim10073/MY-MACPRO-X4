@@ -9,6 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@convex-dev/presence": "^0.4.0",
+    "@convex-dev/rate-limiter": "^0.4.2",
     "convex": "^1.48.0"
   },
   "devDependencies": {
