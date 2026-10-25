@@ -6,8 +6,8 @@ export type RelationshipEdgeType = Edge<
   'relationship'
 >
 
-/** Thicker for pairs who share more stories, capped so a busy pair doesn't swamp the map. */
-const widthFor = (weight: number) => 2 + Math.min(weight - 1, 4) * 1.5
+/** A little thicker for pairs who share more stories: 1 → 1.5px, 2–3 → 2px, 4+ → 2.5px. */
+const widthFor = (weight: number) => (weight >= 4 ? 2.5 : weight >= 2 ? 2 : 1.5)
 
 export default function RelationshipEdge({ id, sourceX, sourceY, targetX, targetY, data }: EdgeProps<RelationshipEdgeType>) {
   const [path, labelX, labelY] = getStraightPath({ sourceX, sourceY, targetX, targetY })
@@ -20,7 +20,7 @@ export default function RelationshipEdge({ id, sourceX, sourceY, targetX, target
         path={path}
         interactionWidth={28}
         className={data.isSelected ? 'graph-edge is-selected' : 'graph-edge'}
-        style={{ strokeWidth: widthFor(data.weight), strokeDasharray: data.isGroup ? '6 6' : undefined }}
+        style={{ strokeWidth: data.isSelected ? 2.5 : widthFor(data.weight) }}
       />
       <EdgeLabelRenderer>
         <button

@@ -1,9 +1,9 @@
 import {
   applyNodeChanges,
-  Background,
-  Controls,
+  Panel,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   type NodeChange,
   type NodeOrigin,
 } from '@xyflow/react'
@@ -21,7 +21,10 @@ const nodeTypes = { character: CharacterNode }
 const edgeTypes = { relationship: RelationshipEdge }
 // Layout positions are node centers.
 const nodeOrigin: NodeOrigin = [0.5, 0.5]
-const fitViewOptions = { padding: 0.2 }
+// Fit once after the first layout; a small cast never zooms past 1.
+const fitViewOptions = { padding: 0.3, maxZoom: 1 }
+/** The canvas grows with the cast instead of always taking most of the screen. */
+const heightFor = (people: number) => (people <= 3 ? 320 : people <= 6 ? 420 : 520)
 const storyCount = (n: number) => (n === 1 ? '1 story' : `${n} stories`)
 
 interface Props {
@@ -67,7 +70,7 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           id: c.id,
           type: 'character',
           position: positions[c.id],
-          data: { character: c, isSelected: c.id === selectedNode },
+          data: { character: c, isSelected: c.id === selectedNode, isDimmed: false },
           ariaRole: 'button',
           ariaLabel: `${c.name}, ${storyCount(model.storiesByCharacter.get(c.id)?.length ?? 0)}`,
         })),
@@ -114,7 +117,7 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
   }
 
   return (
-    <div className="graph-canvas" style={{ height: 'min(70vh, 560px)' }} onKeyDown={onKeyDown}>
+    <div className="graph-canvas" style={{ height: heightFor(model.characters.length) }} onKeyDown={onKeyDown}>
       {/* Laid out before paint, so fitView only ever runs once, on the real positions. */}
       {nodes.length > 0 && (
         <ReactFlow
@@ -135,10 +138,25 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           fitView
           fitViewOptions={fitViewOptions}
         >
-          <Background />
-          <Controls showInteractive={false} />
+          <Panel position="bottom-right" className="graph-fit-panel">
+            <FitButton />
+          </Panel>
         </ReactFlow>
       )}
     </div>
+  )
+}
+
+/** The only zoom control: desktop pointers get it, touch has pinch. Hidden on coarse pointers by CSS. */
+function FitButton() {
+  const { fitView } = useReactFlow()
+  return (
+    <button type="button" className="graph-fit" aria-label="Fit map to view" onClick={() => void fitView(fitViewOptions)}>
+      <span className="graph-fit-face" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+          <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" />
+        </svg>
+      </span>
+    </button>
   )
 }

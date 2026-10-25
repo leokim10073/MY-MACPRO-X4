@@ -98,83 +98,104 @@
   }
 }
 
-/* The map. */
+/* The map: people are the only loud things. Lines are quiet, and all words live in the sheet. */
 .graph-canvas {
   position: relative;
   width: 100%;
-  border: var(--gw-border-sm);
-  border-radius: var(--gw-radius-md);
-  background: var(--gw-surface-sunken);
-  overflow: hidden;
+  /* No frame: the canvas sits straight on the board's card. */
+  background: transparent;
+}
+
+.graph-canvas .react-flow {
+  --xy-background-color: transparent;
 }
 
 .graph-node {
   position: relative;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  cursor: pointer;
+  width: 56px;
+  height: 56px;
 }
 
-.graph-node.is-selected {
-  box-shadow: 0 0 0 4px var(--gw-color-violet);
+.graph-node-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .graph-node-name {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%);
-  max-width: 120px;
-  padding: 1px var(--gw-space-2);
-  border-radius: var(--gw-radius-pill);
-  background: var(--gw-surface-raised);
-  color: var(--gw-text);
-  font: 600 13px var(--gw-font-body);
+  max-width: 96px;
+  color: color-mix(in srgb, var(--gw-color-ink) 75%, transparent);
+  font: 600 13px/1.2 var(--gw-font-body);
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* A round focus ring around the avatar (the library positions this wrapper; nothing here transforms it). */
+.graph-canvas .react-flow__node-character {
+  border-radius: 50%;
+}
+
 .graph-edge {
-  stroke: var(--gw-text-muted);
+  stroke: color-mix(in srgb, var(--gw-color-ink) 25%, transparent);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .graph-edge.is-selected {
   stroke: var(--gw-color-violet);
 }
 
-.graph-edge-chip {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--gw-space-1);
-  max-width: 140px;
-  min-height: 28px;
-  padding: 0 var(--gw-space-2);
-  border: var(--gw-border-sm);
-  border-radius: var(--gw-radius-pill);
-  background: var(--gw-surface-raised);
-  color: var(--gw-text);
-  font: 600 12px var(--gw-font-body);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: all;
+/* One fit button, desktop pointers only: 32px visible inside a 44px target. */
+.graph-fit-panel {
+  margin: 0 8px 22px 0;
+}
+
+.graph-fit {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gw-color-ink);
   cursor: pointer;
 }
 
-.graph-edge-chip.is-selected {
-  background: var(--gw-action-primary);
-  color: var(--gw-action-on-primary);
+.graph-fit-face {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--gw-color-ink) 20%, transparent);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-color-card);
 }
 
-.graph-edge-count {
-  padding: 0 6px;
-  border-radius: var(--gw-radius-pill);
-  background: var(--gw-surface-secondary);
-  color: var(--gw-text);
-  font-size: 11px;
+@media (pointer: coarse) {
+  .graph-fit-panel {
+    display: none;
+  }
+}
+
+.graph-canvas .react-flow__attribution {
+  padding: 0 4px;
+  background: transparent;
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+@media (min-width: 640px) {
+  .graph-node {
+    width: 64px;
+    height: 64px;
+  }
 }
 
 .graph-empty {
