@@ -8,7 +8,6 @@ import type { AvatarLook } from '../components/art/Avatar'
 import WindowLogo from '../components/art/WindowLogo'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
-import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import ShhhBadge from '../components/ShhhBadge'
@@ -184,42 +183,36 @@ export default function RoomScreen({
             </div>
             <div className="room-header-actions">
               {inviteUrl && isHost && <CopyInvite url={inviteUrl} />}
+              {isHost ? (
+                !isClosing && (
+                  <div className="room-actions">
+                    <button
+                      type="button"
+                      className="burn"
+                      ref={burnControl}
+                      aria-describedby="last-sip-hint"
+                      onClick={() => {
+                        setBurnFailed(false)
+                        setConfirmBurn(true)
+                      }}
+                    >
+                      <LastSipCup size={24} mood="waiting" />
+                      Last Sip…
+                    </button>
+                    <span id="last-sip-hint" className="sr-only">
+                      End this room for everyone.
+                    </span>
+                  </div>
+                )
+              ) : (
+                <ShhhBadge />
+              )}
               {onLeave && (
                 <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
                   Leave
                 </button>
               )}
             </div>
-          </div>
-          <div className="room-header-sub">
-            <span className="room-count gw-chip">{state.members.length} here</span>
-            {!isClosing && (
-              <ListeningIndicator micLive={inTheCall ? call.state.isListening : voice?.state.isListening} />
-            )}
-            {isHost ? (
-              !isClosing && (
-                <div className="room-actions">
-                  <button
-                    type="button"
-                    className="burn"
-                    ref={burnControl}
-                    aria-describedby="last-sip-hint"
-                    onClick={() => {
-                      setBurnFailed(false)
-                      setConfirmBurn(true)
-                    }}
-                  >
-                    <LastSipCup size={24} mood="waiting" />
-                    Last Sip…
-                  </button>
-                  <span id="last-sip-hint" className="sr-only">
-                    End this room for everyone.
-                  </span>
-                </div>
-              )
-            ) : (
-              <ShhhBadge />
-            )}
           </div>
         </header>
         <ConnectionBanner status={connection} onRejoin={onRejoin} />
