@@ -1,0 +1,99 @@
+/* Relationship map: the details sheet, the map canvas and the Map | List switch. Same tokens as the rest of the room. */
+
+/* Details: a bottom sheet on phones, a drawer on the right from 640px. */
+.graph-sheet-scrim {
+  z-index: 30;
+}
+
+.graph-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-4);
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: var(--gw-space-5) var(--gw-space-4) calc(var(--gw-space-6) + env(safe-area-inset-bottom));
+  border: var(--gw-border);
+  border-bottom: 0;
+  border-radius: var(--gw-radius-lg) var(--gw-radius-lg) 0 0;
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+}
+
+.graph-sheet h2 {
+  margin: 0;
+  font: 600 22px/1.2 var(--gw-font-display);
+}
+
+.graph-sheet > section > h3 {
+  margin: 0 0 var(--gw-space-2);
+  color: var(--gw-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.graph-sheet-close {
+  position: absolute;
+  top: var(--gw-space-3);
+  right: var(--gw-space-3);
+  min-width: 44px;
+  font-size: 22px;
+}
+
+.graph-sheet-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-3);
+  padding-right: 52px;
+}
+
+.graph-sheet-pair {
+  display: inline-flex;
+}
+
+.graph-sheet-pair > :last-child {
+  margin-left: -12px;
+}
+
+.graph-sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+}
+
+.graph-sheet-teller {
+  color: var(--gw-text-muted);
+  font-size: 12px;
+}
+
+/* The room's StoryCard, opened inside the sheet. */
+.graph-sheet .story-card {
+  max-height: none;
+  margin-bottom: 0;
+}
+
+@media (min-width: 640px) {
+  .graph-sheet-scrim {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .graph-sheet {
+    width: min(420px, 90vw);
+    max-height: none;
+    height: 100%;
+    border: var(--gw-border);
+    border-right: 0;
+    border-radius: var(--gw-radius-lg) 0 0 var(--gw-radius-lg);
+    box-shadow: var(--gw-shadow-card);
+  }
+}
