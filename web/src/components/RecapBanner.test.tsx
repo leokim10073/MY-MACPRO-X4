@@ -16,13 +16,13 @@ afterEach(cleanup)
 describe('RecapBanner', () => {
   it('shows a loading message for a latecomer with no recap yet', () => {
     render(<RecapBanner recap={undefined} isLatecomer onDismiss={() => {}} />)
-    expect(screen.getByText('Catching you up…')).toBeTruthy()
+    expect(screen.getByText('Spilling the tea…')).toBeTruthy()
   })
 
   it('shows the recap text right away', () => {
     render(<RecapBanner recap={recap} isLatecomer onDismiss={() => {}} />)
     expect(screen.getByText(recap.text)).toBeTruthy()
-    expect(screen.queryByText('Catching you up…')).toBeNull()
+    expect(screen.queryByText('Spilling the tea…')).toBeNull()
   })
 
   it('renders nothing for a non-latecomer', () => {

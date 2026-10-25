@@ -158,7 +158,7 @@ describe('RoomScreen', () => {
     const { unmount } = render(
       <RoomScreen state={state} self={taylor} room={room} onBurn={() => {}} />,
     )
-    expect(screen.getByRole('region', { name: 'Catch-up' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'Spill the tea' })).toBeTruthy()
     expect(screen.getByText(recap.text)).toBeTruthy()
     unmount()
     render(
@@ -169,7 +169,7 @@ describe('RoomScreen', () => {
         onBurn={() => {}}
       />,
     )
-    expect(screen.queryByRole('region', { name: 'Catch-up' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Spill the tea' })).toBeNull()
   })
 
   it('collapses the recap banner while a story card is open', () => {
@@ -180,7 +180,7 @@ describe('RoomScreen', () => {
     expect(screen.getByText(recap.text)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Cake' }))
     expect(screen.queryByText(recap.text)).toBeNull()
-    const toggle = screen.getByRole('button', { name: 'Catch me up' })
+    const toggle = screen.getByRole('button', { name: 'Spill the tea' })
     fireEvent.click(toggle)
     expect(screen.getByText(recap.text)).toBeTruthy()
   })
