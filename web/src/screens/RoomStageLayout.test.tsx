@@ -50,14 +50,14 @@ describe('room stage on the room screen', () => {
     render(screenFor(state))
     expect(screen.getByText(/You're/).textContent).toBe("You're Taylor")
     expect(screen.getByText(`${state.members.length} in the room`)).toBeTruthy()
-    expect(screen.getByLabelText('Taylor (you)')).toBeTruthy()
+    expect(screen.getByLabelText('Taylor, you')).toBeTruthy()
   })
 
   it('highlights whoever said a new line, for the hold time', () => {
     const { rerender } = render(screenFor(stateFrom(upTo20)))
     expect(screen.queryByLabelText(/, speaking$/)).toBeNull()
     rerender(screenFor(stateFrom([...upTo20, line21])))
-    expect(screen.getByLabelText('Taylor (you), speaking')).toBeTruthy()
+    expect(screen.getByLabelText('Taylor, you, speaking')).toBeTruthy()
     act(() => vi.advanceTimersByTime(SPEAKING_HOLD_MS))
     expect(screen.queryByLabelText(/, speaking$/)).toBeNull()
     expect(screen.getByTestId('stage-speaker').textContent).toContain('last spoke')

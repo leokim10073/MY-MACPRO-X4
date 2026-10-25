@@ -29,13 +29,13 @@ export default function RecapBanner({
   if (collapsed) {
     return (
       <button type="button" className="recap-toggle" onClick={onExpand}>
-        Catch me up
+        Spill the tea
       </button>
     )
   }
 
   return (
-    <section className="recap-banner" aria-label="Catch-up">
+    <section className="recap-banner" aria-label="Spill the tea">
       <div className="recap-head">
         <div>
           <h2>Just joined?</h2>
@@ -63,7 +63,7 @@ export default function RecapBanner({
           <p className="recap-text">{recap.text}</p>
         </>
       ) : (
-        <p className="recap-text recap-loading" aria-live="polite">Catching you up…</p>
+        <p className="recap-text recap-loading" aria-live="polite">Spilling the tea…</p>
       )}
     </section>
   )

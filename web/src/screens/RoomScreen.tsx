@@ -28,6 +28,12 @@ import CopyInvite from '../components/CopyInvite'
 import { useInstantRecalls } from '../recall/useInstantRecalls'
 import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
+import DetailSheet from '../graph/DetailSheet'
+import MapPanel from '../graph/MapPanel'
+import ViewToggle from '../graph/ViewToggle'
+import { useGraphModel } from '../graph/useGraphModel'
+import { useSelection } from '../graph/useSelection'
+import { useViewMode } from '../graph/useViewMode'
 
 interface Props {
   state: RoomState
@@ -171,6 +177,10 @@ export default function RoomScreen({
     : lastLine
       ? { name: lastLine.speakerName, text: lastLine.text, live: false }
       : null
+  // The relationship map (POC): only offered once ?view= is in the address, so the room is unchanged without it.
+  const { view, explicit: offerMap, setView } = useViewMode()
+  const { selection, select, close: clearSelection } = useSelection()
+  const graph = useGraphModel(state.storyState, state.members)
 
   return (
     <>
@@ -268,14 +278,28 @@ export default function RoomScreen({
           />
           {/* The layout slot keeps its name; it now holds the shared recall board, not a transcript. */}
           <div className="room-transcript room-recalls">
-            <RecallBoard
-              storyState={state.storyState}
-              recalls={state.recalls}
-              self={self}
-              latestSeq={newest?.seq ?? 0}
-              caption={isClosing ? null : caption}
-              onOpenStory={openStoryCard}
-            />
+            {offerMap && <ViewToggle view={view} onChange={setView} />}
+            {offerMap && view === 'map' ? (
+              <MapPanel
+                roomId={room.id}
+                model={graph}
+                currentTopic={state.storyState?.currentTopic}
+                caption={isClosing ? null : caption}
+                selection={selection}
+                onSelect={select}
+                onClear={clearSelection}
+                onShowList={() => setView('list')}
+              />
+            ) : (
+              <RecallBoard
+                storyState={state.storyState}
+                recalls={state.recalls}
+                self={self}
+                latestSeq={newest?.seq ?? 0}
+                caption={isClosing ? null : caption}
+                onOpenStory={openStoryCard}
+              />
+            )}
           </div>
           <div className="room-popup-slot">
             {openStory ? (
@@ -334,6 +358,16 @@ export default function RoomScreen({
             )}
           </div>
         </div>
+        {!isClosing && (
+          <DetailSheet
+            model={graph}
+            selection={selection}
+            onSelect={select}
+            onClose={clearSelection}
+            people={state.storyState?.people ?? []}
+            self={self}
+          />
+        )}
       </main>
       {!entered && <EntryRitual onEnter={onEnter} />}
       {entered && ritualSeen && !exitDone && closing === null && (

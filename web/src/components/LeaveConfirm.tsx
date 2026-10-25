@@ -15,7 +15,7 @@ export default function LeaveConfirm({ isHost, onLeave, onStay }: Props) {
     <div className="leave-confirm gw-panel" role="alertdialog" aria-labelledby="leave-title" aria-describedby="leave-text">
       <strong id="leave-title">Leave this room?</strong>
       <p id="leave-text">
-        You can rejoin with the invite link, and you'll get a new catch-up.
+        You can rejoin with the invite link, and we'll spill the tea again.
         {isHost && " You're the host: if you leave, nobody else can end this room."}
       </p>
       <div className="leave-confirm-actions">

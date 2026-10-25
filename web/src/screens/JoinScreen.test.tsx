@@ -7,7 +7,7 @@ import type { JoinResult, RoomClient } from '../room/RoomClient'
 import { BackendError } from '../room/convex/callBackend'
 
 const AI_NOTICE =
-  "AI processes the conversation to create transcripts and catch-ups. Your voice becomes text as you talk; the recording isn't saved. The host can delete the conversation anytime."
+  "AI processes the conversation to create transcripts and recaps. Your voice becomes text as you talk; the recording isn't saved. The host can delete the conversation anytime."
 
 function fakeClient(): RoomClient {
   const self: Member = { id: 'm_self', roomId: 'r1', name: 'Leo', joinedAtSeq: 0, joinedAt: 0 }

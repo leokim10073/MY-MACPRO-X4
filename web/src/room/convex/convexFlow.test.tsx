@@ -52,7 +52,7 @@ describe('Convex path: late join and burn', () => {
     expect(sub).toBeDefined()
 
     await push({ status: 'active', events: upToR2.filter((r) => r.eventSeq <= 28) })
-    const banner = screen.getByRole('region', { name: 'Catch-up' })
+    const banner = screen.getByRole('region', { name: 'Spill the tea' })
     expect(banner.textContent).toContain(recapRow.recap.text)
 
     // A recap for someone else (uptoSeq 12, different id) is ignored.
@@ -63,7 +63,7 @@ describe('Convex path: late join and burn', () => {
     })
     expect(document.body.textContent).not.toContain(other.text)
     expect(document.body.textContent).toContain(recapRow.recap.text)
-    expect(screen.getAllByRole('region', { name: 'Catch-up' })).toHaveLength(1)
+    expect(screen.getAllByRole('region', { name: 'Spill the tea' })).toHaveLength(1)
 
     // r1 and r2 are in: the pop-up shows Kevin.
     expect(screen.getByRole('region', { name: 'Mentioned again' }).textContent).toContain('Kevin')

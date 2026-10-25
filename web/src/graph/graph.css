@@ -1,0 +1,300 @@
+/* Relationship map: the details sheet, the map canvas and the Map | List switch. Same tokens as the rest of the room. */
+
+/* Details: a bottom sheet on phones, a drawer on the right from 640px. */
+.graph-sheet-scrim {
+  z-index: 30;
+}
+
+.graph-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-4);
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: var(--gw-space-5) var(--gw-space-4) calc(var(--gw-space-6) + env(safe-area-inset-bottom));
+  border: var(--gw-border);
+  border-bottom: 0;
+  border-radius: var(--gw-radius-lg) var(--gw-radius-lg) 0 0;
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+}
+
+.graph-sheet-head h2 {
+  margin: 0;
+  font: 600 22px/1.2 var(--gw-font-display);
+}
+
+.graph-sheet > section > h3 {
+  margin: 0 0 var(--gw-space-2);
+  color: var(--gw-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.graph-sheet-close {
+  position: absolute;
+  top: var(--gw-space-3);
+  right: var(--gw-space-3);
+  min-width: 44px;
+  font-size: 22px;
+}
+
+.graph-sheet-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-3);
+  padding-right: 52px;
+}
+
+.graph-sheet-pair {
+  display: inline-flex;
+}
+
+.graph-sheet-pair > :last-child {
+  margin-left: -12px;
+}
+
+.graph-sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-2);
+}
+
+.graph-sheet-teller {
+  color: var(--gw-text-muted);
+  font-size: 12px;
+}
+
+/* The room's StoryCard, opened inside the sheet. */
+.graph-sheet .story-card {
+  max-height: none;
+  margin-bottom: 0;
+}
+
+@media (min-width: 640px) {
+  .graph-sheet-scrim {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .graph-sheet {
+    width: min(420px, 90vw);
+    max-height: none;
+    height: 100%;
+    border: var(--gw-border);
+    border-right: 0;
+    border-radius: var(--gw-radius-lg) 0 0 var(--gw-radius-lg);
+    box-shadow: var(--gw-shadow-card);
+  }
+}
+
+/* The map: people are the only loud things. Lines are quiet, and all words live in the sheet. */
+.graph-canvas {
+  position: relative;
+  /* Its height is set by cast size; the board's flex column must not squeeze it. */
+  flex: none;
+  width: 100%;
+  /* No frame: the canvas sits straight on the board's card. */
+  background: transparent;
+}
+
+.graph-canvas .react-flow {
+  --xy-background-color: transparent;
+}
+
+.graph-node {
+  position: relative;
+  isolation: isolate;
+  width: 56px;
+  height: 56px;
+}
+
+.graph-node-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.graph-node-name {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 96px;
+  color: color-mix(in srgb, var(--gw-color-ink) 75%, transparent);
+  font: 600 13px/1.2 var(--gw-font-body);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Selected: a soft accent halo behind the avatar, distinct from the focus ring. */
+.graph-node.is-selected::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--gw-color-violet) 22%, transparent);
+}
+
+.graph-node.is-dimmed,
+.graph-edge.is-dimmed,
+.graph-badge.is-dimmed {
+  opacity: 0.3;
+}
+
+/* A round focus ring around the avatar (the library positions this wrapper; nothing here transforms it). */
+.graph-canvas .react-flow__node-character {
+  border-radius: 50%;
+}
+
+.graph-edge {
+  stroke: color-mix(in srgb, var(--gw-color-ink) 25%, transparent);
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.graph-edge.is-selected {
+  stroke: var(--gw-color-violet);
+}
+
+/* Count badge: numbers only, from two stories up. A 40px target around a 20px circle (a pill from 10). */
+.graph-badge {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.graph-badge-face {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--gw-color-ink) 20%, transparent);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-color-card);
+  color: color-mix(in srgb, var(--gw-color-ink) 70%, transparent);
+  font: 600 12px/1 var(--gw-font-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.graph-badge-face.is-wide {
+  padding: 0 6px;
+}
+
+.graph-badge.is-selected .graph-badge-face {
+  border-color: var(--gw-color-violet);
+  background: var(--gw-color-violet);
+  color: var(--gw-color-white);
+}
+
+/* One fit button, desktop pointers only: 32px visible inside a 44px target. */
+.graph-fit-panel {
+  margin: 0 8px 22px 0;
+}
+
+.graph-fit {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--gw-color-ink);
+  cursor: pointer;
+}
+
+.graph-fit-face {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--gw-color-ink) 20%, transparent);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-color-card);
+}
+
+@media (pointer: coarse) {
+  .graph-fit-panel {
+    display: none;
+  }
+}
+
+.graph-canvas .react-flow__attribution {
+  padding: 0 4px;
+  background: transparent;
+  font-size: 10px;
+  opacity: 0.4;
+}
+
+@media (min-width: 640px) {
+  .graph-node {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+.graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gw-space-3);
+  min-height: 200px;
+  color: var(--gw-text-muted);
+  text-align: center;
+}
+
+.graph-empty p {
+  margin: 0;
+}
+
+/* Map | List: a two-button segmented switch above the board. */
+.graph-view-toggle {
+  align-self: center;
+  display: inline-flex;
+  margin: var(--gw-space-2) 0 0;
+  padding: 2px;
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-secondary);
+}
+
+.graph-view-toggle button {
+  min-width: 52px;
+  min-height: 28px;
+  padding: 0 var(--gw-space-3);
+  border: 0;
+  border-radius: var(--gw-radius-pill);
+  background: transparent;
+  color: var(--gw-text-muted);
+  font: 600 13px var(--gw-font-body);
+  cursor: pointer;
+}
+
+.graph-view-toggle button[aria-pressed='true'] {
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+}
