@@ -69,7 +69,9 @@ export function usePopup(state: RoomState, self: Member, opts: Options = {}) {
     setOpenStoryId(storyId)
   }, [dispatch])
   const closeStory = useCallback(() => setOpenStoryId(null), [])
+  /** Opens a story card from the recall board; the pop-up, if any, is left as it is. */
+  const openStory = useCallback((storyId: Id) => setOpenStoryId(storyId), [])
 
   const popup: VisiblePopup | null = popupState.visible
-  return { popup, dismiss, tapChip, openStoryId, closeStory }
+  return { popup, dismiss, tapChip, openStoryId, openStory, closeStory }
 }

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Room } from '../../../shared/schema'
 import { initialRoomState, roomReducer } from '../room/state'
@@ -23,13 +23,46 @@ function setup() {
 afterEach(cleanup)
 
 describe('RoomScreen', () => {
-  it('shows only lines after the latecomer joined', () => {
+  it('shows the recall board instead of a transcript: people, their stories in short, and what is on now', () => {
     setup()
-    const items = screen.getAllByRole('listitem')
-    expect(items.length).toBe(5)
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)
-    expect(items[0].textContent).toContain(state.lines[16].text)
+    const board = screen.getByRole('list', { name: 'People and their stories' })
+    expect(board.textContent).toContain('Kevin')
+    for (const s of state.storyState!.stories) {
+      expect(within(board).getByRole('button', { name: new RegExp(s.keyword) })).toBeTruthy()
+      expect(board.textContent).toContain(s.summary)
+    }
+    expect(document.body.textContent).toContain(state.storyState!.currentTopic)
+    // No transcript: an early line isn't listed anywhere.
     expect(screen.queryByText(state.lines[0].text, { exact: false })).toBeNull()
+  })
+
+  it('everyone sees the board; a latecomer also sees which stories came before they joined', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const { container, unmount } = setup()
+    expect(container.querySelectorAll('.recall-story-missed').length).toBe(3)
+    unmount()
+    const alex = state.members.find((m) => m.id === 'm_alex')!
+    const early = render(<RoomScreen state={state} self={alex} room={room} onBurn={() => {}} />)
+    expect(screen.getByRole('list', { name: 'People and their stories' }).textContent).toContain('Kevin')
+    expect(early.container.querySelectorAll('.recall-story-missed').length).toBe(0)
+  })
+
+  it('opens a story card from the board, and the board is still there after closing it', () => {
+    setup()
+    const board = screen.getByRole('list', { name: 'People and their stories' })
+    fireEvent.click(within(board).getByRole('button', { name: /^Airport/ }))
+    expect(document.querySelector('.story-card')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /close/i }))
+    expect(document.querySelector('.story-card')).toBeNull()
+    expect(screen.getByRole('list', { name: 'People and their stories' })).toBeTruthy()
+  })
+
+  it('shows the newest line as a one-line caption', () => {
+    const { container } = setup()
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    const newest = state.lines.at(-1)!
+    expect(container.querySelector('.recall-caption')?.textContent).toContain(newest.text)
   })
 
   it('shows the Listening indicator while active', () => {
@@ -60,7 +93,7 @@ describe('RoomScreen', () => {
         onBurn={() => {}}
       />,
     )
-    expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
+    expect(screen.getByText('Stories will show up here as people tell them.')).toBeTruthy()
   })
 
   it('shows the recap for a latecomer and none for an on-time member', () => {

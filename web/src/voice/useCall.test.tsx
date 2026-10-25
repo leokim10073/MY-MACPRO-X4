@@ -172,7 +172,7 @@ describe('the call on the room screen', () => {
     expect(mic.leave).toHaveBeenCalled()
   })
 
-  it("shows friends' words while they speak, but not my own as a transcript line", () => {
+  it("shows a friend's words as the live caption while they speak, and my own under the dock", () => {
     const { container } = render(roomScreen())
     const mic = made.at(-1)!
     act(() =>
@@ -182,10 +182,10 @@ describe('the call on the room screen', () => {
         preview: 'me talking',
       }),
     )
-    const live = container.querySelectorAll('.line-live')
-    expect(live).toHaveLength(1)
-    expect(live[0].textContent).toContain('Sam')
-    expect(live[0].textContent).toContain('so Kevin ate the')
+    const caption = container.querySelector('.recall-caption.is-live')
+    expect(caption?.textContent).toContain('Sam')
+    expect(caption?.textContent).toContain('so Kevin ate the')
+    expect(caption?.textContent).not.toContain('me talking')
     expect(container.querySelector('.talk-preview')?.textContent).toBe('me talking')
   })
 

@@ -138,7 +138,7 @@ describe('Leave in the app', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     expect(await screen.findByRole('button', { name: 'Leave' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
-    expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
+    expect(screen.getByText('Stories will show up here as people tell them.')).toBeTruthy()
   })
 
   it('with the Convex client: tells the backend, closes the connection and never calls rooms:burn', async () => {

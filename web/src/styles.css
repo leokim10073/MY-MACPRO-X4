@@ -249,6 +249,151 @@ button {
   padding: var(--gw-space-2) var(--gw-space-3) var(--gw-space-5);
 }
 
+/* Recall board: everyone's shared view of who is talked about and their stories (replaces the transcript). */
+.recall-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recall-board-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gw-space-3) var(--gw-space-3) var(--gw-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-3);
+}
+
+.recall-board-now {
+  margin: 0;
+  font-size: 14px;
+  color: var(--gw-text);
+}
+
+.recall-board-now-label {
+  margin-right: var(--gw-space-1);
+  color: var(--gw-color-violet-ink);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recall-board-empty {
+  margin: auto 0;
+  text-align: center;
+  color: var(--gw-text-muted);
+}
+
+.recall-board-people,
+.recall-person-stories {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.recall-board-people {
+  gap: var(--gw-space-4);
+}
+
+.recall-person-stories {
+  gap: var(--gw-space-2);
+}
+
+.recall-person-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-2);
+  margin-bottom: var(--gw-space-2);
+}
+
+.recall-person-name {
+  font-family: var(--gw-font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.recall-person-badge,
+.recall-story-missed {
+  padding: 1px var(--gw-space-2);
+  border-radius: var(--gw-radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recall-person-badge {
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+}
+
+.recall-story {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-1);
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
+  color: var(--gw-text);
+  font: inherit;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.recall-story-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-2);
+}
+
+.recall-story-keyword {
+  font-weight: 700;
+}
+
+.recall-story-missed {
+  border: var(--gw-border-sm);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text-muted);
+}
+
+.recall-story-summary {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.recall-story-with {
+  color: var(--gw-text-muted);
+}
+
+/* One caption at the bottom: what is being said right now, or the newest line. */
+.recall-caption {
+  margin: 0;
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border-top: var(--gw-border-sm);
+  font-size: 14px;
+  color: var(--gw-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recall-caption.is-live {
+  font-style: italic;
+}
+
+.recall-caption-name {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--gw-text);
+}
+
 .transcript ol {
   list-style: none;
   margin: 0;
@@ -396,6 +541,9 @@ button {
 }
 
 .recall-dismiss {
+  position: relative;
+  display: grid;
+  place-items: center;
   min-width: 44px;
   min-height: 44px;
   margin-left: auto;
@@ -403,6 +551,40 @@ button {
   background: none;
   color: inherit;
   font-size: 22px;
+}
+
+/* Countdown ring around ×, drained over RECALL_CHIP_TIMEOUT_MS (duration set inline). */
+.recall-countdown {
+  position: absolute;
+  inset: 4px;
+  width: 36px;
+  height: 36px;
+  transform: rotate(-90deg);
+}
+
+.recall-countdown-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--gw-color-violet-ink) 25%, transparent);
+  stroke-width: 3;
+}
+
+.recall-countdown-ring {
+  fill: none;
+  stroke: var(--gw-color-violet-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  /* pathLength="100": the ring is 100 units long whatever its size. */
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  animation-name: recall-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes recall-countdown {
+  to {
+    stroke-dashoffset: 100;
+  }
 }
 
 .recall-chips {
@@ -935,7 +1117,8 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .listening-dot,
   .recap-loading,
-  .recall-popup {
+  .recall-popup,
+  .recall-countdown-ring {
     animation: none;
   }
 

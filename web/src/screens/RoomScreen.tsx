@@ -12,7 +12,7 @@ import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import ShhhBadge from '../components/ShhhBadge'
-import Transcript from '../components/Transcript'
+import RecallBoard, { type Caption } from '../components/RecallBoard'
 import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
@@ -25,7 +25,6 @@ import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
 import CallControls from '../components/CallControls'
-import type { LiveLine } from '../components/Transcript'
 import { useInstantRecalls } from '../recall/useInstantRecalls'
 import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
@@ -144,7 +143,7 @@ export default function RoomScreen({
     () => (instantRecalls.length > 0 ? { ...state, recalls: [...state.recalls, ...instantRecalls] } : state),
     [state, instantRecalls],
   )
-  const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(popupInput, self)
+  const { popup, dismiss, tapChip, openStoryId, openStory: openStoryCard, closeStory } = usePopup(popupInput, self)
   const shownPopup = isClosing ? null : popup
   const popupPerson = shownPopup ? personById(state, shownPopup.personId) : undefined
   const openStory = openStoryId && !isClosing ? storiesById(state).get(openStoryId) : undefined
@@ -161,11 +160,15 @@ export default function RoomScreen({
   const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
   const nameOf = (id: string) =>
     state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
-  const liveLines: LiveLine[] = inTheCall
-    ? Object.entries(call.state.live)
-        .filter(([id, l]) => id !== self.id && l.text.trim())
-        .map(([id, l]) => ({ id, name: nameOf(id), text: l.text }))
-    : []
+  // One caption instead of a transcript: a friend's words right now (in the call), else the newest line.
+  const liveNow = inTheCall
+    ? Object.entries(call.state.live).find(([id, l]) => id !== self.id && l.text.trim())
+    : undefined
+  const caption: Caption | null = liveNow
+    ? { name: nameOf(liveNow[0]), text: liveNow[1].text, live: true }
+    : lastLine
+      ? { name: lastLine.speakerName, text: lastLine.text, live: false }
+      : null
 
   return (
     <>
@@ -264,8 +267,16 @@ export default function RoomScreen({
             selfLook={selfAvatar}
             hostId={room.hostMemberId}
           />
-          <div className="room-transcript">
-            <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} live={liveLines} />
+          {/* The layout slot keeps its name; it now holds the shared recall board, not a transcript. */}
+          <div className="room-transcript room-recalls">
+            <RecallBoard
+              storyState={state.storyState}
+              recalls={state.recalls}
+              self={self}
+              latestSeq={newest?.seq ?? 0}
+              caption={isClosing ? null : caption}
+              onOpenStory={openStoryCard}
+            />
           </div>
           <div className="room-popup-slot">
             {openStory ? (
