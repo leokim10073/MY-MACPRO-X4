@@ -740,8 +740,8 @@ button {
 /* People: speaker tile + everyone's illustrated avatars. */
 .room-stage {
   flex: none;
-  /* Room for the avatar row's Host tag above and You tag below (see .stage-avatars). */
-  max-height: 140px;
+  /* Room for the avatar row's Host tag above and the name line below (see .stage-avatars). */
+  max-height: 150px;
   margin: var(--gw-space-3) var(--gw-space-3) var(--gw-space-1);
   padding: var(--gw-space-2) var(--gw-space-3);
   border: var(--gw-border-sm);
@@ -752,7 +752,7 @@ button {
 }
 
 .room-stage.compact {
-  max-height: 56px;
+  max-height: 74px;
   padding: var(--gw-space-1) var(--gw-space-2);
 }
 
@@ -835,7 +835,8 @@ button {
 
 .stage-row {
   display: flex;
-  align-items: center;
+  /* Top-aligned so "N here" can line up with the avatars rather than the names under them. */
+  align-items: flex-start;
   gap: var(--gw-space-2);
   margin-top: var(--gw-space-2);
 }
@@ -845,19 +846,72 @@ button {
 }
 
 .stage-avatars {
+  --fade-start: 0px;
+  --fade-end: 0px;
   display: flex;
-  gap: var(--gw-space-2);
+  gap: 12px;
   margin: 0;
-  /* A scrolling row clips what sticks out, so leave room for the Host tag above and You tag below. */
-  padding: 12px 4px 12px;
+  /* A scrolling row clips what sticks out, so leave room for the Host tag above. */
+  padding: 12px 4px 4px;
   overflow-x: auto;
+  /* The edge fade shows there's more to scroll, so no scrollbar under the names. */
+  scrollbar-width: none;
   flex: 1;
   min-width: 0;
 }
 
+.stage-avatars::-webkit-scrollbar {
+  display: none;
+}
+
+/* Too many people to fit: soften whichever edge has more people past it (set by RoomStage). */
+.stage-avatars[data-fade-start] {
+  --fade-start: 24px;
+}
+
+.stage-avatars[data-fade-end] {
+  --fade-end: 24px;
+}
+
+.stage-avatars[data-fade-start],
+.stage-avatars[data-fade-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+}
+
 .room-stage.compact .stage-avatars {
-  /* Compact hides the Host and You tags, so the row goes back to its tight spacing. */
+  /* Compact hides the Host tag, so the row goes back to its tight spacing. */
   padding: 4px;
+}
+
+/* One person: avatar on top, name below. Fixed width so long and short names keep the row even. */
+.stage-slot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+}
+
+.stage-name {
+  max-width: 64px;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--gw-color-ink) 70%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-name.me {
+  color: var(--gw-color-ink);
 }
 
 .avatar {
@@ -874,19 +928,7 @@ button {
   box-shadow: 0 0 0 3px var(--gw-accent-presence);
 }
 
-.avatar-you {
-  position: absolute;
-  bottom: -8px;
-  padding: 0 4px;
-  border-radius: var(--gw-radius-pill);
-  background: var(--gw-color-ink);
-  color: var(--gw-surface-raised);
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-/* The host's tile: a small Host tag on top, mirroring the You tag below. */
+/* The host's tile: a small Host tag on top. */
 .avatar-host {
   position: absolute;
   top: -9px;
@@ -904,14 +946,17 @@ button {
   display: none;
 }
 
-.room-stage.compact .avatar-you {
-  display: none;
-}
-
 .stage-count {
   flex: none;
+  /* Centred on the avatars: same top offset as the row's padding, one avatar tall. */
+  margin-top: 12px;
   color: var(--gw-text-muted);
   font-size: 13px;
+  line-height: 38px;
+}
+
+.room-stage.compact .stage-count {
+  margin-top: 4px;
 }
 
 .room-stage:not(.compact) .stage-count {
@@ -921,7 +966,8 @@ button {
 /* Short screens: keep only the avatar row so the transcript and the speaking control keep their room. */
 @media (max-height: 700px) {
   .room-stage {
-    max-height: 56px;
+    /* The avatar row plus its name line, with nothing clipped against the border. */
+    max-height: 78px;
     padding: var(--gw-space-1) var(--gw-space-2);
   }
 
@@ -935,10 +981,6 @@ button {
 
   .room-stage:not(.compact) .stage-count {
     display: inline;
-  }
-
-  .room-stage .avatar-you {
-    display: none;
   }
 
   /* With the stage added, recap + pop-up + the speaking control must still fit on an iPhone SE (568px). */

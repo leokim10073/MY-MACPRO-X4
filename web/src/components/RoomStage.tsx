@@ -1,3 +1,4 @@
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import type { Id, Member } from '../../../shared/schema'
 import { isMe, orderMembersForStage } from '../room/derived'
 import Avatar, { AVATAR_CHOICES, type AvatarLook } from './art/Avatar'
@@ -37,6 +38,24 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
   const shown = speaker ?? lastSpeaker
   const count = members.length
 
+  // When the row overflows, fade whichever edge still has people scrolled past it.
+  // Written straight to data attributes so scrolling doesn't re-render the stage.
+  const rowRef = useRef<HTMLDivElement>(null)
+  const updateFade = useCallback(() => {
+    const el = rowRef.current
+    if (!el) return
+    el.toggleAttribute('data-fade-start', el.scrollLeft > 1)
+    el.toggleAttribute('data-fade-end', el.scrollLeft + el.clientWidth < el.scrollWidth - 1)
+  }, [])
+  useLayoutEffect(() => {
+    updateFade()
+    const el = rowRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const resize = new ResizeObserver(updateFade)
+    resize.observe(el)
+    return () => resize.disconnect()
+  }, [updateFade, count])
+
   return (
     <section className={compact ? 'room-stage compact' : 'room-stage'} aria-label="Who's here">
       {!compact && (
@@ -63,26 +82,33 @@ export default function RoomStage({ members, self, speaker, lastSpeaker, compact
         </div>
       )}
       <div className="stage-row">
-        <div className="stage-avatars" role="group" aria-label="People in the room">
+        <div
+          ref={rowRef}
+          className="stage-avatars"
+          role="group"
+          aria-label="People in the room"
+          onScroll={updateFade}
+        >
           {ordered.map((m) => {
             const me = isMe(m, self)
             const talking = m.id === speaker?.id
             const host = m.id === hostId
-            const label = `${m.name}${me ? ' (you)' : ''}${host ? ', host' : ''}${talking ? ', speaking' : ''}`
+            const label = `${m.name}${host ? ', host' : ''}${me ? ', you' : ''}${talking ? ', speaking' : ''}`
+            // One fixed-width slot per person: avatar, then their name, so look-alike avatars can be told apart.
+            // The slot's label carries the full name; the visible name is hidden from screen readers.
             return (
-              <span
-                key={m.id}
-                role="img"
-                aria-label={label}
-                className={['avatar', me && 'me', talking && 'speaking'].filter(Boolean).join(' ')}
-              >
-                <Avatar look={lookOf(m.id)} size={34} />
-                {host && (
-                  <span className="avatar-host" aria-hidden="true">
-                    Host
-                  </span>
-                )}
-                {me && <span className="avatar-you" aria-hidden="true">You</span>}
+              <span key={m.id} role="img" aria-label={label} title={m.name} className="stage-slot">
+                <span className={['avatar', me && 'me', talking && 'speaking'].filter(Boolean).join(' ')}>
+                  <Avatar look={lookOf(m.id)} size={34} />
+                  {host && (
+                    <span className="avatar-host" aria-hidden="true">
+                      Host
+                    </span>
+                  )}
+                </span>
+                <span className={me ? 'stage-name me' : 'stage-name'} aria-hidden="true">
+                  {me ? 'You' : m.name}
+                </span>
               </span>
             )
           })}
