@@ -179,7 +179,8 @@ export default function RoomScreen({
           <div className="room-header-top">
             <div className="room-brand">
               <WindowLogo size={34} />
-              <h1>Gossip Window</h1>
+              {/* The icon stands for the name so the three buttons fit beside it; screen readers still get it. */}
+              <h1 className="sr-only">Gossip Window</h1>
             </div>
             <div className="room-header-actions">
               {inviteUrl && isHost && <CopyInvite url={inviteUrl} />}
@@ -197,7 +198,7 @@ export default function RoomScreen({
                       }}
                     >
                       <LastSipCup size={24} mood="waiting" />
-                      Last Sip…
+                      Last Sip
                     </button>
                     <span id="last-sip-hint" className="sr-only">
                       End this room for everyone.
