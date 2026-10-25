@@ -34,6 +34,7 @@ import ViewToggle from '../graph/ViewToggle'
 import { useGraphModel } from '../graph/useGraphModel'
 import { useSelection } from '../graph/useSelection'
 import { useViewMode } from '../graph/useViewMode'
+import { writeSearchParam } from '../graph/urlParam'
 
 interface Props {
   state: RoomState
@@ -180,6 +181,12 @@ export default function RoomScreen({
   // The relationship map (POC): only offered once ?view= is in the address, so the room is unchanged without it.
   const { view, explicit: offerMap, setView } = useViewMode()
   const { selection, select, close: clearSelection } = useSelection()
+  // Switching to the list closes the details sheet. Both writes replace the current entry: stepping Back to close
+  // here would land on the entry that still says view=map and undo the switch.
+  const showView = (next: typeof view) => {
+    if (next === 'list') writeSearchParam('sel', null, 'replace')
+    setView(next)
+  }
   const graph = useGraphModel(state.storyState, state.members)
 
   return (
@@ -278,7 +285,7 @@ export default function RoomScreen({
           />
           {/* The layout slot keeps its name; it now holds the shared recall board, not a transcript. */}
           <div className="room-transcript room-recalls">
-            {offerMap && <ViewToggle view={view} onChange={setView} />}
+            {offerMap && <ViewToggle view={view} onChange={showView} />}
             {offerMap && view === 'map' ? (
               <MapPanel
                 roomId={room.id}
@@ -288,7 +295,7 @@ export default function RoomScreen({
                 selection={selection}
                 onSelect={select}
                 onClear={clearSelection}
-                onShowList={() => setView('list')}
+                onShowList={() => showView('list')}
               />
             ) : (
               <RecallBoard
@@ -358,7 +365,8 @@ export default function RoomScreen({
             )}
           </div>
         </div>
-        {!isClosing && (
+        {/* Only where the map is offered, so a room without ?view never shows it. */}
+        {!isClosing && offerMap && (
           <DetailSheet
             model={graph}
             selection={selection}
