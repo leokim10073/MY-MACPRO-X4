@@ -67,8 +67,12 @@ the id for anything new. Do not drop earlier stories.
 (e.g. "Kevin from work" is not "Roommate Kevin"). Only list people who have at least one story.
 - People: key is the previous id, or a short new handle for a new person. aliases are other stable ways the group \
 names them, never pronouns. memberId is the member id if the person is also in the room, otherwise "".
-- Stories: keyword is exactly ONE word for a chip (e.g. "Cake"). personKeys lists people the story is about, main \
-subject first. sourceLineIds are the lines the summary is based on (at least one).
+- One story per incident: each separate thing that happened is its own story, even about the same person. If Ricky \
+texts Aaron non-stop and, separately, shows up with coffee, that's two stories ("Texting", "Coffee"), not one. A \
+story grows only when people keep talking about that same incident; a new event starts a new story. Keep earlier \
+stories as they are; don't fold a new incident into an old one.
+- Stories: keyword is exactly ONE word for a chip (e.g. "Cake"), naming that incident. personKeys lists people the \
+story is about, main subject first. sourceLineIds are the lines the summary is based on (at least one).
 - reactions: a listener's actual words about the story. quote must be copied exactly from that line. Never invent one.
 - speculation: guesses or interpretations someone voiced, with the line they said it on. text is the guess itself, \
 without the speaker's name (the app shows who said it), e.g. "the texting could be a ruse".

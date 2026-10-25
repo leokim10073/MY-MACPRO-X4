@@ -91,8 +91,6 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
   // The frozen copy of the last live room lives in memory only, and is dropped when the closing ends.
   const { closing, frozen, done } = useClosing(state, room?.id ?? null, burnConfirmed)
   const params = new URLSearchParams(search)
-  // The entry ritual is in memory only: a new session (Leave) remounts this and shows it again.
-  const [entered, setEntered] = useState(false)
   // The avatar picked on Join, kept in memory on this phone only (never sent, never stored). A new session re-picks.
   const [avatarId, setAvatarId] = useState(AVATAR_CHOICES[0].id)
   // Start a new room: create once on mount. The ref survives StrictMode's second effect run.
@@ -161,9 +159,7 @@ function RoomSession({ client, kind, search, autoCreate, onLeave, onRestart }: S
       onStartReplay={startReplay}
       voice={client.voice}
       onLeave={onLeave}
-      // A burn during the entry ritual dismisses it: the room behind it burns.
-      entered={entered || closing !== null}
-      onEnter={() => setEntered(true)}
+      // People go straight into the room after joining (no entry step).
       closing={playing ? closing : null}
       selfAvatar={AVATAR_CHOICES.find((a) => a.id === avatarId)}
     />

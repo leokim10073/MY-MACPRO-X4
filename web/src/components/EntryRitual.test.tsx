@@ -1,7 +1,5 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import App from '../App'
-import { MockRoomClient } from '../room/mock/MockRoomClient'
 import EntryRitual from './EntryRitual'
 
 afterEach(() => {
@@ -30,27 +28,5 @@ describe('EntryRitual', () => {
     expect(button.disabled).toBe(false)
     fireEvent.click(button)
     expect(onEnter).toHaveBeenCalledTimes(1)
-  })
-})
-
-describe('entry ritual in the app', () => {
-  it('covers the room until Enter room, then reveals it', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
-    render(<App client={new MockRoomClient({ speed: 1000 })} kind="mock" search="" />)
-    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'Leo' } })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
-    })
-    expect(screen.getByText("Your seat's ready.")).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Hold to talk' })).toBeNull()
-    const room = document.querySelector('main.room')!
-    expect(room.getAttribute('aria-hidden')).toBe('true')
-    expect(room.hasAttribute('inert')).toBe(true)
-
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
-    expect(screen.queryByText("Your seat's ready.")).toBeNull()
-    expect(screen.getByRole('button', { name: 'Hold to talk' })).toBeTruthy()
-    expect(room.hasAttribute('aria-hidden')).toBe(false)
-    expect(room.hasAttribute('inert')).toBe(false)
   })
 })

@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Room } from '../../../shared/schema'
+import { RECALL_CHIP_TIMEOUT_MS } from '../../../shared/schema'
 import { initialRoomState, roomReducer } from '../room/state'
 import { fixtureEvents } from '../room/testFixtures'
 import RoomScreen from '../screens/RoomScreen'
@@ -25,6 +26,17 @@ function setup() {
 afterEach(cleanup)
 
 describe('RecallPopup', () => {
+  it('counts down with a ring around ×, over the same time the pop-up stays', () => {
+    setup()
+    const popup = screen.getByRole('region', { name: 'Mentioned again' })
+    const ring = popup.querySelector('.recall-dismiss .recall-countdown-ring') as SVGCircleElement | null
+    expect(ring).toBeTruthy()
+    expect(ring!.getAttribute('pathLength')).toBe('100')
+    expect(ring!.style.animationDuration).toBe(`${RECALL_CHIP_TIMEOUT_MS}ms`)
+    // Decorative: the button is still named "Dismiss" for screen readers.
+    expect(popup.querySelector('.recall-dismiss')?.getAttribute('aria-label')).toBe('Dismiss')
+  })
+
   it('shows Kevin with three chips and marks the focused one', () => {
     setup()
     const popup = screen.getByRole('region', { name: 'Mentioned again' })

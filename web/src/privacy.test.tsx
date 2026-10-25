@@ -32,7 +32,6 @@ async function enter(button: string) {
     fireEvent.click(screen.getByRole('button', { name: button }))
     await vi.advanceTimersByTimeAsync(0)
   })
-  fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
   await act(async () => {
     await vi.advanceTimersByTimeAsync(60_000)
   })
