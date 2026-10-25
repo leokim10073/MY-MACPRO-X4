@@ -8,11 +8,10 @@ import type { AvatarLook } from '../components/art/Avatar'
 import WindowLogo from '../components/art/WindowLogo'
 import ConnectionBanner from '../components/ConnectionBanner'
 import LeaveConfirm from '../components/LeaveConfirm'
-import ListeningIndicator from '../components/ListeningIndicator'
 import PushToTalkButton from '../components/PushToTalkButton'
 import RecapBanner from '../components/RecapBanner'
 import ShhhBadge from '../components/ShhhBadge'
-import Transcript from '../components/Transcript'
+import RecallBoard, { type Caption } from '../components/RecallBoard'
 import TypeLine from '../components/TypeLine'
 import StoryCard from '../components/StoryCard'
 import RecallPopup from '../components/RecallPopup'
@@ -25,7 +24,7 @@ import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
 import CallControls from '../components/CallControls'
-import type { LiveLine } from '../components/Transcript'
+import CopyInvite from '../components/CopyInvite'
 import { useInstantRecalls } from '../recall/useInstantRecalls'
 import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
@@ -99,9 +98,8 @@ export default function RoomScreen({
   // No transport once closing: useVoice stops the mic.
   const voice = useVoice(isClosing ? undefined : transport, room, self, state)
   const call = useCall(isClosing ? undefined : transport, room, self, state)
-  // The call is the default when the backend offers one; push-to-talk stays as a switch.
-  const [usePtt, setUsePtt] = useState(false)
-  const callMode = call !== null && !usePtt
+  // The call is the only way to talk when the backend offers one; push-to-talk is left for the mock.
+  const callMode = call !== null
   const inTheCall = callMode && inCall(call)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmBurn, setConfirmBurn] = useState(false)
@@ -137,6 +135,9 @@ export default function RoomScreen({
   const endedBy = isHost ? 'You ended the room.' : hostName ? `${hostName} ended the room.` : 'The host ended the room.'
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
+  // The narrated recap plays by itself once; reopening the banner after a story card doesn't replay it.
+  const [playedRecapId, setPlayedRecapId] = useState<string | null>(null)
+  const myRecap = recapFor(state, self)
   const [replayStarted, setReplayStarted] = useState(false)
   // Friends' words in the call can trigger a pop-up mid-sentence; the AI's recalls still follow.
   const instantRecalls = useInstantRecalls(inTheCall ? call.state.live : undefined, state, self.id)
@@ -144,7 +145,7 @@ export default function RoomScreen({
     () => (instantRecalls.length > 0 ? { ...state, recalls: [...state.recalls, ...instantRecalls] } : state),
     [state, instantRecalls],
   )
-  const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(popupInput, self)
+  const { popup, dismiss, tapChip, openStoryId, openStory: openStoryCard, closeStory } = usePopup(popupInput, self)
   const shownPopup = isClosing ? null : popup
   const popupPerson = shownPopup ? personById(state, shownPopup.personId) : undefined
   const openStory = openStoryId && !isClosing ? storiesById(state).get(openStoryId) : undefined
@@ -161,11 +162,15 @@ export default function RoomScreen({
   const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
   const nameOf = (id: string) =>
     state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
-  const liveLines: LiveLine[] = inTheCall
-    ? Object.entries(call.state.live)
-        .filter(([id, l]) => id !== self.id && l.text.trim())
-        .map(([id, l]) => ({ id, name: nameOf(id), text: l.text }))
-    : []
+  // One caption instead of a transcript: a friend's words right now (in the call), else the newest line.
+  const liveNow = inTheCall
+    ? Object.entries(call.state.live).find(([id, l]) => id !== self.id && l.text.trim())
+    : undefined
+  const caption: Caption | null = liveNow
+    ? { name: nameOf(liveNow[0]), text: liveNow[1].text, live: true }
+    : lastLine
+      ? { name: lastLine.speakerName, text: lastLine.text, live: false }
+      : null
 
   return (
     <>
@@ -176,41 +181,38 @@ export default function RoomScreen({
               <WindowLogo size={34} />
               <h1>Gossip Window</h1>
             </div>
-            {onLeave && (
-              <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
-                Leave
-              </button>
-            )}
-          </div>
-          <div className="room-header-sub">
-            <span className="room-count gw-chip">{state.members.length} here</span>
-            {!isClosing && (
-              <ListeningIndicator micLive={inTheCall ? call.state.isListening : voice?.state.isListening} />
-            )}
-            {isHost ? (
-              !isClosing && (
-                <div className="room-actions">
-                  <button
-                    type="button"
-                    className="burn"
-                    ref={burnControl}
-                    aria-describedby="last-sip-hint"
-                    onClick={() => {
-                      setBurnFailed(false)
-                      setConfirmBurn(true)
-                    }}
-                  >
-                    <LastSipCup size={24} mood="waiting" />
-                    Last Sip…
-                  </button>
-                  <span id="last-sip-hint" className="sr-only">
-                    End this room for everyone.
-                  </span>
-                </div>
-              )
-            ) : (
-              <ShhhBadge />
-            )}
+            <div className="room-header-actions">
+              {inviteUrl && isHost && <CopyInvite url={inviteUrl} />}
+              {isHost ? (
+                !isClosing && (
+                  <div className="room-actions">
+                    <button
+                      type="button"
+                      className="burn"
+                      ref={burnControl}
+                      aria-describedby="last-sip-hint"
+                      onClick={() => {
+                        setBurnFailed(false)
+                        setConfirmBurn(true)
+                      }}
+                    >
+                      <LastSipCup size={24} mood="waiting" />
+                      Last Sip…
+                    </button>
+                    <span id="last-sip-hint" className="sr-only">
+                      End this room for everyone.
+                    </span>
+                  </div>
+                )
+              ) : (
+                <ShhhBadge />
+              )}
+              {onLeave && (
+                <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
+                  Leave
+                </button>
+              )}
+            </div>
           </div>
         </header>
         <ConnectionBanner status={connection} onRejoin={onRejoin} />
@@ -237,21 +239,20 @@ export default function RoomScreen({
             Start Kevin replay
           </button>
         )}
-        {inviteUrl && room.hostMemberId === self.id && (
-          <p className="room-invite">
-            Invite: <a href={inviteUrl}>{inviteUrl}</a>
-          </p>
-        )}
         <div className={isClosing ? 'room-board is-closing' : 'room-board'}>
           <div className="room-banner">
             {!recapDismissed && !isClosing && (
               <RecapBanner
-                recap={recapFor(state, self)}
+                recap={myRecap}
+                autoPlay={myRecap?.id !== playedRecapId}
                 isLatecomer={self.joinedAtSeq > 0}
                 onDismiss={() => setRecapDismissed(true)}
                 collapsed={!!openStory && peekedFor !== openStory.id}
                 onExpand={() => openStory && setPeekedFor(openStory.id)}
-                onPlayingChange={(playing) => call?.duck(playing)}
+                onPlayingChange={(playing) => {
+                  if (playing && myRecap) setPlayedRecapId(myRecap.id)
+                  call?.duck(playing)
+                }}
               />
             )}
           </div>
@@ -264,8 +265,16 @@ export default function RoomScreen({
             selfLook={selfAvatar}
             hostId={room.hostMemberId}
           />
-          <div className="room-transcript">
-            <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} live={liveLines} />
+          {/* The layout slot keeps its name; it now holds the shared recall board, not a transcript. */}
+          <div className="room-transcript room-recalls">
+            <RecallBoard
+              storyState={state.storyState}
+              recalls={state.recalls}
+              self={self}
+              latestSeq={newest?.seq ?? 0}
+              caption={isClosing ? null : caption}
+              onOpenStory={openStoryCard}
+            />
           </div>
           <div className="room-popup-slot">
             {openStory ? (
@@ -318,22 +327,9 @@ export default function RoomScreen({
                 Room closed
               </button>
             ) : callMode ? (
-              <CallControls
-                call={call}
-                onUsePushToTalk={() => {
-                  call.leave()
-                  setUsePtt(true)
-                }}
-              />
+              <CallControls call={call} />
             ) : (
-              <>
-                <PushToTalkButton onPressChange={voice?.press ?? noop} />
-                {call && (
-                  <button type="button" className="call-switch" onClick={() => setUsePtt(false)}>
-                    Use the voice call instead
-                  </button>
-                )}
-              </>
+              <PushToTalkButton onPressChange={voice?.press ?? noop} />
             )}
           </div>
         </div>

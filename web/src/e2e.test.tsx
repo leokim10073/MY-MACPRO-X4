@@ -26,7 +26,6 @@ describe('Phase 1 checkpoint', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
       await vi.advanceTimersByTimeAsync(0)
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(800)

@@ -8,9 +8,22 @@ interface Props {
   onExpand?: () => void
   /** The narrated recap started or stopped playing (the call lowers friends' voices meanwhile). */
   onPlayingChange?: (playing: boolean) => void
+  /**
+   * Start the audio by itself. The banner collapses while a story card is open, which removes
+   * the player, so the room passes false once the recap has played to avoid replaying it.
+   */
+  autoPlay?: boolean
 }
 
-export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, onExpand, onPlayingChange }: Props) {
+export default function RecapBanner({
+  recap,
+  isLatecomer,
+  onDismiss,
+  collapsed,
+  onExpand,
+  onPlayingChange,
+  autoPlay = true,
+}: Props) {
   if (!isLatecomer) return null
 
   if (collapsed) {
@@ -40,7 +53,7 @@ export default function RecapBanner({ recap, isLatecomer, onDismiss, collapsed, 
               className="recap-audio"
               src={recap.audioUrl}
               controls
-              autoPlay
+              autoPlay={autoPlay}
               preload="auto"
               onPlay={() => onPlayingChange?.(true)}
               onPause={() => onPlayingChange?.(false)}

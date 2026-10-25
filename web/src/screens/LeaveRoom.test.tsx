@@ -67,7 +67,7 @@ describe('Leave on the room screen', () => {
     expect(screen.getByRole('alertdialog').textContent).not.toContain("You're the host")
   })
 
-  it('keeps Burn and Leave as separate controls in separate header rows', () => {
+  it('keeps Burn and Leave as separate controls, both at the top', () => {
     roomScreen('m_taylor', { onLeave: () => {} })
     const burn = screen.getByRole('button', { name: 'Last Sip…' })
     const leave = screen.getByRole('button', { name: 'Leave' })
@@ -75,7 +75,7 @@ describe('Leave on the room screen', () => {
     expect(leave.className).toContain('leave')
     expect(leave.className).not.toContain('burn')
     expect(leave.closest('.room-header-top')).toBeTruthy()
-    expect(burn.closest('.room-header-sub')).toBeTruthy()
+    expect(burn.closest('.room-header-top .room-header-actions')).toBeTruthy()
   })
 
   it('hides Leave when the app cannot start a fresh session', () => {
@@ -91,7 +91,6 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Leave' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave room' }))
   }
@@ -117,7 +116,6 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => vi.advanceTimersByTimeAsync(60_000))
     expect(document.body.textContent).toContain('Kevin')
 
@@ -135,10 +133,9 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     expect(await screen.findByRole('button', { name: 'Leave' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
-    expect(screen.getByText('Waiting for someone to speak…')).toBeTruthy()
+    expect(screen.getByText('Stories will show up here as people tell them.')).toBeTruthy()
   })
 
   it('with the Convex client: tells the backend, closes the connection and never calls rooms:burn', async () => {

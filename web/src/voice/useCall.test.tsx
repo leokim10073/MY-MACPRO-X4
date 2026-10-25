@@ -140,15 +140,15 @@ describe('the call on the room screen', () => {
   const t = transport()
   const roomScreen = (state = base) => <RoomScreen state={state} self={alex} room={room} onBurn={() => {}} voice={t} />
 
-  it('offers Join call by default, with the privacy note and a switch to push-to-talk', () => {
+  it('offers Join call without extra text, and no push-to-talk', () => {
     render(roomScreen())
     expect(screen.getByRole('button', { name: 'Join call' })).toBeTruthy()
-    expect(document.body.textContent).toContain('Nothing is recorded')
-    expect(screen.getByRole('button', { name: 'Use push-to-talk instead' })).toBeTruthy()
+    expect(document.body.textContent).not.toContain('Nothing is recorded')
     expect(screen.queryByRole('button', { name: 'Hold to talk' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /push-to-talk/i })).toBeNull()
   })
 
-  it('joins from the tap, then shows who is in the call, mute and leave', () => {
+  it('joins from the tap, then offers only Mute (people are on the stage, leaving is the header Leave)', () => {
     render(roomScreen())
     fireEvent.click(screen.getByRole('button', { name: 'Join call' }))
     const mic = made.at(-1)!
@@ -163,16 +163,14 @@ describe('the call on the room screen', () => {
         ],
       }),
     )
-    const people = screen.getByRole('list', { name: 'In the call' })
-    expect(people.textContent).toContain('You')
-    expect(people.textContent).toContain('Sam')
+    expect(screen.queryByRole('list', { name: 'In the call' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Leave call' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Mute' }))
     expect(mic.setMuted).toHaveBeenCalledWith(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Leave call' }))
-    expect(mic.leave).toHaveBeenCalled()
+    expect(document.body.textContent).not.toContain('Keep this screen on')
   })
 
-  it("shows friends' words while they speak, but not my own as a transcript line", () => {
+  it("shows a friend's words as the live caption while they speak, and my own under the dock", () => {
     const { container } = render(roomScreen())
     const mic = made.at(-1)!
     act(() =>
@@ -182,28 +180,17 @@ describe('the call on the room screen', () => {
         preview: 'me talking',
       }),
     )
-    const live = container.querySelectorAll('.line-live')
-    expect(live).toHaveLength(1)
-    expect(live[0].textContent).toContain('Sam')
-    expect(live[0].textContent).toContain('so Kevin ate the')
+    const caption = container.querySelector('.recall-caption.is-live')
+    expect(caption?.textContent).toContain('Sam')
+    expect(caption?.textContent).toContain('so Kevin ate the')
+    expect(caption?.textContent).not.toContain('me talking')
     expect(container.querySelector('.talk-preview')?.textContent).toBe('me talking')
-  })
-
-  it('switching to push-to-talk leaves the call, and switching back offers the call again', () => {
-    render(roomScreen())
-    const mic = made.at(-1)!
-    fireEvent.click(screen.getByRole('button', { name: 'Use push-to-talk instead' }))
-    expect(mic.leave).toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Hold to talk' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Use the voice call instead' }))
-    expect(screen.getByRole('button', { name: 'Join call' })).toBeTruthy()
   })
 
   it('without a call (the mock), only push-to-talk is shown', () => {
     render(<RoomScreen state={base} self={alex} room={room} onBurn={() => {}} />)
     expect(screen.getByRole('button', { name: 'Hold to talk' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Join call' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Use the voice call instead' })).toBeNull()
   })
 })
 

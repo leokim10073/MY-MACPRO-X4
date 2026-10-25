@@ -71,9 +71,10 @@ button {
 
 .room-header-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--gw-space-3);
+  gap: var(--gw-space-2);
 }
 
 .room-brand {
@@ -90,18 +91,6 @@ button {
   white-space: nowrap;
 }
 
-.room-header-sub {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--gw-space-2);
-  min-height: 44px;
-}
-
-.room-count {
-  background: var(--gw-accent-presence);
-}
-
 .room-actions,
 .shhh-badge {
   margin-left: auto;
@@ -112,6 +101,17 @@ button {
   align-items: center;
 }
 
+/* Invite and Last Sip (host) or the Host-ends-room chip (guest), then Leave: together on the right of the
+   title, wrapping below it as a group on narrow screens. */
+.room-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--gw-space-2);
+  margin-left: auto;
+}
+
 .leave {
   min-height: 44px;
   padding: 0 var(--gw-space-4);
@@ -119,15 +119,40 @@ button {
 }
 
 .room-invite {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--gw-space-2);
   margin: 0;
-  padding: 0 var(--gw-space-4) var(--gw-space-2);
-  font-size: 14px;
-  overflow-wrap: anywhere;
 }
 
-.room-invite a {
-  color: var(--gw-color-violet-ink);
-  font-weight: 600;
+.room-invite-copy {
+  min-height: 44px;
+  padding: 0 var(--gw-space-3);
+  font-size: 15px;
+}
+
+/* With Invite beside it, Leave tightens up so both fit next to the title on a phone. */
+.room-header-actions .room-actions,
+.room-header-actions .shhh-badge {
+  margin-left: 0;
+}
+
+.room-header-actions .room-invite ~ .leave {
+  padding: 0 var(--gw-space-3);
+}
+
+.room-invite-url {
+  flex: 1;
+  min-width: 0;
+  padding: var(--gw-space-1) var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-sm);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: inherit;
+  font-size: 13px;
 }
 
 /* Errors in the room (failed end): the shared gw-alert look, placed under the header. */
@@ -247,6 +272,166 @@ button {
   flex: 1;
   overflow-y: auto;
   padding: var(--gw-space-2) var(--gw-space-3) var(--gw-space-5);
+}
+
+/* Recall board: everyone's shared view of who is talked about and their stories (replaces the transcript). */
+.recall-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recall-board-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gw-space-3) var(--gw-space-3) var(--gw-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-3);
+}
+
+.recall-board-now {
+  margin: 0;
+  font-size: 14px;
+  color: var(--gw-text);
+}
+
+.recall-board-now-label {
+  margin-right: var(--gw-space-1);
+  color: var(--gw-color-violet-ink);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recall-board-empty {
+  margin: auto 0;
+  text-align: center;
+  color: var(--gw-text-muted);
+}
+
+.recall-board-people,
+.recall-person-stories {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.recall-board-people {
+  gap: var(--gw-space-4);
+}
+
+.recall-person-stories {
+  gap: var(--gw-space-2);
+}
+
+.recall-person-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-2);
+  margin-bottom: var(--gw-space-2);
+}
+
+.recall-person-name {
+  font-family: var(--gw-font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.recall-person-badge,
+.recall-story-missed {
+  padding: 1px var(--gw-space-2);
+  border-radius: var(--gw-radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.recall-person-badge {
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+}
+
+.recall-story {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--gw-space-2);
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-secondary);
+  color: var(--gw-text);
+  font: inherit;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.recall-story-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gw-space-1);
+}
+
+.recall-story-more {
+  flex: none;
+  color: var(--gw-color-violet-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.recall-story-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gw-space-2);
+}
+
+.recall-story-keyword {
+  font-weight: 700;
+}
+
+.recall-story-missed {
+  border: var(--gw-border-sm);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text-muted);
+}
+
+.recall-story-summary {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.recall-story-with {
+  color: var(--gw-text-muted);
+}
+
+/* One caption at the bottom: what is being said right now, or the newest line. */
+.recall-caption {
+  margin: 0;
+  padding: var(--gw-space-2) var(--gw-space-3);
+  border-top: var(--gw-border-sm);
+  font-size: 14px;
+  color: var(--gw-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recall-caption.is-live {
+  font-style: italic;
+}
+
+.recall-caption-name {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--gw-text);
 }
 
 .transcript ol {
@@ -396,6 +581,9 @@ button {
 }
 
 .recall-dismiss {
+  position: relative;
+  display: grid;
+  place-items: center;
   min-width: 44px;
   min-height: 44px;
   margin-left: auto;
@@ -403,6 +591,40 @@ button {
   background: none;
   color: inherit;
   font-size: 22px;
+}
+
+/* Countdown ring around ×, drained over RECALL_CHIP_TIMEOUT_MS (duration set inline). */
+.recall-countdown {
+  position: absolute;
+  inset: 4px;
+  width: 36px;
+  height: 36px;
+  transform: rotate(-90deg);
+}
+
+.recall-countdown-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--gw-color-violet-ink) 25%, transparent);
+  stroke-width: 3;
+}
+
+.recall-countdown-ring {
+  fill: none;
+  stroke: var(--gw-color-violet-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  /* pathLength="100": the ring is 100 units long whatever its size. */
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  animation-name: recall-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes recall-countdown {
+  to {
+    stroke-dashoffset: 100;
+  }
 }
 
 .recall-chips {
@@ -522,7 +744,8 @@ button {
 /* People: speaker tile + everyone's illustrated avatars. */
 .room-stage {
   flex: none;
-  max-height: 120px;
+  /* Room for the avatar row's Host tag above and You tag below (see .stage-avatars). */
+  max-height: 140px;
   margin: var(--gw-space-3) var(--gw-space-3) var(--gw-space-1);
   padding: var(--gw-space-2) var(--gw-space-3);
   border: var(--gw-border-sm);
@@ -629,14 +852,16 @@ button {
   display: flex;
   gap: var(--gw-space-2);
   margin: 0;
-  padding: 4px 4px var(--gw-space-2);
+  /* A scrolling row clips what sticks out, so leave room for the Host tag above and You tag below. */
+  padding: 12px 4px 12px;
   overflow-x: auto;
   flex: 1;
   min-width: 0;
 }
 
 .room-stage.compact .stage-avatars {
-  padding-bottom: 4px;
+  /* Compact hides the Host and You tags, so the row goes back to its tight spacing. */
+  padding: 4px;
 }
 
 .avatar {
@@ -725,9 +950,6 @@ button {
     max-height: 22dvh;
   }
 
-  .room-header-sub {
-    min-height: 40px;
-  }
 }
 
 /* Controls: anchored at the bottom. */
@@ -802,30 +1024,9 @@ button {
   gap: var(--gw-space-2);
 }
 
-.call-people {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gw-space-1) var(--gw-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 14px;
-  color: var(--gw-text);
-}
 
-.call-people li {
-  padding: 2px var(--gw-space-2);
-  border: var(--gw-border-sm);
-  border-radius: var(--gw-radius-md);
-  background: var(--gw-surface-raised);
-}
 
-.call-people li.is-speaking {
-  font-weight: 700;
-  border-color: var(--gw-color-violet-ink);
-}
 
-.call-muted,
 .call-status,
 .call-note {
   color: var(--gw-text-muted);
@@ -837,15 +1038,7 @@ button {
   font-size: 14px;
 }
 
-.call-buttons {
-  display: flex;
-  gap: var(--gw-space-2);
-  align-items: stretch;
-}
 
-.call-buttons .ptt {
-  flex: 1;
-}
 
 .call-switch {
   align-self: center;
@@ -935,7 +1128,8 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .listening-dot,
   .recap-loading,
-  .recall-popup {
+  .recall-popup,
+  .recall-countdown-ring {
     animation: none;
   }
 
