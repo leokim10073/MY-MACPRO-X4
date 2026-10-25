@@ -22,6 +22,7 @@ const edgeTypes = { relationship: RelationshipEdge }
 // Layout positions are node centers.
 const nodeOrigin: NodeOrigin = [0.5, 0.5]
 const fitViewOptions = { padding: 0.2 }
+const storyCount = (n: number) => (n === 1 ? '1 story' : `${n} stories`)
 
 interface Props {
   roomId: string
@@ -68,7 +69,7 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           position: positions[c.id],
           data: { character: c, isSelected: c.id === selectedNode },
           ariaRole: 'button',
-          ariaLabel: `${c.name}, ${model.storiesByCharacter.get(c.id)?.length ?? 0} stories`,
+          ariaLabel: `${c.name}, ${storyCount(model.storiesByCharacter.get(c.id)?.length ?? 0)}`,
         })),
     [model, positions, selectedNode],
   )
@@ -93,6 +94,7 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
       type: 'relationship',
       // The chip is the keyboard stop for an edge.
       focusable: false,
+      ariaLabel: `${name(e.source)} and ${name(e.target)}`,
       data: {
         ...e,
         names: [name(e.source), name(e.target)],
