@@ -97,12 +97,21 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
         })),
     [model, positions, selectedNode, lit],
   )
-  // React Flow owns nodes while they're dragged; a new layout or selection is merged in, keeping its measurements.
+  // React Flow owns node positions while they're dragged. New data or a new selection is merged in, keeping each
+  // node's measurements and live position; a position is only taken from the layout when the layout moved that node.
+  // (Live room updates rebuild the model often; resetting positions then would yank a node out from under the pointer.)
   const [nodes, setNodes] = useState(laidOut)
   const [syncedFrom, setSyncedFrom] = useState(laidOut)
   if (syncedFrom !== laidOut) {
     setSyncedFrom(laidOut)
-    setNodes(laidOut.map((n) => ({ ...nodes.find((o) => o.id === n.id), ...n })))
+    setNodes(
+      laidOut.map((n) => {
+        const live = nodes.find((o) => o.id === n.id)
+        if (!live) return n
+        const layoutMoved = syncedFrom.find((o) => o.id === n.id)?.position !== n.position
+        return { ...live, ...n, position: layoutMoved ? n.position : live.position }
+      }),
+    )
   }
   const onNodesChange = useCallback(
     (changes: NodeChange<CharacterNodeType>[]) => setNodes((ns) => applyNodeChanges(changes, ns)),

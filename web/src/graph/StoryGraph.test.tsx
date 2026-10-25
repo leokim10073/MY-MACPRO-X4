@@ -91,7 +91,9 @@ describe('StoryGraph', () => {
   })
 
   it('a dragged node follows the pointer 1:1 and never auto-pans near the edge, and a drag never selects', async () => {
-    const { onSelect } = graph()
+    const handlers = { onSelect: vi.fn(), onClear: vi.fn(), onShowList: vi.fn() }
+    const { onSelect } = handlers
+    const { rerender } = render(<StoryGraph roomId="r1" model={model} selection={{ kind: 'none' }} {...handlers} />)
     await act(async () => {})
     const node = document.querySelector<HTMLElement>('.react-flow__node[data-id="ricky"]')!
     const win = node.ownerDocument.defaultView!
@@ -115,6 +117,11 @@ describe('StoryGraph', () => {
     const [x1, y1] = at()
     expect(x1 - x0).toBeCloseTo(30 / zoom, 5)
     expect(y1 - y0).toBeCloseTo(15 / zoom, 5)
+    // A live room update mid-drag (same story data, new objects) must not yank the node back.
+    await act(async () => {
+      rerender(<StoryGraph roomId="r1" model={deriveGraph([...chars], [...model.storiesById.values()])} selection={{ kind: 'none' }} {...handlers} />)
+    })
+    expect(at()).toEqual([x1, y1])
     // Held right at the canvas edge: the view stays put, so the node doesn't run off.
     await act(async () => {
       mouse('mousemove', win, 398, 130)
