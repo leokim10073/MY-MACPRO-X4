@@ -3,6 +3,7 @@
 // Leave (not burn): the member drops out of the room for everyone.
 
 import { convexTest } from "convex-test";
+import { withComponents } from "../testComponents";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
@@ -14,7 +15,7 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 async function room() {
-  const t = convexTest(schema, modules);
+  const t = withComponents(convexTest(schema, modules));
   const host = await t.mutation(api.rooms.create, { name: "Alex" });
   const sam = await t.mutation(api.rooms.join, { inviteToken: host.room.inviteToken, name: "Sam" });
   const roomId = host.room.id as Id<"rooms">;

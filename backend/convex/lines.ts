@@ -7,6 +7,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { SLOW_PATH_DELAY_MS, appendEvent, requireMember, toLine } from "./lib";
+import { requireUnderLimit, underLimit } from "./limits";
 
 /** Voice sends each finished phrase here (a NewTranscriptLine, minus roomId and speakerId, which come from the sessionToken). */
 export const add = mutation({
@@ -16,6 +17,7 @@ export const add = mutation({
     const trimmed = text.trim();
     if (trimmed.length === 0) return null;
     if (trimmed.length > 2000) throw new ConvexError("Line is too long");
+    await requireUnderLimit(ctx, "addLine", room._id);
     return await insertLine(ctx, room, member, trimmed, at);
   },
 });
@@ -57,7 +59,10 @@ export async function insertLine(
   const line = (await ctx.db.get(lineId))!;
   await appendEvent(ctx, room._id, { type: "line_added", line: toLine(line) });
 
-  await ctx.scheduler.runAfter(0, internal.ai.fastPath, { lineId });
+  // Over the limit the line is still saved and shown; it just isn't checked for recalls.
+  if (await underLimit(ctx, "aiFastPath", room._id)) {
+    await ctx.scheduler.runAfter(0, internal.ai.fastPath, { lineId });
+  }
   if (!room.slowPathScheduled) {
     await ctx.scheduler.runAfter(SLOW_PATH_DELAY_MS, internal.ai.slowPath, { roomId: room._id });
   }

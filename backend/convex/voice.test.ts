@@ -3,6 +3,7 @@
 // Wiring between the backend and voice/, with the Cartesia calls replaced by fakes.
 
 import { convexTest } from "convex-test";
+import { withComponents } from "../testComponents";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
@@ -30,7 +31,7 @@ afterEach(() => {
 });
 
 function setup() {
-  return convexTest(schema, modules);
+  return withComponents(convexTest(schema, modules));
 }
 type T = ReturnType<typeof setup>;
 

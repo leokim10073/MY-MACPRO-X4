@@ -30,6 +30,7 @@ export function fakeConvex(joinAs: { room: Room; member: Member } = { room, memb
       calls.push({ name, args })
       if (name === 'rooms:create') return { room, member: alex, sessionToken: 'secret' }
       if (name === 'rooms:join') return { room: joinAs.room, member: joinAs.member, sessionToken: 'secret' }
+      if (name === 'presence:heartbeat') return { roomToken: 'room-token', presenceToken: 'presence-token' }
       return null
     }),
     onUpdate: vi.fn((ref: unknown, args: unknown, callback: (v: unknown) => void, onError?: (e: Error) => void) => {

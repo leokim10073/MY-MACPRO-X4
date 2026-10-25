@@ -24,6 +24,7 @@ import {
   toStoryState,
 } from "./lib";
 import { openQuestion, person, story } from "./schema";
+import { underLimit } from "./limits";
 import { narrateRecap } from "./voice";
 
 const newRecall = v.object({
@@ -155,6 +156,8 @@ export const beginSlowPath = internalMutation({
     const room = await ctx.db.get(roomId);
     if (!room || room.status !== "active") return null;
     await ctx.db.patch(roomId, { slowPathScheduled: false });
+    // Over the limit, skip this run. The next line schedules another one.
+    if (aiEnabled() && !(await underLimit(ctx, "aiSlowPath", roomId))) return null;
     const lines = await ctx.db
       .query("transcriptLines")
       .withIndex("by_room_seq", (q) => q.eq("roomId", roomId))
@@ -199,7 +202,9 @@ export const writeRecap = internalAction({
     const input = await ctx.runQuery(internal.ai.recapInput, { memberId });
     if (!input) return;
     let text = placeholderRecap(input.lines);
-    if (aiEnabled()) {
+    // Over the room's recap limit, the latecomer gets the short text recap and no audio.
+    const full = await underLimit(ctx, "recap", input.roomId);
+    if (aiEnabled() && full) {
       try {
         const recap = await writeRecapWithAi({
           roomId: input.roomId,
@@ -215,7 +220,7 @@ export const writeRecap = internalAction({
     }
     const recapId = await ctx.runMutation(internal.ai.saveRecap, { memberId, uptoSeq: input.uptoSeq, text });
     // The text goes out first so the phone can show it while the audio is made.
-    if (recapId) await narrateRecap(ctx, recapId, text);
+    if (recapId && full) await narrateRecap(ctx, recapId, text);
   },
 });
 

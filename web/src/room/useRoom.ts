@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import type { ConnectionStatus, JoinResult, RoomClient } from './RoomClient'
 import { BackendError, type BackendErrorKind } from './convex/callBackend'
@@ -34,9 +34,11 @@ export function useRoom(client: RoomClient): UseRoom {
   const [pending, setPending] = useState<Pending>(null)
   const [connection, setConnection] = useState<ConnectionStatus | null>(null)
   const [burnConfirmed, setBurnConfirmed] = useState(false)
+  const [offline, setOffline] = useState<ReadonlySet<string>>(() => new Set())
 
   useEffect(() => client.subscribe(dispatch), [client])
   useEffect(() => client.onConnectionChange?.(setConnection), [client])
+  useEffect(() => client.onPresenceChange?.((ids) => setOffline(new Set(ids))), [client])
 
   // Shows the pending label while the call runs, and a readable error if it fails. Never leaves pending set.
   const run = useCallback(async (kind: NonNullable<Pending>, action: () => Promise<JoinResult | void>) => {
@@ -75,8 +77,19 @@ export function useRoom(client: RoomClient): UseRoom {
   const addLine = useCallback((text: string, at: number) => client.addLine(text, at), [client])
   const startReplay = useCallback(() => client.startReplay!(), [client])
 
+  // Members whose phones closed the room without Leave drop out of the people count and the stage.
+  // Members with no heartbeat at all (replay speakers, a phone that just joined) still show.
+  const selfId = joined?.self.id
+  const shown = useMemo(
+    () =>
+      offline.size === 0
+        ? state
+        : { ...state, members: state.members.filter((m) => m.id === selfId || !offline.has(m.id)) },
+    [state, offline, selfId],
+  )
+
   return {
-    state,
+    state: shown,
     self: joined?.self ?? null,
     room: joined?.room ?? null,
     pending,

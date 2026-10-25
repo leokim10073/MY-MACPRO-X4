@@ -38,6 +38,17 @@ export const backendApi = {
       { lines: number; durationMs: number }
     >('replay:start'),
   },
+  presence: {
+    heartbeat: makeFunctionReference<
+      'mutation',
+      { sessionToken: string; sessionId: string; interval: number },
+      { roomToken: string; presenceToken: string }
+    >('presence:heartbeat'),
+    list: makeFunctionReference<'query', { roomToken: string }, Array<{ memberId: string; online: boolean }>>(
+      'presence:list',
+    ),
+    disconnect: makeFunctionReference<'mutation', { presenceToken: string }, null>('presence:disconnect'),
+  },
   call: {
     callToken: makeFunctionReference<'action', { sessionToken: string }, { url: string; token: string }>(
       'call:callToken',
