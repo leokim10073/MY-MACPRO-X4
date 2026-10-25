@@ -136,6 +136,9 @@ export default function RoomScreen({
   const endedBy = isHost ? 'You ended the room.' : hostName ? `${hostName} ended the room.` : 'The host ended the room.'
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
+  // The narrated recap plays by itself once; reopening the banner after a story card doesn't replay it.
+  const [playedRecapId, setPlayedRecapId] = useState<string | null>(null)
+  const myRecap = recapFor(state, self)
   const [replayStarted, setReplayStarted] = useState(false)
   // Friends' words in the call can trigger a pop-up mid-sentence; the AI's recalls still follow.
   const instantRecalls = useInstantRecalls(inTheCall ? call.state.live : undefined, state, self.id)
@@ -245,12 +248,16 @@ export default function RoomScreen({
           <div className="room-banner">
             {!recapDismissed && !isClosing && (
               <RecapBanner
-                recap={recapFor(state, self)}
+                recap={myRecap}
+                autoPlay={myRecap?.id !== playedRecapId}
                 isLatecomer={self.joinedAtSeq > 0}
                 onDismiss={() => setRecapDismissed(true)}
                 collapsed={!!openStory && peekedFor !== openStory.id}
                 onExpand={() => openStory && setPeekedFor(openStory.id)}
-                onPlayingChange={(playing) => call?.duck(playing)}
+                onPlayingChange={(playing) => {
+                  if (playing && myRecap) setPlayedRecapId(myRecap.id)
+                  call?.duck(playing)
+                }}
               />
             )}
           </div>

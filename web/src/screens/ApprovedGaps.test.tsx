@@ -48,7 +48,6 @@ describe('G1: the avatar chosen on Join is the one shown in the room', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000)
     })

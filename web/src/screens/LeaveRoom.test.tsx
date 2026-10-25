@@ -91,7 +91,6 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Leave' }))
     fireEvent.click(screen.getByRole('button', { name: 'Leave room' }))
   }
@@ -117,7 +116,6 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => vi.advanceTimersByTimeAsync(60_000))
     expect(document.body.textContent).toContain('Kevin')
 
@@ -135,7 +133,6 @@ describe('Leave in the app', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Start the party' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     expect(await screen.findByRole('button', { name: 'Leave' })).toBeTruthy()
     expect(document.body.textContent).not.toContain('Kevin')
     expect(screen.getByText('Stories will show up here as people tell them.')).toBeTruthy()

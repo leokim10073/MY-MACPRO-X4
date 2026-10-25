@@ -126,7 +126,6 @@ describe('Burned screen', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Join the room' }))
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Enter room' }))
     await act(async () => {
       for (const e of fixtureEvents()) listener(e)
     })
