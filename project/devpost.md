@@ -79,8 +79,8 @@ Meta, Cartesia, Convex, Anthropic, Microsoft Grand Prize, Microsoft Customer Imp
 
 ## Additional info：Upload a File（≤ 35 MB）
 
-選填。依 track 分類，每個 track 一份詳細說明：
-- Cartesia：[devpost-cartesia.md](devpost-cartesia.md)，Ink 和 Sonic 怎麼用、語音流程圖、測試結果
+選填。上傳一份依 track 分節的詳細說明：
+- [track-details.md](track-details.md)：Meta + Anthropic、Microsoft、Cartesia、Convex 各一節
 - `README.md`：setup、用到的 Cartesia 功能、已知限制（Cartesia 要求，repo 根目錄目前**還沒有 README**）
 
 不要放 `.env` 或任何 key。
@@ -128,7 +128,7 @@ When the night is over, the host ends the room. A teacup tips over and pours its
 
 ## How we built it
 
-**Cartesia: the voice at both ends.** **Ink** transcribes each phone as its owner speaks, streaming live captions and the mid-sentence pop-up. **Sonic** reads the recap aloud on the latecomer's phone only. Details are in the attached Cartesia write-up.
+**Cartesia: the voice at both ends.** **Ink** transcribes each phone as its owner speaks, streaming live captions and the mid-sentence pop-up. **Sonic** reads the recap aloud on the latecomer's phone only. Details are in the attached track details.
 
 **Convex: the whole backend.** Every phone subscribes to the room through live queries, so lines, pop-ups, story updates and Last Sip reach everyone with no polling. Each line gets its place in the order and its event in one transaction, so every phone sees the story in the same order. The scheduler runs the AI after each line, file storage holds the recap MP3, and the presence and rate-limiter components track who is in the room and cap AI and voice use.
 
