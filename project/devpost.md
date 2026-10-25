@@ -14,9 +14,9 @@ Spill the Tea
 ## Elevator pitch（≤ 200 字元）
 
 ```
-Late to the call? We’ll spill it! Hear a 20-sec recap. Old gossip comes back? Tap its story card. Night over? Last Sip pours the tea out and deletes it all. Spill the Tea, for voice calls.
+Late to the call? We’ll spill it! Hear a 20-sec recap, tap story cards when old gossip returns, see who's who on the Map. Night over? Last Sip pours it all out.
 ```
-（188 字元）
+（160 字元）
 
 ---
 
@@ -108,7 +108,7 @@ We wanted the latecomer to get the missing context **back as voice**, in the sam
 
 ## What it does
 
-Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on **LiveKit** call from their own phone, no push-to-talk. **Cartesia Ink** transcribes each phone as its owner speaks: friends see your words appear while you're still talking. On top of that, three things you won't find in a meeting tool:
+Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on **LiveKit** call from their own phone, no push-to-talk. **Cartesia Ink** transcribes each phone as its owner speaks: friends see your words appear while you're still talking. On top of that, four things you won't find in a meeting tool:
 
 ### 1. Recap: a 20-second "previously on…", spoken
 
@@ -116,13 +116,15 @@ When someone joins late, **Claude** writes a short recap of only what they misse
 
 ### 2. Recall: story cards the moment old gossip comes back
 
-The callbacks keep coming after the recap. When Sam starts saying *"after the cake thing with Kevin…"*, a pop-up shows **Kevin · Cake · Airport · Landlord** before Sam finishes the sentence: the phone matches Ink's streaming text against the people and stories it already knows. Vague references ("he just texted", "the roommate") are caught by **Claude** a moment later, when the turn ends. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. Each card also says whether the story came up **before** or **after you joined**.
+The callbacks keep coming after the recap. When Sam starts saying *"after the cake thing with Kevin…"*, a pop-up shows **Kevin · Cake · Airport · Landlord** before Sam finishes the sentence: the phone matches Ink's streaming text against the people and stories it already knows. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. Each card also says whether the story came up **before** or **after you joined**.
 
 Everyone also shares one **recall board**, kept live on every phone by **Convex**: who's being talked about, their stories in a line or two, and what the group is on right now.
 
-Switch the board to **Map** and the night's gossip becomes a web: everyone who's been talked about is a dot, and friends who show up in the same stories are linked, with thicker lines for more shared stories. Tap a person to see their connections and stories, or tap a line to see what two people have been through together.
+### 3. Map: the whole cast, at a glance
 
-### 3. Last Sip: the tea gets poured out
+Gossip is about people, and after an hour it's hard to keep track of who's who. Switch the board to **Map** and the night's tea becomes a web: everyone who's been talked about is a dot, and **people who show up in the same stories are linked**, with thicker lines for more shared stories. The map grows live as new names come up. Tap a person to see their connections and stories, or tap a line to see what two people have been through together.
+
+### 4. Last Sip: the tea gets poured out
 
 When the night is over, the host ends the room. A teacup tips over and pours its tea out, the call ends for everyone, and **Convex** deletes the transcript, stories and recap audio. What's said over tea stays over tea.
 
