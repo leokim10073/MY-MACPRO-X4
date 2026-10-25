@@ -54,7 +54,7 @@ describe('storage guard', () => {
     render(<App {...mock("?speed=1000")} />)
     await enter('Start the party')
     expect(document.body.textContent).toContain(line21())
-    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip' }))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
       await vi.advanceTimersByTimeAsync(0)

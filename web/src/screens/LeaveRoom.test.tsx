@@ -69,7 +69,7 @@ describe('Leave on the room screen', () => {
 
   it('keeps Burn and Leave as separate controls, both at the top', () => {
     roomScreen('m_taylor', { onLeave: () => {} })
-    const burn = screen.getByRole('button', { name: 'Last Sip…' })
+    const burn = screen.getByRole('button', { name: 'Last Sip' })
     const leave = screen.getByRole('button', { name: 'Leave' })
     expect(burn.className).toContain('burn')
     expect(leave.className).toContain('leave')

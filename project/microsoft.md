@@ -56,7 +56,7 @@ Already production-minded:
 - **Secrets on the server only.** The browser gets 120 s Cartesia tokens and per-room LiveKit tokens.
 - **Every read and write checked** against the caller's session token.
 - **Tests on every layer:** backend (`convex-test`), AI (validation + eval), voice (unit tests), web (Vitest).
-- **Graceful degradation.** No AI key means the room still works with a placeholder recap. No Cartesia key means text only. No LiveKit keys means push-to-talk still works.
+- **Graceful degradation.** No AI key means the room still works with a placeholder recap. No Cartesia key means recaps are text-only. The AI recap falls back to a placeholder if a call fails.
 - **Data lifecycle.** Rooms burn on request or after 12 hours. Late AI results after a burn are discarded.
 
 Next steps to production:
@@ -70,7 +70,7 @@ Next steps to production:
 
 ## Responsible design
 
-- Everyone is told on entry that the AI processes the conversation. Visible listening indicator.
+- Everyone is told on entry that the AI processes the conversation. Visible listening indicator (a red dot on the Mute button).
 - Only the transcript is kept, never audio. The host can burn the room at any time.
 - Stories are framed as the teller's account, reactions are real quotes credited by name, guesses are labeled, and feelings are never inferred from silence.
 - Ambiguous references don't pop up: better silent than wrong.
@@ -78,7 +78,7 @@ Next steps to production:
 
 ## End-to-end functionality
 
-Speech on a phone → Cartesia Ink → Convex → Claude Haiku (recall) / Sonnet (story tree, recap) → Cartesia Sonic → recap audio and pop-ups on the latecomer's phone → burn clears every phone. Runs live on real phones, with replay mode as a backup.
+Speech on a phone → Cartesia Ink → Convex → Claude Haiku (recall) / Sonnet (stories, recap) → Cartesia Sonic → recap audio and pop-ups on the latecomer's phone → burn clears every phone. Runs live on real phones, with replay mode as a backup.
 
 ## Tech used
 

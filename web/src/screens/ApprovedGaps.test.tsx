@@ -120,7 +120,7 @@ describe('G10: a failed end keeps the dialog open with the failure', () => {
     const onBurn = vi.fn()
     const props = { state, self, room, onBurn }
     const { rerender } = render(<RoomScreen {...props} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last Sip' }))
     fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     rerender(<RoomScreen {...props} pending="burn" />)
     rerender(<RoomScreen {...props} pending={null} error={{ kind: 'unknown', message: 'Could not burn.' }} />)

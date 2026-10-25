@@ -1011,6 +1011,13 @@ button {
     background-color var(--gw-dur-press) ease-out;
 }
 
+/* Mic-on dot inside the Mute button, sharing the old Listening indicator's pulsing dot. */
+.ptt-mic-dot {
+  display: inline-block;
+  margin-right: var(--gw-space-2);
+  vertical-align: middle;
+}
+
 .ptt[aria-pressed='true'] {
   transform: translateY(5px);
   box-shadow: 0 0 0 var(--gw-color-ink);

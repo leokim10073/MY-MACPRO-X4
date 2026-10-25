@@ -21,9 +21,9 @@ Until real criteria appear, we pitch against what the post stresses: **reactivit
 
 Four phones are in one room. A friend says a line. Within a moment:
 
-1. The line is stored and every phone's transcript updates.
+1. The line is stored and every phone's live caption updates.
 2. Claude checks whether it calls back to an earlier story, and the latecomer's phone shows a pop-up.
-3. Every 25 s the story tree is rebuilt and the side panel updates on every phone.
+3. About 25 s after new lines, the stories are rebuilt and the shared recall board (people, stories, current topic) updates on every phone.
 4. When someone joins late, their recap is written, read aloud and pushed to their phone only.
 5. When the host burns the room, every phone switches to "This room has ended" at once.
 

@@ -64,7 +64,7 @@ async function joinWith(client: RoomClient, button: 'Start the party' | 'Join th
 }
 
 async function tapBurn() {
-  fireEvent.click(screen.getByRole('button', { name: 'Last Sip…' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Last Sip' }))
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'End & delete room' }))
     await vi.advanceTimersByTimeAsync(0)
@@ -106,7 +106,7 @@ describe('Burn flow in the app', () => {
     await joinWith(client, 'Join the room')
     for (const e of fixtureEvents()) emit(e)
     expect(text()).toContain('Kevin')
-    expect(screen.queryByRole('button', { name: 'Last Sip…' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Last Sip' })).toBeNull()
 
     emit({ type: 'room_burned', roomId: 'demo' })
     expectClosingOverFrozenRoom()
@@ -137,7 +137,7 @@ describe('Burn flow in the app', () => {
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.getByRole('alert').textContent).toBe("Couldn't end the room. Please try again.")
-    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Last Sip…' }))
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Last Sip' }))
   })
 
   it('a successful burn() starts closing even before room_burned arrives, and room_burned does not restart it', async () => {
