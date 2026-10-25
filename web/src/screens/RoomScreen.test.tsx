@@ -92,9 +92,15 @@ describe('RoomScreen', () => {
     expect(container.querySelector('.recall-caption')?.textContent).toContain(newest.text)
   })
 
-  it('shows the Listening indicator while active', () => {
-    setup()
-    expect(screen.getAllByRole('status').some((el) => el.textContent?.includes('Listening'))).toBe(true)
+  it('keeps the header to one row of controls: no Listening indicator or people count', () => {
+    const { container } = setup()
+    expect(document.body.textContent).not.toContain('Listening')
+    expect(container.querySelector('.room-header-sub')).toBeNull()
+    expect(container.querySelector('.room-count')).toBeNull()
+    // The count still lives on the stage ("N in the room").
+    expect(document.body.textContent).toMatch(/\d+ in the room/)
+    // A guest's "Host ends room" chip sits with Leave at the top.
+    expect(container.querySelector('.room-header-actions .shhh-badge')).toBeTruthy()
   })
 
   it('push-to-talk only releases for the pointer that pressed it', () => {

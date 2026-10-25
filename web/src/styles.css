@@ -91,18 +91,6 @@ button {
   white-space: nowrap;
 }
 
-.room-header-sub {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--gw-space-2);
-  min-height: 44px;
-}
-
-.room-count {
-  background: var(--gw-accent-presence);
-}
-
 .room-actions,
 .shhh-badge {
   margin-left: auto;
@@ -113,7 +101,8 @@ button {
   align-items: center;
 }
 
-/* Copy invite (host only) and Leave, together on the right; they wrap below the title together on narrow screens. */
+/* Invite and Last Sip (host) or the Host-ends-room chip (guest), then Leave: together on the right of the
+   title, wrapping below it as a group on narrow screens. */
 .room-header-actions {
   display: flex;
   flex-wrap: wrap;
@@ -145,6 +134,11 @@ button {
 }
 
 /* With Invite beside it, Leave tightens up so both fit next to the title on a phone. */
+.room-header-actions .room-actions,
+.room-header-actions .shhh-badge {
+  margin-left: 0;
+}
+
 .room-header-actions .room-invite ~ .leave {
   padding: 0 var(--gw-space-3);
 }
@@ -956,9 +950,6 @@ button {
     max-height: 22dvh;
   }
 
-  .room-header-sub {
-    min-height: 40px;
-  }
 }
 
 /* Controls: anchored at the bottom. */
