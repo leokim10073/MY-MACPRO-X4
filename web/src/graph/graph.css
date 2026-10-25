@@ -101,6 +101,8 @@
 /* The map: people are the only loud things. Lines are quiet, and all words live in the sheet. */
 .graph-canvas {
   position: relative;
+  /* Its height is set by cast size; the board's flex column must not squeeze it. */
+  flex: none;
   width: 100%;
   /* No frame: the canvas sits straight on the board's card. */
   background: transparent;
