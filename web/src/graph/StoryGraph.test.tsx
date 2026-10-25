@@ -69,6 +69,27 @@ describe('StoryGraph', () => {
     expect(document.querySelector('.graph-badge')!.textContent).toBe('99+')
   })
 
+  it('dims everything outside the selected pair, and picking the open pair again closes it', async () => {
+    const three = deriveGraph(
+      [...chars, { id: 'cass', name: 'Cass' }],
+      [story('Coffee', ['ricky', 'aaron'], 1), story('Texting', ['ricky', 'aaron'], 2), story('Gym', ['cass', 'aaron'], 3)],
+    )
+    const handlers = { onSelect: vi.fn(), onClear: vi.fn(), onShowList: vi.fn() }
+    render(<StoryGraph roomId="r1" model={three} selection={{ kind: 'edge', a: 'aaron', b: 'ricky' }} {...handlers} />)
+    await act(async () => {})
+    const node = (id: string) => document.querySelector(`[data-id="${id}"] .graph-node`)!.className
+    expect(node('cass')).toContain('is-dimmed')
+    expect(node('ricky')).not.toContain('is-dimmed')
+    expect(document.querySelector('.graph-edge.is-selected')).toBeTruthy()
+    expect(document.querySelectorAll('.graph-edge.is-dimmed')).toHaveLength(1)
+    // Tab order: people by name, then the badges.
+    const stops = [...document.querySelectorAll<HTMLElement>('.react-flow__node, .graph-badge')].map((el) => el.getAttribute('aria-label'))
+    expect(stops).toEqual(['Aaron, 3 stories', 'Cass, 1 story', 'Ricky, 2 stories', 'Aaron and Ricky, 2 stories'])
+    fireEvent.click(screen.getByRole('button', { name: 'Aaron and Ricky, 2 stories' }))
+    expect(handlers.onClear).toHaveBeenCalled()
+    expect(handlers.onSelect).not.toHaveBeenCalled()
+  })
+
   it('keeps React Flow attribution; the only control is a fit button', async () => {
     graph()
     await act(async () => {})

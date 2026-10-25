@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Room } from '../../../shared/schema'
 import { initialRoomState, roomReducer, type RoomState } from '../room/state'
@@ -58,8 +58,25 @@ describe('relationship map in the room', () => {
     expect(new URLSearchParams(window.location.search).get('sel')).toBe('node:p_sam')
     expect(screen.getByRole('dialog', { name: 'Sam' })).toBeTruthy()
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Close details' })))
-    expect(screen.queryByRole('dialog', { name: 'Sam' })).toBeNull()
+    // Opened here, so closing steps Back over the entry it pushed.
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Sam' })).toBeNull())
     expect(window.location.search).toBe('?room=abc&view=map')
+  })
+
+  it('picking the open person again closes; a different pick swaps in place; others dim', async () => {
+    screenAt('?room=abc&view=map')
+    await act(async () => {})
+    const sam = () => screen.getByRole('button', { name: 'Sam, 1 story' })
+    await act(async () => fireEvent.click(sam()))
+    expect(document.querySelector('[data-id="p_sam"] .graph-node')!.className).toContain('is-selected')
+    expect(document.querySelector('[data-id="p_kevin"] .graph-node')!.className).not.toContain('is-dimmed')
+    const depth = window.history.length
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Kevin, 3 stories' })))
+    expect(window.history.length).toBe(depth)
+    expect(screen.getByRole('dialog', { name: 'Kevin' })).toBeTruthy()
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Kevin, 3 stories' })))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(new URLSearchParams(window.location.search).get('sel')).toBeNull()
   })
 
   it('a shared ?sel= link opens the pair, even in the list', () => {

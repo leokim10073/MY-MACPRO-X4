@@ -12,7 +12,7 @@ import { useCallback, useMemo, useState, type KeyboardEvent } from 'react'
 import CharacterNode, { type CharacterNodeType } from './CharacterNode'
 import RelationshipEdge, { pairLabel, type RelationshipEdgeType } from './RelationshipEdge'
 import { pairKey, type GraphModel } from './types'
-import type { Selection } from './useSelection'
+import { sameSelection, type Selection } from './useSelection'
 import { useStableLayout } from './useStableLayout'
 import './graph.css'
 
@@ -59,22 +59,43 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
   const nodeIds = useMemo(() => model.characters.map((c) => c.id), [model])
   const links = useMemo(() => model.edges.map((e) => ({ source: e.source, target: e.target })), [model])
   const { positions, setNodePosition } = useStableLayout(roomId, nodeIds, links)
-  const selectedNode = selection.kind === 'node' ? selection.id : null
-  const selectedEdge = selection.kind === 'edge' ? pairKey(selection.a, selection.b) : null
+  // Everything below reads the selection from the URL; nothing here keeps its own copy.
+  const selectedNode = selection.kind === 'node' && model.characters.some((c) => c.id === selection.id) ? selection.id : null
+  const selectedEdge =
+    selection.kind === 'edge' && model.edges.some((e) => e.id === pairKey(selection.a, selection.b))
+      ? pairKey(selection.a, selection.b)
+      : null
+  // The selected item and its neighbours stay at full strength; the rest dims. Nothing dims with no selection.
+  const lit = useMemo(() => {
+    if (selectedNode) {
+      const edges = model.edges.filter((e) => e.source === selectedNode || e.target === selectedNode)
+      return { nodes: new Set([selectedNode, ...edges.flatMap((e) => [e.source, e.target])]), edges: new Set(edges.map((e) => e.id)) }
+    }
+    const edge = model.edges.find((e) => e.id === selectedEdge)
+    if (edge) return { nodes: new Set([edge.source, edge.target]), edges: new Set([edge.id]) }
+    return null
+  }, [model, selectedNode, selectedEdge])
+  // Picking what's already open closes it.
+  const choose = useCallback(
+    (sel: Selection) => (sameSelection(sel, selection) ? onClear() : onSelect(sel)),
+    [selection, onSelect, onClear],
+  )
 
   const laidOut = useMemo<CharacterNodeType[]>(
     () =>
-      model.characters
+      // Name order is tab order.
+      [...model.characters]
+        .sort((a, b) => a.name.localeCompare(b.name))
         .filter((c) => positions[c.id])
         .map((c) => ({
           id: c.id,
           type: 'character',
           position: positions[c.id],
-          data: { character: c, isSelected: c.id === selectedNode, isDimmed: false },
+          data: { character: c, isSelected: c.id === selectedNode, isDimmed: !!lit && !lit.nodes.has(c.id) },
           ariaRole: 'button',
           ariaLabel: `${c.name}, ${storyCount(model.storiesByCharacter.get(c.id)?.length ?? 0)}`,
         })),
-    [model, positions, selectedNode],
+    [model, positions, selectedNode, lit],
   )
   // React Flow owns nodes while they're dragged; a new layout or selection is merged in, keeping its measurements.
   const [nodes, setNodes] = useState(laidOut)
@@ -91,6 +112,8 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
   const edges = useMemo<RelationshipEdgeType[]>(() => {
     const name = (id: string) => model.characters.find((c) => c.id === id)?.name ?? '?'
     return model.edges.map((e) => ({
+      // Behind the nodes, always.
+      zIndex: 0,
       id: e.id,
       source: e.source,
       target: e.target,
@@ -102,19 +125,23 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
         ...e,
         label: pairLabel(name(e.source), name(e.target), e.weight),
         isSelected: e.id === selectedEdge,
-        isDimmed: false,
-        onOpen: () => onSelect({ kind: 'edge', a: e.source, b: e.target }),
+        isDimmed: !!lit && !lit.edges.has(e.id),
+        onOpen: () => choose({ kind: 'edge', a: e.source, b: e.target }),
       },
     }))
-  }, [model, selectedEdge, onSelect])
+  }, [model, selectedEdge, lit, choose])
 
-  // Nodes are focusable divs; Enter or Space opens one, like a click.
+  // Nodes are focusable divs; Enter or Space picks one, like a click. Escape closes whatever is open.
   const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClear()
+      return
+    }
     if (e.key !== 'Enter' && e.key !== ' ') return
     const id = (e.target as HTMLElement).closest<HTMLElement>('.react-flow__node')?.dataset.id
     if (!id) return
     e.preventDefault()
-    onSelect({ kind: 'node', id })
+    choose({ kind: 'node', id })
   }
 
   return (
@@ -129,9 +156,13 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           nodeOrigin={nodeOrigin}
           onNodesChange={onNodesChange}
           onNodeDragStop={(_, node) => setNodePosition(node.id, node.position)}
-          onNodeClick={(_, node) => onSelect({ kind: 'node', id: node.id })}
-          onEdgeClick={(_, edge) => onSelect({ kind: 'edge', a: edge.source, b: edge.target })}
+          onNodeClick={(_, node) => choose({ kind: 'node', id: node.id })}
+          onEdgeClick={(_, edge) => choose({ kind: 'edge', a: edge.source, b: edge.target })}
           onPaneClick={onClear}
+          // A press that moves more than 4px is a drag (or a pan), never a pick.
+          nodeDragThreshold={4}
+          nodeClickDistance={4}
+          paneClickDistance={4}
           nodesConnectable={false}
           elementsSelectable={false}
           minZoom={0.4}

@@ -112,6 +112,7 @@
 
 .graph-node {
   position: relative;
+  isolation: isolate;
   width: 56px;
   height: 56px;
 }
@@ -134,6 +135,22 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Selected: a soft accent halo behind the avatar, distinct from the focus ring. */
+.graph-node.is-selected::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--gw-color-violet) 22%, transparent);
+}
+
+.graph-node.is-dimmed,
+.graph-edge.is-dimmed,
+.graph-badge.is-dimmed {
+  opacity: 0.3;
 }
 
 /* A round focus ring around the avatar (the library positions this wrapper; nothing here transforms it). */

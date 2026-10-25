@@ -179,7 +179,7 @@ export default function RoomScreen({
       : null
   // The relationship map (POC): only offered once ?view= is in the address, so the room is unchanged without it.
   const { view, explicit: offerMap, setView } = useViewMode()
-  const { selection, open: select, clear: clearSelection } = useSelection()
+  const { selection, select, close: clearSelection } = useSelection()
   const graph = useGraphModel(state.storyState, state.members)
 
   return (

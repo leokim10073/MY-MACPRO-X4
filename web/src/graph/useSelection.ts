@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import type { Id } from '../../../shared/schema'
 import { PAIR_SEP } from './types'
-import { useSearchParam, writeSearchParam } from './urlParam'
+import { readSearchParam, useSearchParam, writeSearchParam } from './urlParam'
 
 export type Selection = { kind: 'none' } | { kind: 'node'; id: Id } | { kind: 'edge'; a: Id; b: Id }
 
@@ -35,12 +35,42 @@ export function formatSelection(sel: Selection): string | null {
   return null
 }
 
-/** What's open in the details sheet, kept in `?sel=` so Back closes it and a link reopens it. */
+// Marks a history entry this app pushed by opening the sheet, so closing can step back over it.
+const PUSHED = 'gwSheetPushed'
+
+const wasPushedHere = () => {
+  const state: unknown = window.history.state
+  return typeof state === 'object' && state !== null && (state as Record<string, unknown>)[PUSHED] === true
+}
+
+export function sameSelection(x: Selection, y: Selection): boolean {
+  return formatSelection(x) === formatSelection(y)
+}
+
+/**
+ * What's open in the details sheet. `?sel=` is the only copy: the canvas highlight and the sheet both read it here,
+ * and nothing else writes it.
+ * - Opening from closed pushes one history entry; changing what's open replaces it.
+ * - Closing an entry opened here steps Back (so Back after closing doesn't reopen it); closing a deep link just
+ *   drops the param.
+ */
 export function useSelection() {
   const raw = useSearchParam(PARAM)
   const selection = useMemo(() => parseSelection(raw), [raw])
-  // Opening is a step Back can undo; closing just drops the param.
-  const open = useCallback((sel: Selection) => writeSearchParam(PARAM, formatSelection(sel), 'push'), [])
-  const clear = useCallback(() => writeSearchParam(PARAM, null, 'replace'), [])
-  return { selection, open, clear }
+  const select = useCallback((sel: Selection) => {
+    const value = formatSelection(sel)
+    if (value === null) return
+    if (parseSelection(readSearchParam(PARAM)).kind === 'none') {
+      const state: unknown = window.history.state
+      writeSearchParam(PARAM, value, 'push', { ...(typeof state === 'object' ? state : null), [PUSHED]: true })
+    } else {
+      writeSearchParam(PARAM, value, 'replace')
+    }
+  }, [])
+  const close = useCallback(() => {
+    if (readSearchParam(PARAM) === null) return
+    if (wasPushedHere()) window.history.back()
+    else writeSearchParam(PARAM, null, 'replace')
+  }, [])
+  return { selection, select, close }
 }
