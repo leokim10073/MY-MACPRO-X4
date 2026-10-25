@@ -8,6 +8,7 @@
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { action, internalAction } from "./_generated/server";
+import { requireUnderLimit } from "./limits";
 import { endCall, mintCallToken, type LiveKitConfig } from "../../voice/src/server/livekit";
 
 function liveKit(): LiveKitConfig | null {
@@ -24,6 +25,7 @@ export const callToken = action({
     const who = await ctx.runQuery(internal.voice.callIdentity, { sessionToken });
     const cfg = liveKit();
     if (!cfg) throw new ConvexError("The call isn't set up on this deployment");
+    await requireUnderLimit(ctx, "callToken", who.memberId);
     return await mintCallToken(cfg, who);
   },
 });

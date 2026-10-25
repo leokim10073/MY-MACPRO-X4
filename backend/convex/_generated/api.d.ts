@@ -13,7 +13,9 @@ import type * as call from "../call.js";
 import type * as crons from "../crons.js";
 import type * as events from "../events.js";
 import type * as lib from "../lib.js";
+import type * as limits from "../limits.js";
 import type * as lines from "../lines.js";
+import type * as presence from "../presence.js";
 import type * as replay from "../replay.js";
 import type * as rooms from "../rooms.js";
 import type * as story from "../story.js";
@@ -31,7 +33,9 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   events: typeof events;
   lib: typeof lib;
+  limits: typeof limits;
   lines: typeof lines;
+  presence: typeof presence;
   replay: typeof replay;
   rooms: typeof rooms;
   story: typeof story;
@@ -64,4 +68,7 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  presence: import("@convex-dev/presence/_generated/component.js").ComponentApi<"presence">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
+};

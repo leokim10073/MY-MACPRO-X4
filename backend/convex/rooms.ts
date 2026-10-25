@@ -13,6 +13,8 @@ import {
   toMember,
   toRoom,
 } from "./lib";
+import { requireUnderLimit } from "./limits";
+import { presence } from "./presence";
 
 function cleanName(name: string) {
   const trimmed = name.trim();
@@ -46,6 +48,7 @@ async function joinResult(ctx: MutationCtx, memberId: Id<"members">, sessionToke
 export const create = mutation({
   args: { name: v.string() },
   handler: async (ctx, { name }) => {
+    await requireUnderLimit(ctx, "createRoom");
     const roomId = await ctx.db.insert("rooms", {
       status: "active",
       inviteToken: randomToken(),
@@ -114,6 +117,7 @@ export const leave = mutation({
     const room = await ctx.db.get(member.roomId);
     if (!room || room.status !== "active") return;
     await ctx.db.patch(member._id, { token: undefined, leftAt: Date.now() });
+    await presence.removeRoomUser(ctx, room._id, member._id);
     await appendEvent(ctx, room._id, { type: "member_left", memberId: member._id });
   },
 });
@@ -153,6 +157,7 @@ async function burnRoom(ctx: MutationCtx, roomId: Id<"rooms">) {
   await ctx.db.patch(roomId, { status: "burned" });
   // Hang up the voice call for everyone. Mutations can't call LiveKit, so an action does it.
   await ctx.scheduler.runAfter(0, internal.call.endRoomCall, { roomId });
+  await presence.removeRoom(ctx, roomId);
 
   const lines = await ctx.db
     .query("transcriptLines")

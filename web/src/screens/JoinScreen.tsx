@@ -67,7 +67,7 @@ export default function JoinScreen({
         <header className="gw-join__top">
           <div className="gw-brand">
             <WindowLogo size={40} />
-            <span className="gw-wordmark">Gossip Window</span>
+            <span className="gw-wordmark">Spill the Tea</span>
           </div>
           <button
             type="button"

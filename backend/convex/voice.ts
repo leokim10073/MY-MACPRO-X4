@@ -12,6 +12,7 @@ import type { ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { mintSttToken, synthesizeRecap } from "../../voice/src/server/cartesia";
 import { appendEvent, isRoomClosed, requireMember, toRecap } from "./lib";
+import { requireUnderLimit } from "./limits";
 
 function cartesiaKey() {
   return process.env.CARTESIA_API_KEY || undefined;
@@ -24,21 +25,15 @@ function cartesiaKey() {
 export const sttToken = action({
   args: { sessionToken: v.string() },
   handler: async (ctx, { sessionToken }): Promise<{ token: string; expiresAt: number }> => {
-    await ctx.runQuery(internal.voice.checkMember, { sessionToken });
+    const { memberId } = await ctx.runQuery(internal.voice.callIdentity, { sessionToken });
     const key = cartesiaKey();
     if (!key) throw new ConvexError("Voice isn't set up on this deployment");
+    await requireUnderLimit(ctx, "sttToken", memberId);
     return await mintSttToken(key);
   },
 });
 
-export const checkMember = internalQuery({
-  args: { sessionToken: v.string() },
-  handler: async (ctx, { sessionToken }) => {
-    await requireMember(ctx, sessionToken);
-  },
-});
-
-/** Who is joining the call, for call.callToken. Same membership check as the STT token. */
+/** Who is asking, for voice.sttToken and call.callToken. Members of an active room only. */
 export const callIdentity = internalQuery({
   args: { sessionToken: v.string() },
   handler: async (ctx, { sessionToken }) => {

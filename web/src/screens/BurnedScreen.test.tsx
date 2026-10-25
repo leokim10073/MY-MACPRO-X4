@@ -16,7 +16,7 @@ describe('BurnedScreen', () => {
 
   it('shows the brand mark and the empty cup', () => {
     const { container } = render(<BurnedScreen />)
-    expect(container.querySelector('.burned-brand')?.textContent).toBe('Gossip Window')
+    expect(container.querySelector('.burned-brand')?.textContent).toBe('Spill the Tea')
     expect(container.querySelector('.lsc--empty')).toBeTruthy()
   })
 

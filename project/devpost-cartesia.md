@@ -128,7 +128,7 @@ cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, react, v
 ## "Try it out" links
 
 - GitHub：`https://github.com/leokim10073/MY-MACPRO-X4` ⚠️ 確認 repo 已公開，且沒有任何 key（Cartesia 要求 judges 能看到原始碼）
-- Live demo：⚠️ 目前只有 LAN 上的 dev server，沒有公開網址
+- Live demo：`https://spill-the-tea-call.vercel.app`
 
 ---
 

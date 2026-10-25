@@ -1,4 +1,4 @@
-// A small cartoon window with a speech bubble peeking through: the Gossip Window mark.
+// A small cartoon window with a speech bubble peeking through: the Spill the Tea mark.
 const INK = 'var(--gw-color-ink)'
 
 export default function WindowLogo({ size = 40 }: { size?: number }) {

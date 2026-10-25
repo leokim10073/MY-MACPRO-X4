@@ -1,4 +1,4 @@
-// Shared data contract for Gossip Window.
+// Shared data contract for Spill the Tea.
 // Every folder (voice, backend, ai, web) uses these shapes.
 // Change this file only after telling the whole team.
 

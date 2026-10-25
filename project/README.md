@@ -21,11 +21,11 @@ One Devpost submission for **Spill the Tea**, entered into five sponsor tracks. 
 
 | Field | What goes in it |
 | --- | --- |
-| Project name | Spill the Tea |
-| Elevator pitch (200 chars) | Not a meeting summary. Spill the Tea gives late friends a 20-second spoken recap, pops up story cards when old gossip resurfaces, and pours every word away at the Last Sip. |
+| Project name | Spill the Tea - Late to the call? We'll spill it! |
+| Elevator pitch (200 chars) | Late to the call? Hear a 20-sec recap. Old gossip comes back? Tap its story card. Night over? Last Sip pours the tea out and deletes it all. Spill the Tea, for voice calls. |
 | About the project | Inspiration, what we learned, how we built it, challenges. Then a **Sponsor tracks** section with one short paragraph per track, taken from the files here |
 | Built with | Convex, Claude Haiku, Claude Sonnet, Anthropic API, Cartesia Ink, Cartesia Sonic, LiveKit, Krisp, React, Vite, TypeScript, Vitest |
-| "Try it out" links | Public GitHub repo, deployed demo if any |
+| "Try it out" links | Public GitHub repo, https://spill-the-tea-call.vercel.app |
 | Video demo | One 2-minute, demo-first video (Cartesia's format, which also serves Meta) |
 | Sponsor / Special Prizes | Meta, Cartesia, Convex, Anthropic, Microsoft Grand Prize, Microsoft Customer Impact Award |
 | Generative AI question | Claude reads the transcript and finds people, stories and callbacks, then writes the recap. Cartesia transcribes speech and reads the recap aloud |

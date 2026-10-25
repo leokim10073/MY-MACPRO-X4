@@ -32,6 +32,11 @@ export interface RoomClient {
   dispose(): void
   /** Calls the listener with the current status at once, then on each change. Optional: the mock has none. */
   onConnectionChange?(listener: (status: ConnectionStatus) => void): () => void
+  /**
+   * While anyone listens and this phone is in a room, it tells the backend it still has the room open,
+   * and the listener gets the ids of members whose phones stopped (tab closed without Leave). Absent on the mock.
+   */
+  onPresenceChange?(listener: (offlineMemberIds: string[]) => void): () => void
   /** Only the real backend has voice; the mock leaves it out and the talk button does nothing. */
   readonly voice?: VoiceTransport
 }

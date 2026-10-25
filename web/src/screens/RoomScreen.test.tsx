@@ -92,7 +92,7 @@ describe('RoomScreen', () => {
     const state = fixtureEvents().reduce(roomReducer, initialRoomState)
     const hostRoom = { ...room, hostMemberId: 'm_alex' }
     const alex = state.members.find((m) => m.id === 'm_alex')!
-    const url = 'https://gossip-window.vercel.app/?client=convex&room=abc'
+    const url = 'https://spill-the-tea-call.vercel.app/?client=convex&room=abc'
     const { container, unmount } = render(
       <RoomScreen state={state} self={alex} room={hostRoom} onBurn={() => {}} inviteUrl={url} onLeave={() => {}} />,
     )
