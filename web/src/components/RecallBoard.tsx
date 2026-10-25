@@ -39,7 +39,6 @@ export default function RecallBoard({ storyState, recalls, self, latestSeq, capt
   const shown = people
     .filter((p) => byPerson.has(p.id))
     .sort((a, b) => activity(b.id) - activity(a.id))
-  const nameOf = (id: Id) => people.find((p) => p.id === id)?.name
 
   return (
     <div className="recall-board">
@@ -62,9 +61,7 @@ export default function RecallBoard({ storyState, recalls, self, latestSeq, capt
                   )}
                 </div>
                 <ul className="recall-person-stories">
-                  {byPerson.get(p.id)!.map((s) => {
-                    const others = s.personIds.slice(1).map(nameOf).filter(Boolean)
-                    return (
+                  {byPerson.get(p.id)!.map((s) => (
                       <li key={s.id}>
                         <button type="button" className="recall-story" onClick={() => onOpenStory(s.id)}>
                           <span className="recall-story-body">
@@ -74,18 +71,14 @@ export default function RecallBoard({ storyState, recalls, self, latestSeq, capt
                                 <span className="recall-story-missed">Before you joined</span>
                               )}
                             </span>
-                            <span className="recall-story-summary">
-                              {s.summary}
-                              {others.length > 0 && <span className="recall-story-with"> With {others.join(', ')}.</span>}
-                            </span>
+                            <span className="recall-story-summary">{s.summary}</span>
                           </span>
                           <span className="recall-story-more" aria-hidden="true">
                             Details ›
                           </span>
                         </button>
                       </li>
-                    )
-                  })}
+                  ))}
                 </ul>
               </li>
             ))}

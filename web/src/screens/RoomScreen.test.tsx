@@ -58,6 +58,28 @@ describe('RoomScreen', () => {
     expect(screen.getByRole('list', { name: 'People and their stories' })).toBeTruthy()
   })
 
+  it('story summaries on the board end with the summary itself, no "With ..." line', () => {
+    const state = fixtureEvents().reduce(roomReducer, initialRoomState)
+    // A story about two people would have added "With <other>." before.
+    const story = { ...state.storyState!.stories[0], personIds: ['p_kevin', 'p_kevin_work'] }
+    const twoPeople = {
+      ...state,
+      storyState: {
+        ...state.storyState!,
+        people: [
+          ...state.storyState!.people,
+          { id: 'p_kevin_work', roomId: 'demo', name: 'Work Kevin', aliases: [], storyIds: [story.id] },
+        ],
+        stories: [story, ...state.storyState!.stories.slice(1)],
+      },
+    }
+    const taylor = state.members.find((m) => m.id === 'm_taylor')!
+    render(<RoomScreen state={twoPeople} self={taylor} room={room} onBurn={() => {}} />)
+    const board = screen.getByRole('list', { name: 'People and their stories' })
+    expect(board.textContent).not.toMatch(/With /)
+    expect(board.textContent).toContain(story.summary)
+  })
+
   it('each story on the board says it opens the details', () => {
     setup()
     const board = screen.getByRole('list', { name: 'People and their stories' })
