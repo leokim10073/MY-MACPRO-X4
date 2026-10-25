@@ -27,7 +27,7 @@ Late to the call? We’ll spill it! Hear a 20-sec recap, tap story cards when ol
 ## Built with（25 個以內）
 
 ```
-cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-haiku, claude-sonnet, anthropic-api, react, react-flow, d3, vite, typescript, vitest, websockets, web-audio-api, audioworklet
+cartesia, cartesia-ink, cartesia-sonic, claude, claude-haiku, claude-sonnet, anthropic-api, claude-code, convex, convex-presence, convex-rate-limiter, convex-test, livekit, krisp, react, react-flow, d3-force, vite, typescript, vitest, websockets, web-audio-api, audioworklet, vercel, qrcode
 ```
 
 ---
@@ -147,7 +147,7 @@ When the night is over, the host ends the room. A teacup tips over and pours its
 - **No mind reading:** Claude never guesses how anyone feels from silence.
 - **Words are data:** Anything said on the call is treated as transcript, never as instructions to the AI.
 
-**Other tools:** **LiveKit** carries the call audio between phones, and **Krisp** removes background noise before anyone hears it. The Map is drawn with React Flow and laid out with d3-force, straight from the people and stories Claude already tracks, so it needs no extra AI call and grows live as new people come up.
+Other tools: **LiveKit** carries the call audio between phones, and **Krisp** removes background noise before anyone hears it. The Map is drawn with React Flow and laid out with d3-force, straight from the people and stories Claude already tracks, so it needs no extra AI call and grows live as new people come up.
 
 ```
 phone mic → LiveKit + Krisp → Cartesia Ink
@@ -161,21 +161,32 @@ phone mic → LiveKit + Krisp → Cartesia Ink
 
 ## Challenges we ran into
 
-- **Every phone hears every voice** An open mic in a busy room picks up everyone. We stacked Krisp's background-voice cancellation, our own loudness gate that learns the owner's speaking level, and a stricter turn start inside Ink. The gate has passed unit tests but hasn't been tried in a loud room yet.
-- **People talk over each other** When a friend's line lands while my turn is still open, a turn splitter cuts my turn there, so the transcript keeps the real order instead of one long line that swallows the interruption.
-- **Fast and right at the same time** A pop-up that comes late is useless, and one that names the wrong person is worse. We split the AI in two: Haiku answers on every line, Sonnet rebuilds the stories in the background, and anything ambiguous stays hidden.
-- **The recap must not leak into the call** The narrator plays locally on the latecomer's phone and is never sent into the call, so friends don't hear it, and their voices are ducked while it plays.
-- **Phones** iOS only starts audio from a direct tap and pauses the mic on lock or app switch, and the mic needs HTTPS. Joining happens inside the tap, so the call starts. For lock and app switch we wrote recovery code (re-attach the new mic track, show "Tap to resume").
+- **Every phone hears every voice** 
+- An open mic in a busy room picks up everyone. We stacked Krisp's background-voice cancellation, our own loudness gate that learns the owner's speaking level, and a stricter turn start inside Ink. The gate has passed unit tests but hasn't been tried in a loud room yet.
+- **People talk over each other** 
+- When a friend's line lands while my turn is still open, a turn splitter cuts my turn there, so the transcript keeps the real order instead of one long line that swallows the interruption.
+- **Fast and right at the same time** 
+- A pop-up that comes late is useless, and one that names the wrong person is worse. We split the AI in two: Haiku answers on every line, Sonnet rebuilds the stories in the background, and anything ambiguous stays hidden.
+- **The recap must not leak into the call** 
+- The narrator plays locally on the latecomer's phone and is never sent into the call, so friends don't hear it, and their voices are ducked while it plays.
+- **Phones** 
+- iOS only starts audio from a direct tap and pauses the mic on lock or app switch, and the mic needs HTTPS. Joining happens inside the tap, so the call starts. For lock and app switch we wrote recovery code (re-attach the new mic track, show "Tap to resume").
 
 
 ## Accomplishments that we're proud of
 
-- **It works on real phones** In our combined phone test, every turn landed under the right name with live text on every phone; two people talking at once gave separate lines; an interruption split the line in the right order; the recap ducked friends and they didn't hear it; and ending the room ended the call for everyone.
-- **The pop-up beats the sentence** Because it reads Ink's streaming text, the latecomer sees Kevin's stories while Sam is still talking about him.
-- **Privacy by design** Raw audio is never stored, only the transcript, and Last Sip deletes it with the recap MP3. Live captions go only to people in the call and aren't saved. API keys stay on the server and never touch a phone.
-- **Clear when it's listening** A red dot on the Mute button shows whenever the mic is live, and everyone is told on entry that the conversation is transcribed.
-- **Accessible both ways** The recap is spoken for anyone who can't look at a screen, and shown as text for anyone who can't listen.
-- **Built to keep running** A serverless Convex backend, every read and write checked against the caller's session, rate limits so a public link can't run up the bill, and tests on every layer: backend, AI, voice and web.
+- **It works on real phones** 
+- In our combined phone test, every turn landed under the right name with live text on every phone; two people talking at once gave separate lines; an interruption split the line in the right order; the recap ducked friends and they didn't hear it; and ending the room ended the call for everyone.
+- **The pop-up beats the sentence** 
+- Because it reads Ink's streaming text, the latecomer sees Kevin's stories while Sam is still talking about him.
+- **A map that draws itself** 
+- Nobody has to build it: the Map comes straight from the people and stories Claude already tracks, with no extra AI call. It grows and refits the screen as new names come up, and once you drag or zoom, it stays where you put it.
+- **Privacy by design** 
+- Raw audio is never stored, only the transcript, and Last Sip deletes it with the recap MP3. Live captions go only to people in the call and aren't saved. API keys stay on the server and never touch a phone.
+- **Accessible both ways** 
+- The recap is spoken for anyone who can't look at a screen, and shown as text for anyone who can't listen.
+- **Built to keep running** 
+- A serverless Convex backend, every read and write checked against the caller's session, rate limits so a public link can't run up the bill, and tests on every layer: backend, AI, voice and web.
 
 
 ## What we learned
