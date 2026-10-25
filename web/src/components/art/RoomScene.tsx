@@ -46,13 +46,13 @@ function Bubble({ x, y, w, text, tail = 'left' }: { x: number; y: number; w: num
   )
 }
 
-/** Wide scene, 600×320. The phone layout shows a shallow middle band of it. */
+/** Wide scene, 600×320. Always shown whole: scaled to fit and centred, never cropped. */
 export default function RoomScene({ className }: { className?: string }) {
   return (
     <svg
       className={className}
       viewBox="0 0 600 320"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
       focusable="false"
     >
