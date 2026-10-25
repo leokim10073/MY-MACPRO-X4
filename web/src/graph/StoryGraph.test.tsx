@@ -1,0 +1,96 @@
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Story as SchemaStory } from '../../../shared/schema'
+import { deriveGraph } from './deriveGraph'
+import StoryGraph from './StoryGraph'
+import type { Story } from './types'
+
+// jsdom has no layout; React Flow needs these to measure nodes and draw edges.
+const saved: PropertyDescriptor[] = []
+beforeAll(() => {
+  class RO {
+    constructor(private cb: ResizeObserverCallback) {}
+    observe(el: Element) {
+      this.cb([{ target: el, contentRect: { width: 400, height: 400 } } as unknown as ResizeObserverEntry], this as unknown as ResizeObserver)
+    }
+    unobserve() {}
+    disconnect() {}
+  }
+  vi.stubGlobal('ResizeObserver', RO)
+  vi.stubGlobal(
+    'DOMMatrixReadOnly',
+    class {
+      m22 = 1
+      constructor(t?: string) {
+        const scale = t?.match(/scale\(([1-9.])\)/)?.[1]
+        this.m22 = scale ? Number(scale) : 1
+      }
+    },
+  )
+  for (const prop of ['offsetHeight', 'offsetWidth'] as const) {
+    saved.push(Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)!)
+    Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get: () => 80 })
+  }
+})
+afterAll(() => {
+  vi.unstubAllGlobals()
+  for (const [i, prop] of (['offsetHeight', 'offsetWidth'] as const).entries()) {
+    Object.defineProperty(HTMLElement.prototype, prop, saved[i])
+  }
+})
+beforeEach(() => localStorage.clear())
+afterEach(cleanup)
+
+function story(id: string, ids: string[], at: number): Story {
+  const raw = { id, personIds: ids, keyword: id, summary: id, firstSeq: at, lastSeq: at } as SchemaStory
+  return { id, title: id, summary: id, participantIds: ids, createdAt: at, raw }
+}
+const chars = [
+  { id: 'ricky', name: 'Ricky' },
+  { id: 'aaron', name: 'Aaron' },
+]
+const model = deriveGraph(chars, [story('Coffee', ['ricky', 'aaron'], 1), story('Texting', ['ricky', 'aaron'], 2)])
+
+function graph(m = model) {
+  const handlers = { onSelect: vi.fn(), onClear: vi.fn(), onShowList: vi.fn() }
+  render(<StoryGraph roomId="r1" model={m} selection={{ kind: 'none' }} {...handlers} />)
+  return handlers
+}
+
+describe('StoryGraph', () => {
+  it('offers the list when there are fewer than two people', () => {
+    const { onShowList } = graph(deriveGraph([chars[0]], [story('Gym', ['ricky'], 1)]))
+    expect(screen.getByText('Not enough people for a map yet')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Show the list' }))
+    expect(onShowList).toHaveBeenCalled()
+  })
+
+  it('draws a node per person; clicking or pressing Enter on one selects it', async () => {
+    const { onSelect } = graph()
+    await act(async () => {})
+    const ricky = screen.getByRole('button', { name: 'Ricky, 2 stories' })
+    expect(screen.getByRole('button', { name: 'Aaron, 2 stories' })).toBeTruthy()
+    fireEvent.click(ricky)
+    expect(onSelect).toHaveBeenLastCalledWith({ kind: 'node', id: 'ricky' })
+    onSelect.mockClear()
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Aaron, 2 stories' }), { key: 'Enter' })
+    expect(onSelect).toHaveBeenLastCalledWith({ kind: 'node', id: 'aaron' })
+  })
+
+  it('labels the pair with its newest story; the chip selects the edge', async () => {
+    const { onSelect } = graph()
+    await act(async () => {})
+    const chip = screen.getByRole('button', { name: 'Aaron and Ricky: 2 stories, latest Texting' })
+    expect(chip.textContent).toBe('Texting2')
+    fireEvent.click(chip)
+    expect(onSelect).toHaveBeenCalledWith({ kind: 'edge', a: 'aaron', b: 'ricky' })
+  })
+
+  it('keeps React Flow attribution and hides the lock control', async () => {
+    graph()
+    await act(async () => {})
+    expect(document.querySelector('.react-flow__attribution')).toBeTruthy()
+    expect(document.querySelector('.react-flow__controls-interactive')).toBeNull()
+    expect(localStorage.getItem('graph-layout:v1:r1')).toContain('ricky')
+  })
+})

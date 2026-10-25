@@ -21,7 +21,7 @@
   color: var(--gw-text);
 }
 
-.graph-sheet h2 {
+.graph-sheet-head h2 {
   margin: 0;
   font: 600 22px/1.2 var(--gw-font-display);
 }
@@ -96,4 +96,98 @@
     border-radius: var(--gw-radius-lg) 0 0 var(--gw-radius-lg);
     box-shadow: var(--gw-shadow-card);
   }
+}
+
+/* The map. */
+.graph-canvas {
+  position: relative;
+  width: 100%;
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-md);
+  background: var(--gw-surface-sunken);
+  overflow: hidden;
+}
+
+.graph-node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.graph-node.is-selected {
+  box-shadow: 0 0 0 4px var(--gw-color-violet);
+}
+
+.graph-node-name {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 120px;
+  padding: 1px var(--gw-space-2);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: 600 13px var(--gw-font-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.graph-edge {
+  stroke: var(--gw-text-muted);
+}
+
+.graph-edge.is-selected {
+  stroke: var(--gw-color-violet);
+}
+
+.graph-edge-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gw-space-1);
+  max-width: 140px;
+  min-height: 28px;
+  padding: 0 var(--gw-space-2);
+  border: var(--gw-border-sm);
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-raised);
+  color: var(--gw-text);
+  font: 600 12px var(--gw-font-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.graph-edge-chip.is-selected {
+  background: var(--gw-action-primary);
+  color: var(--gw-action-on-primary);
+}
+
+.graph-edge-count {
+  padding: 0 6px;
+  border-radius: var(--gw-radius-pill);
+  background: var(--gw-surface-secondary);
+  color: var(--gw-text);
+  font-size: 11px;
+}
+
+.graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gw-space-3);
+  min-height: 200px;
+  color: var(--gw-text-muted);
+  text-align: center;
+}
+
+.graph-empty p {
+  margin: 0;
 }
