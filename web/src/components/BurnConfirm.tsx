@@ -73,7 +73,7 @@ export default function BurnConfirm({ pending, onBurn, onKeep, failed = false }:
         />
         <h2 id="burn-title">Ready for the last sip?</h2>
         <p>
-          End this room for everyone and permanently delete its conversation, transcript, and AI catch-ups. This can't
+          End this room for everyone and permanently delete its conversation, transcript, and AI recaps. This can't
           be undone.
         </p>
         {failed && !pending && (

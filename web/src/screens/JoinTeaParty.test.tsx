@@ -108,7 +108,7 @@ describe('How it works', () => {
     const panel = screen.getByRole('region', { name: 'How it works' })
     expect(panel.querySelectorAll('li')).toHaveLength(3)
     expect(panel.textContent).toContain('Talk')
-    expect(panel.textContent).toContain('Catch up')
+    expect(panel.textContent).toContain('Spill the tea')
     expect(panel.textContent).toContain('Last Sip')
     fireEvent.keyDown(panel, { key: 'Escape' })
     expect(screen.queryByRole('region', { name: 'How it works' })).toBeNull()

@@ -64,7 +64,7 @@ describe('G9: the host gets a Host badge on the stage', () => {
     const row = screen.getByRole('group', { name: 'People in the room' })
     const host = within(row).getByRole('img', { name: 'Alex, host' })
     expect(host.querySelector('.avatar-host')?.textContent).toBe('Host')
-    expect(within(row).getByRole('img', { name: 'Leo (you)' }).querySelector('.avatar-host')).toBeNull()
+    expect(within(row).getByRole('img', { name: 'Leo, you' }).querySelector('.avatar-host')).toBeNull()
   })
 
   it('RoomScreen passes the room host through', () => {

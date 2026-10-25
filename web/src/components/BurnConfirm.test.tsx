@@ -20,7 +20,7 @@ describe('BurnConfirm', () => {
     expect(dialog.getAttribute('aria-labelledby')).toBe(title.id)
     expect(
       screen.getByText(
-        "End this room for everyone and permanently delete its conversation, transcript, and AI catch-ups. This can't be undone.",
+        "End this room for everyone and permanently delete its conversation, transcript, and AI recaps. This can't be undone.",
       ),
     ).toBeTruthy()
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep chatting' }))

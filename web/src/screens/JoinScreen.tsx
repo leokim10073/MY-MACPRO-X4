@@ -10,7 +10,7 @@ import HowItWorks from '../components/HowItWorks'
 // stored; burn deletes transcripts, stories, recaps (and the narrated recap audio). Nicknames
 // and the room record stay, so this says "the conversation", not "the room".
 export const AI_NOTICE =
-  "AI processes the conversation to create transcripts and catch-ups. Your voice becomes text as you talk; the recording isn't saved. The host can delete the conversation anytime."
+  "AI processes the conversation to create transcripts and recaps. Your voice becomes text as you talk; the recording isn't saved. The host can delete the conversation anytime."
 
 interface Props {
   inviteToken?: string
@@ -87,7 +87,7 @@ export default function JoinScreen({
           <section className="gw-hero">
             <p className="gw-eyebrow">The group chat, out loud</p>
             <h1 className="gw-headline">Your friends brought the tea</h1>
-            <p className="gw-lede">Jump into the voice room. Arriving late? AI catches you up.</p>
+            <p className="gw-lede">Jump into the voice room. Arriving late? AI spills the tea.</p>
             <div className="gw-scene">
               <RoomScene className="gw-scene__art" />
             </div>

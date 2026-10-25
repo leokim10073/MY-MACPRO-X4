@@ -8,7 +8,7 @@ describe('BurnedScreen', () => {
   it('renders the clean-slate copy', () => {
     render(<BurnedScreen onNewRoom={() => {}} onHome={() => {}} />)
     expect(screen.getByRole('heading', { name: "Tea's gone." })).toBeTruthy()
-    expect(screen.getByText('This room, its conversation, and AI catch-ups have been deleted.')).toBeTruthy()
+    expect(screen.getByText('This room, its conversation, and AI recaps have been deleted.')).toBeTruthy()
     expect(screen.getByText("Screenshots or recordings people made aren't affected.")).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Start a new room' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Back home' })).toBeTruthy()

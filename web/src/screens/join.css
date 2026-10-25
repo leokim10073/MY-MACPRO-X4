@@ -147,12 +147,14 @@
   font-size: 15px;
 }
 
-/* Phone: a shallow band of the scene, so the form stays above the keyboard */
+/* The whole scene at its own 600×320 ratio, never cropped. The art draws its own rounded window frame,
+   so nothing here clips it. On tablets it stops growing at 260px and sits centred. */
 .gw-scene {
+  width: 100%;
   margin-top: var(--gw-space-3);
-  height: 92px;
+  aspect-ratio: 600 / 320;
+  max-height: 260px;
   border-radius: var(--gw-radius-lg);
-  overflow: hidden;
 }
 
 .gw-scene__art {
@@ -535,14 +537,8 @@
   }
 
   .gw-scene {
-    height: auto;
-    aspect-ratio: 600 / 320;
+    max-height: none;
     margin-top: var(--gw-space-8);
-    overflow: visible;
-  }
-
-  .gw-scene__art {
-    overflow: visible;
   }
 }
 

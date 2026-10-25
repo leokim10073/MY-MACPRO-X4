@@ -8,15 +8,15 @@ interface Props {
 const STEPS = [
   {
     title: 'Talk',
-    text: 'Hold the talk button and tell your story. What you say becomes text as you talk.',
+    text: 'Join the call and just talk. Your words turn into text as you go. Tap the mic to mute anytime.',
   },
   {
-    title: 'Catch up',
-    text: 'Arrive late? Hear a short recap, then tap a word when an old story comes up again.',
+    title: 'Spill the tea',
+    text: 'Late to the party? Get a quick recap of what you missed, then tap a word when an old story comes back up.',
   },
   {
     title: 'Last Sip',
-    text: "When you're done, the host calls the last sip and the conversation is deleted for everyone.",
+    text: "When you're done, the host calls Last Sip and the conversation is deleted for everyone.",
   },
 ]
 

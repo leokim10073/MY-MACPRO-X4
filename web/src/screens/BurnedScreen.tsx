@@ -39,7 +39,7 @@ export default function BurnedScreen({ onNewRoom, onHome, isHost = true }: Props
         <h1 ref={heading} tabIndex={-1}>
           Tea's gone.
         </h1>
-        <p className="burned-lead">This room, its conversation, and AI catch-ups have been deleted.</p>
+        <p className="burned-lead">This room, its conversation, and AI recaps have been deleted.</p>
         <p className="burned-note">Screenshots or recordings people made aren't affected.</p>
         {(onNewRoom || onHome) && (
           <div className="burned-actions">
