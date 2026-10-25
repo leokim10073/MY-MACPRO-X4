@@ -81,6 +81,10 @@ export class ConvexRoomClient implements RoomClient {
       const { sessionToken } = this.requireSession()
       return callBackend(() => this.convex.action(api.voice.sttToken, { sessionToken }))
     },
+    callToken: () => {
+      const { sessionToken } = this.requireSession()
+      return callBackend(() => this.convex.action(api.call.callToken, { sessionToken }))
+    },
   }
 
   /** The event log reports the burn back, which ends the room on this phone and every other one. */

@@ -24,6 +24,9 @@ import type { ClosingPhase } from '../room/closing'
 import { useLineSpeaking, type SpeakingSignal } from '../room/speaking'
 import { personById, recapFor, storiesById, type RoomState } from '../room/state'
 import { latestLine } from '../room/derived'
+import CallControls from '../components/CallControls'
+import type { LiveLine } from '../components/Transcript'
+import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
 
 interface Props {
@@ -94,6 +97,11 @@ export default function RoomScreen({
   const motion = motionOk()
   // No transport once closing: useVoice stops the mic.
   const voice = useVoice(isClosing ? undefined : transport, room, self, state)
+  const call = useCall(isClosing ? undefined : transport, room, self, state)
+  // The call is the default when the backend offers one; push-to-talk stays as a switch.
+  const [usePtt, setUsePtt] = useState(false)
+  const callMode = call !== null && !usePtt
+  const inTheCall = callMode && inCall(call)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmBurn, setConfirmBurn] = useState(false)
   const burnControl = useRef<HTMLButtonElement>(null)
@@ -139,11 +147,18 @@ export default function RoomScreen({
   if (hint === 'waiting' && popup) setHint('showing')
   if (hint === 'showing' && !popup) setHint('done')
   const lineSpeaking = useLineSpeaking(state.lines, self.joinedAtSeq)
-  const { speakerId } = speaking ?? lineSpeaking
+  // In the call, the speaking signal comes from the call itself, not from the newest line.
+  const callSpeaker = inTheCall ? call.state.participants.find((p) => p.speaking) : undefined
+  const speakerId = callSpeaker?.id ?? (speaking ?? lineSpeaking).speakerId
   const newest = latestLine(state)
   const lastLine = newest && newest.seq > self.joinedAtSeq ? newest : undefined
   const nameOf = (id: string) =>
     state.members.find((m) => m.id === id)?.name ?? state.lines.find((l) => l.speakerId === id)?.speakerName ?? '?'
+  const liveLines: LiveLine[] = inTheCall
+    ? Object.entries(call.state.live)
+        .filter(([id, l]) => id !== self.id && l.text.trim())
+        .map(([id, l]) => ({ id, name: nameOf(id), text: l.text }))
+    : []
 
   return (
     <>
@@ -162,7 +177,9 @@ export default function RoomScreen({
           </div>
           <div className="room-header-sub">
             <span className="room-count gw-chip">{state.members.length} here</span>
-            {!isClosing && <ListeningIndicator micLive={voice?.state.isListening} />}
+            {!isClosing && (
+              <ListeningIndicator micLive={inTheCall ? call.state.isListening : voice?.state.isListening} />
+            )}
             {isHost ? (
               !isClosing && (
                 <div className="room-actions">
@@ -227,6 +244,7 @@ export default function RoomScreen({
                 onDismiss={() => setRecapDismissed(true)}
                 collapsed={!!openStory && peekedFor !== openStory.id}
                 onExpand={() => openStory && setPeekedFor(openStory.id)}
+                onPlayingChange={(playing) => call?.duck(playing)}
               />
             )}
           </div>
@@ -240,7 +258,7 @@ export default function RoomScreen({
             hostId={room.hostMemberId}
           />
           <div className="room-transcript">
-            <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} />
+            <Transcript lines={state.lines} fromSeq={self.joinedAtSeq} live={liveLines} />
           </div>
           <div className="room-popup-slot">
             {openStory ? (
@@ -271,7 +289,13 @@ export default function RoomScreen({
         <div className="room-dock">
           {!isClosing && showTypeLine && onAddLine && <TypeLine onAddLine={onAddLine} />}
           <div className="room-talk">
-            {!isClosing && voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
+            {!isClosing && inTheCall && call.state.preview && <p className="talk-preview">{call.state.preview}</p>}
+            {!isClosing && inTheCall && call.state.failed.map((f, i) => (
+              <button key={`call-${i}`} type="button" className="talk-retry" onClick={f.retry}>
+                Not sent: “{f.line.text}” · tap to retry
+              </button>
+            ))}
+            {!isClosing && !callMode && voice?.state.preview && <p className="talk-preview">{voice.state.preview}</p>}
             {!isClosing && voice?.state.error && (
               <p role="alert" className="talk-error">
                 {voice.state.error}
@@ -286,8 +310,23 @@ export default function RoomScreen({
               <button type="button" className="ptt" disabled>
                 Room closed
               </button>
+            ) : callMode ? (
+              <CallControls
+                call={call}
+                onUsePushToTalk={() => {
+                  call.leave()
+                  setUsePtt(true)
+                }}
+              />
             ) : (
-              <PushToTalkButton onPressChange={voice?.press ?? noop} />
+              <>
+                <PushToTalkButton onPressChange={voice?.press ?? noop} />
+                {call && (
+                  <button type="button" className="call-switch" onClick={() => setUsePtt(false)}>
+                    Use the voice call instead
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -38,6 +38,15 @@ export const checkMember = internalQuery({
   },
 });
 
+/** Who is joining the call, for call.callToken. Same membership check as the STT token. */
+export const callIdentity = internalQuery({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    const { member, room } = await requireMember(ctx, sessionToken);
+    return { roomId: room._id as string, memberId: member._id as string, name: member.name };
+  },
+});
+
 /**
  * Reads the recap aloud with Sonic, stores the MP3 and sends recap_ready again
  * with audioUrl set. Failures leave the text-only recap in place.

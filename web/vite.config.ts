@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), basicSsl()],
+  // voice/'s call code imports these; resolve them from web's own node_modules so there's one copy.
+  resolve: { dedupe: ['livekit-client', '@livekit/krisp-noise-filter'] },
   server: {
     host: true,
     // Serve this app ("."), the shared contract and the voice code it imports; nothing else in the repo is exposed on the LAN.

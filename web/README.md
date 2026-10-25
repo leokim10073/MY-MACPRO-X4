@@ -37,6 +37,8 @@ The app uses the backend in `backend/` whenever `VITE_CONVEX_URL` is set in `web
 
 Extras for Convex: `?type=1` shows a "Type a line" box; `?replay=1` shows a host-only "Start Kevin replay" button.
 
+Against the backend the room offers the **always-on voice call** by default (audio only, through LiveKit): tap **Join call**, then Mute or Leave call; friends' words show greyed in the transcript while they speak, and their voices drop while your recap plays. "Use push-to-talk instead" switches modes. The call needs the LiveKit keys on the backend (see `backend/README.md`).
+
 Push-to-talk and the narrated recap work only against the backend (it needs `CARTESIA_API_KEY`, see `backend/README.md`); on the mock the talk button just animates. The mic needs HTTPS, which the dev server already uses.
 
 With `VITE_CONVEX_URL` set, no param or an unknown `?client=` value gives Convex. `?mock` and `?client=mock` always give the mock, even combined with `?client=convex`. Tests build their client explicitly (the mock), so a local `.env.local` doesn't affect them. `LIVE_CONVEX_URL=<url> npx vitest run src/room/convex/live.test.ts` runs the adapter against a running backend.

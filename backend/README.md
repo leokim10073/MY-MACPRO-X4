@@ -48,6 +48,7 @@ Every change is also written to an append-only `events` table, one `RoomEvent` p
 | `lines.add({ sessionToken, text, at })` | voice | Adds a transcript line, assigns `seq`, runs the AI fast path |
 | `replay.start({ sessionToken, script? })` | host only | Plays `kevin.replay.json` into the room |
 | `voice.sttToken({ sessionToken })` | voice (web) | A 120 s Cartesia speech-to-text token, for members of an active room only |
+| `call.callToken({ sessionToken })` | voice (web) | LiveKit URL and token for this room's always-on call (audio only), members of an active room only |
 | `rooms.get`, `lines.list`, `story.state`, `story.recalls`, `story.myRecap` | anyone (subscribe) | The same data as plain state queries, handy from the CLI |
 
 A recap belongs to the member whose `joinedAtSeq` equals its `uptoSeq`.
@@ -69,6 +70,16 @@ npx convex env set CARTESIA_API_KEY sk_car_...
 ```
 
 After the recap text is saved, Sonic reads it aloud; the MP3 goes into Convex file storage, the recap gets an `audioUrl`, and `recap_ready` is sent again. Burn deletes the file, and audio that finishes after a burn is thrown away. Without the key, push-to-talk is refused and recaps stay text-only.
+
+`convex/call.ts` (Node runtime) runs the always-on call with voice/'s LiveKit helpers. It needs the LiveKit keys, which never reach the browser:
+
+```sh
+npx convex env set LIVEKIT_URL wss://...
+npx convex env set LIVEKIT_API_KEY ...
+npx convex env set LIVEKIT_API_SECRET ...
+```
+
+Burn (host or expiry) also hangs up the room's call. Without the keys, joining the call is refused and push-to-talk still works. Run `npm install` in `voice/` too, since Convex bundles its LiveKit code.
 
 ## Notes
 

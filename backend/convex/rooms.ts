@@ -151,6 +151,8 @@ export const burnExpired = internalMutation({
  */
 async function burnRoom(ctx: MutationCtx, roomId: Id<"rooms">) {
   await ctx.db.patch(roomId, { status: "burned" });
+  // Hang up the voice call for everyone. Mutations can't call LiveKit, so an action does it.
+  await ctx.scheduler.runAfter(0, internal.call.endRoomCall, { roomId });
 
   const lines = await ctx.db
     .query("transcriptLines")
