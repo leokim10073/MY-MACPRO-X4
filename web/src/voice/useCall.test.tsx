@@ -164,6 +164,12 @@ describe('the call on the room screen', () => {
       }),
     )
     expect(screen.queryByRole('list', { name: 'In the call' })).toBeNull()
+    // Mic on: the Mute button carries the red listening dot; it goes away when muted.
+    act(() => mic.set({ isListening: true }))
+    expect(screen.getByRole('button', { name: 'Mute' }).querySelector('.listening-dot')).toBeTruthy()
+    act(() => mic.set({ isListening: false, muted: true }))
+    expect(screen.getByRole('button', { name: 'Unmute' }).querySelector('.listening-dot')).toBeNull()
+    act(() => mic.set({ muted: false }))
     expect(screen.queryByRole('button', { name: 'Leave call' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Mute' }))
     expect(mic.setMuted).toHaveBeenCalledWith(true)

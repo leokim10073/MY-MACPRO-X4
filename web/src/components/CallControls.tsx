@@ -30,6 +30,8 @@ export default function CallControls({ call }: Props) {
       {/* Who is in the room and speaking is on the stage above; leaving is the header's Leave. */}
       {joined ? (
         <button type="button" className="ptt" aria-pressed={state.muted} onClick={() => call.setMuted(!state.muted)}>
+          {/* The visible listening indicator: a red dot while this phone's mic is going to transcription. */}
+          {state.isListening && <span className="listening-dot ptt-mic-dot" title="Mic on" aria-hidden="true" />}
           {state.muted ? 'Unmute' : 'Mute'}
         </button>
       ) : (
