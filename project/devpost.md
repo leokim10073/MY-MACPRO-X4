@@ -27,7 +27,7 @@ Late to the call? We’ll spill it! Hear a 20-sec recap. Old gossip comes back? 
 ## Built with（25 個以內）
 
 ```
-cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-haiku, claude-sonnet, anthropic-api, react, vite, typescript, vitest, websockets, web-audio-api, audioworklet
+cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-haiku, claude-sonnet, anthropic-api, react, react-flow, d3, vite, typescript, vitest, websockets, web-audio-api, audioworklet
 ```
 
 ---
@@ -46,9 +46,10 @@ cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-h
 3. 晚到者聽 Sonic recap：recap banner + 播放中
 4. Recall pop-up：**Kevin · Cake · Airport · Landlord**，最好拍到對方話還沒講完（最重要的一張）
 5. Story card：Cake 的內容 + Sam 的反應
-6. Last Sip 倒茶動畫
-7. 語音流程圖：mic → Krisp → loudness gate → Ink（turn.update / turn.end）→ recap → Sonic → 晚到者
-8. 隱私說明：Mute 上的紅點 / 入場告知 / 不存音訊
+6. Map：Kevin 和朋友們的關係圖，最好點開一條線看兩人共同的故事
+7. Last Sip 倒茶動畫
+8. 語音流程圖：mic → Krisp → loudness gate → Ink（turn.update / turn.end）→ recap → Sonic → 晚到者
+9. 隱私說明：Mute 上的紅點 / 入場告知 / 不存音訊
 
 技巧：手機截圖是直的，建議 2–3 支手機並排放在 3:2 的底圖上。
 
@@ -58,7 +59,7 @@ cartesia, cartesia-ink, cartesia-sonic, livekit, krisp, convex, claude, claude-h
 
 ⚠️ 還沒錄。Cartesia 要求 **2 分鐘、demo 優先**：
 
-1. **0:00–1:10 一整段流程，不放投影片。** 三個朋友在聊 Kevin，字幕邊講邊出現。Taylor 晚到，聽到 Sonic 念的 20 秒 recap，其他人沒停下來；Sam 說 "after the cake thing with Kevin…"，話還沒講完 pop-up 就跳出 `Kevin · Cake · Airport · Landlord`；Taylor 點 **Cake**，然後開口："Wait, the WHOLE cake?" 最後 host 結束房間，Last Sip 把茶倒掉。
+1. **0:00–1:10 一整段流程，不放投影片。** 三個朋友在聊 Kevin，字幕邊講邊出現。Taylor 晚到，聽到 Sonic 念的 20 秒 recap，其他人沒停下來；Sam 說 "after the cake thing with Kevin…"，話還沒講完 pop-up 就跳出 `Kevin · Cake · Airport · Landlord`；Taylor 點 **Cake**，然後開口："Wait, the WHOLE cake?" 接著切到 **Map**，看到 Kevin 和大家的關係圖。最後 host 結束房間，Last Sip 把茶倒掉。
 2. **1:10–1:40 問題。** 語音沒有 scrollback，晚到的人只能打斷或沉默。
 3. **1:40–2:00 Cartesia 做了什麼。** Ink 的 turns WebSocket 讓通話不用按鈕、字幕即時、pop-up 比句子快；Sonic 把 recap 變回聲音，只給晚到的人聽。
 
@@ -93,9 +94,9 @@ Meta, Cartesia, Convex, Anthropic, Microsoft Grand Prize, Microsoft Customer Imp
 
 > You can scroll back a chat. You can't scroll back a conversation.
 
-After graduation our friend group scattered for work, across cities and time zones. We still share the same friends and the same old stories, but we can't all get on a call at the same time. One of us has a friend who just moved to Boston for an internship, and with the time difference she can almost never join on time. Every call, someone shows up late.
+After graduation our friend group scattered for work, across cities and time zones. We still share the same friends and the same old stories, but we can never all get on a call at the same time. Someone always shows up late.
 
-Picture it: the friends are deep into a story about Kevin, their old roommate. Taylor gets off work and joins fifteen minutes late. In a group chat Taylor would just scroll up. On a voice call there's nothing to scroll, so Taylor has two bad options:
+Picture it: the friends are deep into a story about Kevin, their old college roommate. Taylor, two time zones away, finishes work late and joins fifteen minutes in. In a group chat Taylor would just scroll up. On a voice call there's nothing to scroll, so Taylor has two bad options:
 
 - **Interrupt:** "Wait, who's Kevin?" The story stops and everyone sits through a retelling.
 - **Stay quiet:** nod along, miss the jokes, and never really join in.
@@ -107,21 +108,23 @@ We wanted the latecomer to get the missing context **back as voice**, in the sam
 
 ## What it does
 
-Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on call from their own phone, no push-to-talk. **Cartesia Ink** transcribes each phone as its owner speaks: friends see your words appear while you're still talking. On top of that, three things you won't find in a meeting tool:
+Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on **LiveKit** call from their own phone, no push-to-talk. **Cartesia Ink** transcribes each phone as its owner speaks: friends see your words appear while you're still talking. On top of that, three things you won't find in a meeting tool:
 
 ### 1. Recap: a 20-second "previously on…", spoken
 
-When someone joins late, **Cartesia Sonic** reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. It plays **only on the latecomer's phone**, never into the call. Friends' voices drop to 30% while it plays, and **nobody else stops talking**. The latecomer hears what they missed while still following what's being said now.
+When someone joins late, **Claude** writes a short recap of only what they missed, and **Cartesia Sonic** reads it to them in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. It plays **only on the latecomer's phone**, never into the call. Friends' voices drop to 30% while it plays, and **nobody else stops talking**. The latecomer hears what they missed while still following what's being said now.
 
 ### 2. Recall: story cards the moment old gossip comes back
 
-The callbacks keep coming after the recap. When Sam starts saying *"after the cake thing with Kevin…"*, a pop-up shows **Kevin · Cake · Airport · Landlord** before Sam finishes the sentence: the phone matches Ink's streaming text against the people and stories it already knows. Vague references ("he just texted", "the roommate") are caught a moment later, when the turn ends. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. Each card also says whether the story came up **before** or **after you joined**.
+The callbacks keep coming after the recap. When Sam starts saying *"after the cake thing with Kevin…"*, a pop-up shows **Kevin · Cake · Airport · Landlord** before Sam finishes the sentence: the phone matches Ink's streaming text against the people and stories it already knows. Vague references ("he just texted", "the roommate") are caught by **Claude** a moment later, when the turn ends. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words. Each card also says whether the story came up **before** or **after you joined**.
 
-Everyone also shares one **recall board**: who's being talked about, their stories in a line or two, and what the group is on right now.
+Everyone also shares one **recall board**, kept live on every phone by **Convex**: who's being talked about, their stories in a line or two, and what the group is on right now.
+
+Switch the board to **Map** and the night's gossip becomes a web: everyone who's been talked about is a dot, and friends who show up in the same stories are linked, with thicker lines for more shared stories. Tap a person to see their connections and stories, or tap a line to see what two people have been through together.
 
 ### 3. Last Sip: the tea gets poured out
 
-When the night is over, the host ends the room. A teacup tips over and pours its tea out, the call ends for everyone, and the transcript, stories and recap audio are deleted. What's said over tea stays over tea.
+When the night is over, the host ends the room. A teacup tips over and pours its tea out, the call ends for everyone, and **Convex** deletes the transcript, stories and recap audio. What's said over tea stays over tea.
 
 **The AI never joins the conversation.** Its only job is to get the latecomer talking again. Success isn't the latecomer reading a summary. It's the latecomer saying *"Wait, the WHOLE cake?"*
 
@@ -142,7 +145,7 @@ When the night is over, the host ends the room. A teacup tips over and pours its
 - **No mind reading.** Claude never guesses how anyone feels from silence.
 - **Words are data.** Anything said on the call is treated as transcript, never as instructions to the AI.
 
-**Other tools.** LiveKit carries the call audio between phones, and Krisp removes background noise before anyone hears it.
+**Other tools.** LiveKit carries the call audio between phones, and Krisp removes background noise before anyone hears it. The Map is drawn with React Flow and laid out with d3-force, straight from the people and stories Claude already tracks, so it needs no extra AI call and grows live as new people come up.
 
 ```
 phone mic → LiveKit + Krisp → Cartesia Ink → Convex → Claude → Cartesia Sonic → latecomer's phone
