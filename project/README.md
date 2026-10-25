@@ -1,11 +1,11 @@
 # Track submissions
 
-One Devpost submission for **Spill the Tea**, entered into ten sponsor tracks. Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
+One Devpost submission for **Spill the Tea**, entered into ten sponsor tracks; the text to paste is in [devpost.md](devpost.md). Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
 
 | Track | File | Fit | What it needs beyond the shared submission |
 | --- | --- | --- | --- |
 | Meta: Bringing People Closer Together with AI | [meta.md](meta.md) | Strongest, main target | A rock-solid live demo |
-| Best Use of Cartesia | [cartesia.md](cartesia.md), Devpost draft [devpost-cartesia.md](devpost-cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
+| Best Use of Cartesia | [cartesia.md](cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
 | Best Use of Convex | [convex.md](convex.md) | Strong, the whole backend is Convex | A "How we use Convex" section |
 | Anthropic | [anthropic.md](anthropic.md) | Good, community needs naming | A named community, a real conversation with someone in it, Claude's failure modes |
 | Microsoft: Built for the Real World / Customer Impact Award | [microsoft.md](microsoft.md) | Weakest, social isn't a listed domain | Production path and measurable usefulness |
@@ -24,15 +24,10 @@ One Devpost submission for **Spill the Tea**, entered into ten sponsor tracks. E
 
 ## Devpost fields
 
+Project name, elevator pitch, About the project, Built with, links, media, video and sponsor list are all in [devpost.md](devpost.md), the one version to paste. Only the fields below aren't there yet.
+
 | Field | What goes in it |
 | --- | --- |
-| Project name | Spill the Tea - Late to the call? We'll spill it! |
-| Elevator pitch (200 chars) | Late to the call? Hear a 20-sec recap. Old gossip comes back? Tap its story card. Night over? Last Sip pours the tea out and deletes it all. Spill the Tea, for voice calls. |
-| About the project | Inspiration, what we learned, how we built it, challenges. Then a **Sponsor tracks** section with one short paragraph per track, taken from the files here |
-| Built with | Convex, Claude Haiku, Claude Sonnet, Anthropic API, Cartesia Ink, Cartesia Sonic, LiveKit, Krisp, React, Vite, TypeScript, Vitest |
-| "Try it out" links | Public GitHub repo, https://spill-the-tea-call.vercel.app |
-| Video demo | One 2-minute, demo-first video (Cartesia's format, which also serves Meta) |
-| Sponsor / Special Prizes | Meta, Cartesia, Convex, Anthropic, Microsoft Grand Prize, Microsoft Customer Impact Award, [MLH] Best Use of Gemini API, [MLH] Commit Fellowship Prize Category, [Creao AI] Best AI-First Disruptor, [Creao AI] Best Team Empowerment (Atlassian only if the side project is built) |
 | Generative AI question | Claude reads the transcript and finds people, stories and callbacks, then writes the recap. Cartesia transcribes speech and reads the recap aloud |
 | Gemini Project Number | Needed for the Gemini track: the Google Cloud project number of the Gemini API key |
 
