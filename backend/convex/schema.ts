@@ -1,4 +1,4 @@
-// Convex tables for Gossip Window. A sketch, not final.
+// Convex tables for Spill the Tea. A sketch, not final.
 // Shapes mirror shared/schema.ts. Convex adds `_id` and `_creationTime` to every
 // document, and those stand in for the shared `id` field (convert at the edge).
 // Change shared/schema.ts first, then this file.

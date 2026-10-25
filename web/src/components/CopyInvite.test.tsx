@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import CopyInvite from './CopyInvite'
 
-const url = 'https://gossip-window.vercel.app/?client=convex&room=abc123'
+const url = 'https://spill-the-tea-call.vercel.app/?client=convex&room=abc123'
 
 afterEach(() => {
   cleanup()
