@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Member, Room } from '../../../shared/schema'
 import BurnConfirm from '../components/BurnConfirm'
 import LastSipClosing from '../components/LastSipClosing'
@@ -26,6 +26,7 @@ import { personById, recapFor, storiesById, type RoomState } from '../room/state
 import { latestLine } from '../room/derived'
 import CallControls from '../components/CallControls'
 import type { LiveLine } from '../components/Transcript'
+import { useInstantRecalls } from '../recall/useInstantRecalls'
 import { inCall, useCall } from '../voice/useCall'
 import { useVoice } from '../voice/useVoice'
 
@@ -137,7 +138,13 @@ export default function RoomScreen({
   const [peekedFor, setPeekedFor] = useState<string | null>(null)
   const [recapDismissed, setRecapDismissed] = useState(false)
   const [replayStarted, setReplayStarted] = useState(false)
-  const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(state, self)
+  // Friends' words in the call can trigger a pop-up mid-sentence; the AI's recalls still follow.
+  const instantRecalls = useInstantRecalls(inTheCall ? call.state.live : undefined, state, self.id)
+  const popupInput = useMemo(
+    () => (instantRecalls.length > 0 ? { ...state, recalls: [...state.recalls, ...instantRecalls] } : state),
+    [state, instantRecalls],
+  )
+  const { popup, dismiss, tapChip, openStoryId, closeStory } = usePopup(popupInput, self)
   const shownPopup = isClosing ? null : popup
   const popupPerson = shownPopup ? personById(state, shownPopup.personId) : undefined
   const openStory = openStoryId && !isClosing ? storiesById(state).get(openStoryId) : undefined
