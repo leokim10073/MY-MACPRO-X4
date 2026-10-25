@@ -24,8 +24,13 @@ export default function CopyInvite({ url }: Props) {
 
   return (
     <div className="room-invite">
-      <button type="button" className="room-invite-copy gw-btn gw-btn--quiet" onClick={() => void copy()}>
-        {state === 'copied' ? 'Link copied' : 'Copy invite link'}
+      <button
+        type="button"
+        className="room-invite-copy gw-btn gw-btn--quiet"
+        aria-label={state === 'copied' ? 'Link copied' : 'Copy invite link'}
+        onClick={() => void copy()}
+      >
+        {state === 'copied' ? 'Copied' : 'Invite'}
       </button>
       {state === 'manual' && (
         <input

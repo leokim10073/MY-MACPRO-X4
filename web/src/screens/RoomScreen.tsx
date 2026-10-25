@@ -182,11 +182,14 @@ export default function RoomScreen({
               <WindowLogo size={34} />
               <h1>Gossip Window</h1>
             </div>
-            {onLeave && (
-              <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
-                Leave
-              </button>
-            )}
+            <div className="room-header-actions">
+              {inviteUrl && isHost && <CopyInvite url={inviteUrl} />}
+              {onLeave && (
+                <button type="button" className="leave gw-btn gw-btn--quiet" onClick={() => setConfirmLeave(true)}>
+                  Leave
+                </button>
+              )}
+            </div>
           </div>
           <div className="room-header-sub">
             <span className="room-count gw-chip">{state.members.length} here</span>
@@ -243,7 +246,6 @@ export default function RoomScreen({
             Start Kevin replay
           </button>
         )}
-        {inviteUrl && room.hostMemberId === self.id && <CopyInvite url={inviteUrl} />}
         <div className={isClosing ? 'room-board is-closing' : 'room-board'}>
           <div className="room-banner">
             {!recapDismissed && !isClosing && (
