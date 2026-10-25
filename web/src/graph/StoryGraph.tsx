@@ -8,7 +8,7 @@ import {
   type NodeOrigin,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useCallback, useMemo, useState, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import CharacterNode, { type CharacterNodeType } from './CharacterNode'
 import RelationshipEdge, { pairLabel, type RelationshipEdgeType } from './RelationshipEdge'
 import { pairKey, type GraphModel } from './types'
@@ -21,7 +21,7 @@ const nodeTypes = { character: CharacterNode }
 const edgeTypes = { relationship: RelationshipEdge }
 // Layout positions are node centers.
 const nodeOrigin: NodeOrigin = [0.5, 0.5]
-// Fit once after the first layout; a small cast never zooms past 1.
+// Fit after the first layout (and as the cast grows, until the user moves the map); a small cast never zooms past 1.
 const fitViewOptions = { padding: 0.3, maxZoom: 1 }
 /** The canvas grows with the cast instead of always taking most of the screen. */
 const heightFor = (people: number) => (people <= 3 ? 320 : people <= 6 ? 420 : 520)
@@ -114,6 +114,19 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
       }),
     )
   }
+  // Someone new is talked about: fit again so they aren't left off-screen, unless the user has already panned, zoomed
+  // or dragged, in which case the view is theirs and never moves on its own. (fitView waits for the new nodes' size.)
+  const { fitView } = useReactFlow()
+  const userMoved = useRef(false)
+  const castKey = useMemo(() => [...nodeIds].sort().join(' '), [nodeIds])
+  const fittedCast = useRef(castKey)
+  useEffect(() => {
+    const before = new Set(fittedCast.current.split(' '))
+    fittedCast.current = castKey
+    const grew = castKey.split(' ').some((id) => !before.has(id))
+    if (grew && !userMoved.current) void fitView(fitViewOptions)
+  }, [castKey, fitView])
+
   const onNodesChange = useCallback(
     (changes: NodeChange<CharacterNodeType>[]) => setNodes((ns) => applyNodeChanges(changes, ns)),
     [],
@@ -165,7 +178,14 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           edgeTypes={edgeTypes}
           nodeOrigin={nodeOrigin}
           onNodesChange={onNodesChange}
+          onNodeDragStart={() => {
+            userMoved.current = true
+          }}
           onNodeDragStop={(_, node) => setNodePosition(node.id, node.position)}
+          // Only a person's pan or zoom carries an event; the map's own fits don't.
+          onMoveStart={(event) => {
+            if (event) userMoved.current = true
+          }}
           onNodeClick={(_, node) => choose({ kind: 'node', id: node.id })}
           onEdgeClick={(_, edge) => choose({ kind: 'edge', a: edge.source, b: edge.target })}
           onPaneClick={onClear}

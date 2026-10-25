@@ -276,21 +276,21 @@
   align-self: center;
   display: inline-flex;
   margin: var(--gw-space-2) 0 0;
-  padding: 3px;
+  padding: 2px;
   border: var(--gw-border-sm);
   border-radius: var(--gw-radius-pill);
   background: var(--gw-surface-secondary);
 }
 
 .graph-view-toggle button {
-  min-width: 72px;
-  min-height: 36px;
+  min-width: 52px;
+  min-height: 28px;
   padding: 0 var(--gw-space-3);
   border: 0;
   border-radius: var(--gw-radius-pill);
   background: transparent;
   color: var(--gw-text-muted);
-  font: 600 14px var(--gw-font-body);
+  font: 600 13px var(--gw-font-body);
   cursor: pointer;
 }
 

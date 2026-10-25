@@ -150,6 +150,44 @@ describe('StoryGraph', () => {
     expect(saved.ricky.x - savedX0).toBeCloseTo(298 / zoom, 5)
   })
 
+  it('fits again when someone new appears, until the user moves the map', async () => {
+    const handlers = { onSelect: vi.fn(), onClear: vi.fn(), onShowList: vi.fn() }
+    const people = ['bo', 'cy', 'di', 'ed', 'flo', 'gus'].map((id) => ({ id, name: id }))
+    const cast = (n: number) =>
+      deriveGraph([...chars, ...people.slice(0, n)], [
+        ...model.storiesById.values(),
+        ...people.slice(0, n).map((p, i) => story(`s-${p.id}`, ['aaron', p.id], 10 + i)),
+      ])
+    const view = (m: ReturnType<typeof cast>) => <StoryGraph roomId="r1" model={m} selection={{ kind: 'none' }} {...handlers} />
+    const { rerender } = render(view(cast(0)))
+    await act(async () => {})
+    const viewport = () => document.querySelector<HTMLElement>('.react-flow__viewport')!.style.transform
+    const first = viewport()
+    await act(async () => rerender(view(cast(4))))
+    await act(async () => {})
+    const refit = viewport()
+    expect(refit).not.toBe(first)
+    // The same people again (a live update): no refit.
+    await act(async () => rerender(view(cast(4))))
+    expect(viewport()).toBe(refit)
+    // Once the user drags someone, the view is theirs: a newcomer no longer moves it.
+    const node = document.querySelector<HTMLElement>('.react-flow__node[data-id="ricky"]')!
+    const win = node.ownerDocument.defaultView!
+    const mouse = (type: string, target: EventTarget, x: number, y: number) => {
+      const e = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, buttons: type === 'mouseup' ? 0 : 1 })
+      Object.defineProperty(e, 'view', { value: win })
+      target.dispatchEvent(e)
+    }
+    await act(async () => {
+      mouse('mousedown', node, 100, 100)
+      mouse('mousemove', win, 120, 110)
+      mouse('mouseup', win, 120, 110)
+    })
+    await act(async () => rerender(view(cast(6))))
+    await act(async () => {})
+    expect(viewport()).toBe(refit)
+  })
+
   it('keeps React Flow attribution; the only control is a fit button', async () => {
     graph()
     await act(async () => {})
