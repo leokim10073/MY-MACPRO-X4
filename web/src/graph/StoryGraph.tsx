@@ -159,8 +159,12 @@ function Canvas({ roomId, model, selection, onSelect, onClear }: Props) {
           onNodeClick={(_, node) => choose({ kind: 'node', id: node.id })}
           onEdgeClick={(_, edge) => choose({ kind: 'edge', a: edge.source, b: edge.target })}
           onPaneClick={onClear}
+          // The node follows the pointer 1:1: the grab point is fixed at press (no drag threshold, which would make it
+          // trail by the threshold), and the view never auto-pans under a drag (which carried nodes off at speed near
+          // the edge of this small canvas).
+          nodeDragThreshold={0}
+          autoPanOnNodeDrag={false}
           // A press that moves more than 4px is a drag (or a pan), never a pick.
-          nodeDragThreshold={4}
           nodeClickDistance={4}
           paneClickDistance={4}
           nodesConnectable={false}

@@ -90,6 +90,47 @@ describe('StoryGraph', () => {
     expect(handlers.onSelect).not.toHaveBeenCalled()
   })
 
+  it('a dragged node follows the pointer 1:1 and never auto-pans near the edge, and a drag never selects', async () => {
+    const { onSelect } = graph()
+    await act(async () => {})
+    const node = document.querySelector<HTMLElement>('.react-flow__node[data-id="ricky"]')!
+    const win = node.ownerDocument.defaultView!
+    const viewport = () => document.querySelector<HTMLElement>('.react-flow__viewport')!.style.transform
+    const zoom = Number(viewport().match(/scale\(([\d.]+)\)/)![1])
+    const at = () => node.style.transform.match(/translate\((-?[\d.]+)px, ?(-?[\d.]+)px\)/)!.slice(1).map(Number)
+    const [x0, y0] = at()
+    const savedX0 = JSON.parse(localStorage.getItem('graph-layout:v1:r1')!).ricky.x
+    const before = viewport()
+    const mouse = (type: string, target: EventTarget, x: number, y: number) =>
+{
+      const e = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, buttons: type === 'mouseup' ? 0 : 1 })
+      // d3-drag follows the move on the event's view; jsdom won't take the test's window in the constructor.
+      Object.defineProperty(e, 'view', { value: win })
+      target.dispatchEvent(e)
+    }
+    await act(async () => {
+      mouse('mousedown', node, 100, 100)
+      for (let i = 1; i <= 5; i++) mouse('mousemove', win, 100 + 6 * i, 100 + 3 * i)
+    })
+    const [x1, y1] = at()
+    expect(x1 - x0).toBeCloseTo(30 / zoom, 5)
+    expect(y1 - y0).toBeCloseTo(15 / zoom, 5)
+    // Held right at the canvas edge: the view stays put, so the node doesn't run off.
+    await act(async () => {
+      mouse('mousemove', win, 398, 130)
+      await new Promise((r) => setTimeout(r, 200))
+    })
+    expect(viewport()).toBe(before)
+    expect(at()[0] - x0).toBeCloseTo(298 / zoom, 5)
+    await act(async () => {
+      mouse('mouseup', win, 398, 130)
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: 398, clientY: 130 }))
+    })
+    expect(onSelect).not.toHaveBeenCalled()
+    const saved = JSON.parse(localStorage.getItem('graph-layout:v1:r1')!)
+    expect(saved.ricky.x - savedX0).toBeCloseTo(298 / zoom, 5)
+  })
+
   it('keeps React Flow attribution; the only control is a fit button', async () => {
     graph()
     await act(async () => {})
