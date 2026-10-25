@@ -178,8 +178,8 @@ export default function RoomScreen({
     : lastLine
       ? { name: lastLine.speakerName, text: lastLine.text, live: false }
       : null
-  // The relationship map (POC): only offered once ?view= is in the address, so the room is unchanged without it.
-  const { view, explicit: offerMap, setView } = useViewMode()
+  // The relationship map: Map | List is always offered; the list stays the default (?view=map opens the map).
+  const { view, setView } = useViewMode()
   const { selection, select, close: clearSelection } = useSelection()
   // Switching to the list closes the details sheet. Both writes replace the current entry: stepping Back to close
   // here would land on the entry that still says view=map and undo the switch.
@@ -285,8 +285,8 @@ export default function RoomScreen({
           />
           {/* The layout slot keeps its name; it now holds the shared recall board, not a transcript. */}
           <div className="room-transcript room-recalls">
-            {offerMap && <ViewToggle view={view} onChange={showView} />}
-            {offerMap && view === 'map' ? (
+            <ViewToggle view={view} onChange={showView} />
+            {view === 'map' ? (
               <MapPanel
                 roomId={room.id}
                 model={graph}
@@ -365,8 +365,7 @@ export default function RoomScreen({
             )}
           </div>
         </div>
-        {/* Only where the map is offered, so a room without ?view never shows it. */}
-        {!isClosing && offerMap && (
+        {!isClosing && (
           <DetailSheet
             model={graph}
             selection={selection}

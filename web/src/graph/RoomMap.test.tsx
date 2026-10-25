@@ -30,9 +30,10 @@ beforeEach(() => localStorage.clear())
 afterEach(cleanup)
 
 describe('relationship map in the room', () => {
-  it('without ?view= the room is exactly the list it was: no switch, no map', () => {
+  it('without ?view= the switch is there with List pressed, and the list is shown', () => {
     const { container } = screenAt('?client=convex&room=abc')
-    expect(screen.queryByRole('group', { name: 'Show stories as' })).toBeNull()
+    const toggle = screen.getByRole('group', { name: 'Show stories as' })
+    expect(within(toggle).getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
     expect(container.querySelector('.react-flow')).toBeNull()
     expect(screen.getByRole('list', { name: 'People and their stories' })).toBeTruthy()
   })
@@ -91,11 +92,6 @@ describe('relationship map in the room', () => {
   it('a shared ?sel= link opens the pair, even in the list', () => {
     screenAt('?room=abc&view=list&sel=edge%3Ap_kevin~p_sam')
     expect(screen.getByRole('dialog', { name: 'Kevin & Sam' })).toBeTruthy()
-  })
-
-  it('without ?view the room is unchanged: a ?sel= link opens no sheet', () => {
-    screenAt('?room=abc&sel=node%3Ap_sam')
-    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('switching to the list closes the sheet and stays on the list', async () => {
