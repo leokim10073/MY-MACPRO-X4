@@ -408,10 +408,6 @@ button {
   overflow-wrap: anywhere;
 }
 
-.recall-story-with {
-  color: var(--gw-text-muted);
-}
-
 /* One caption at the bottom: what is being said right now, or the newest line. */
 .recall-caption {
   margin: 0;
@@ -1388,9 +1384,9 @@ button {
 }
 
 /* The pop-up slot moved out of the dock into the board; keep its old inset and spacing. */
+/* The pop-up and story card keep their own 8px bottom margin, so they never sit on the board's border. */
 .room-popup-slot {
   padding: 8px 16px 0;
-  margin-bottom: -8px;
 }
 
 /* The speaking control once the room is closing: visibly deactivated. */
