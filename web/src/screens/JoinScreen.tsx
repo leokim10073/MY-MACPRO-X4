@@ -151,7 +151,7 @@ export default function JoinScreen({
                       autoComplete="off"
                       maxLength={30}
                       value={name}
-                      placeholder="Leo"
+                      placeholder="Halloween"
                       aria-invalid={showMissingName || undefined}
                       aria-describedby={showMissingName ? 'nickname-error disclosure' : 'disclosure'}
                       onChange={(e) => {
