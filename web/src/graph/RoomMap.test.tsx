@@ -79,6 +79,15 @@ describe('relationship map in the room', () => {
     expect(new URLSearchParams(window.location.search).get('sel')).toBeNull()
   })
 
+  it('Escape closes the sheet and focus goes back to the person on the map', async () => {
+    screenAt('?room=abc&view=map&sel=node%3Ap_sam')
+    await act(async () => {})
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Sam' }))
+    await act(async () => fireEvent.keyDown(screen.getByRole('dialog', { name: 'Sam' }), { key: 'Escape' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Sam, 1 story' }))
+  })
+
   it('a shared ?sel= link opens the pair, even in the list', () => {
     screenAt('?room=abc&view=list&sel=edge%3Ap_kevin~p_sam')
     expect(screen.getByRole('dialog', { name: 'Kevin & Sam' })).toBeTruthy()

@@ -38,14 +38,17 @@ function Sheet({ model, character, edge, onSelect, onClose, people, self }: Shee
   const headingId = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const shownKey = character ? `node:${character.id}` : `edge:${edge!.id}`
-  // Focus goes back where it came from once the sheet closes.
+  // On close, focus goes to what was last shown on the map (its node, or its count badge), else back where it came from.
+  const lastShown = useRef(shownKey)
   useLayoutEffect(() => {
     const opener = document.activeElement
     return () => {
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
+      const target = mapElementFor(lastShown.current) ?? opener
+      if (target instanceof HTMLElement && target.isConnected) target.focus()
     }
   }, [])
   useEffect(() => {
+    lastShown.current = shownKey
     headingRef.current?.focus()
   }, [shownKey])
 
@@ -120,6 +123,12 @@ function Sheet({ model, character, edge, onSelect, onClose, people, self }: Shee
       </section>
     </div>
   )
+}
+
+function mapElementFor(key: string): Element | null {
+  const [kind, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
+  const selector = kind === 'node' ? `.react-flow__node[data-id="${CSS.escape(id)}"]` : `.graph-badge[data-pair="${CSS.escape(id)}"]`
+  return document.querySelector(selector)
 }
 
 function Connections({

@@ -32,6 +32,7 @@ export default function RelationshipEdge({ id, sourceX, sourceY, targetX, target
         // The viewport portal draws after the nodes, so badges sit above them and come after them in tab order.
         <ViewportPortal>
           <CountBadge
+            pair={id}
             count={data.weight}
             label={data.label}
             state={state}
@@ -46,6 +47,7 @@ export default function RelationshipEdge({ id, sourceX, sourceY, targetX, target
 }
 
 function CountBadge({
+  pair,
   count,
   label,
   state,
@@ -53,6 +55,7 @@ function CountBadge({
   y,
   onOpen,
 }: {
+  pair: string
   count: number
   label: string
   state: string
@@ -66,6 +69,8 @@ function CountBadge({
       className={`graph-badge nodrag nopan${state}`}
       style={{ transform: `translate(-50%, -50%) translate(${x}px, ${y}px)` }}
       aria-label={label}
+      // The sheet returns focus here when it closes.
+      data-pair={pair}
       onClick={onOpen}
     >
       <span className={count >= 10 ? 'graph-badge-face is-wide' : 'graph-badge-face'}>{count > 99 ? '99+' : count}</span>
