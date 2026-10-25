@@ -34,5 +34,6 @@ One Devpost submission for **Gossip Window**, entered into five sponsor tracks. 
 ## Shared video outline (2 minutes)
 
 1. **0:00–1:10 One full flow, no slides.** Three friends are talking about Kevin. Taylor joins late, hears the 20-second recap, sees `Kevin · Cake · Airport · Landlord` pop up when Sam says "after the cake thing", taps **Cake** and jumps in: "Wait, the WHOLE cake?"
+   The pop-up appears the moment Sam says "Kevin", from the live call text; the shared recall board shows Kevin's stories to everyone.
 2. **1:10–1:40 Problem.** Voice has no scrollback. Latecomers either interrupt or stay quiet.
 3. **1:40–2:00 How it's built.** Cartesia Ink → Convex → Claude Haiku (recalls) / Sonnet (stories, recap) → Cartesia Sonic → phones update live. Burn deletes everything.

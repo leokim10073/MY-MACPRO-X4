@@ -24,7 +24,7 @@ They favor a strong working prototype over a large unfinished idea.
 
 ## Scenario
 
-A group of friends is on a voice call. Everything they say goes through Cartesia Ink and becomes a transcript with speaker names. When Taylor joins late, Cartesia Sonic reads a 20-second "previously on…" recap in a neutral narrator voice while the others keep talking. Taylor never has to look at a screen to catch up.
+A group of friends is on a voice call. Everything they say goes through Cartesia Ink and becomes transcript lines with speaker names, and friends see each other's words appear live while they speak. When Taylor joins late, Cartesia Sonic reads a 20-second "previously on…" recap in a neutral narrator voice while the others keep talking. Taylor never has to look at a screen to catch up.
 
 This matches Cartesia's own idea list: an ambient, hands-free assistant that helps without pulling out a phone.
 
@@ -46,8 +46,7 @@ Other tools and what they do (so Cartesia's part is clear): LiveKit carries the 
 
 ## Handling a loud venue (execution and edge cases)
 
-- **Push-to-talk mode** as a fallback: one phone per speaker, so the speaker is always known.
-- 300 ms **pre-roll** so the first word isn't cut off, 300 ms tail, and long presses split at 60 s.
+- One phone per speaker in the call, so every line has the right name.
 - **Loudness gate** learns the phone owner's voice level and blocks quieter audio from people nearby.
 - **Turn splitter** keeps the real order when someone cuts in.
 - Ink connection **reconnects with backoff** and rotates every 10 minutes with a fresh token and current keyterms.
@@ -57,16 +56,16 @@ Other tools and what they do (so Cartesia's part is clear): LiveKit carries the 
 ## Responsibility and accessibility
 
 - **Never stores raw audio.** Only the transcript is kept, and burning the room deletes it along with the recap MP3.
-- Visible **listening** indicator whenever the mic is live. Everyone is told on entry that the conversation is transcribed.
+- Visible **listening** indicator (a red dot on the Mute button) whenever the mic is live. Everyone is told on entry that the conversation is transcribed.
 - The spoken recap helps anyone who can't read a screen at that moment, and the text version is shown for anyone who can't listen.
 - Keys stay on the server.
 
 ## Known limitations (for the README)
 
 - English only (`TTS_LANGUAGE = 'en'`).
-- Open mics in a loud room can still pick up a neighbor. Push-to-talk is the fallback.
+- Open mics in a loud room can still pick up a neighbor. In-person groups should use earbuds or keep phone volume low.
 - Recap audio takes a few seconds to generate. The text shows first while it loads.
-- Without `CARTESIA_API_KEY` push-to-talk is refused and recaps are text-only.
+- Without `CARTESIA_API_KEY` speech isn't transcribed and recaps are text-only.
 
 ## Setup (for the README)
 
