@@ -93,6 +93,20 @@ describe('relationship map in the room', () => {
     expect(screen.getByRole('dialog', { name: 'Kevin & Sam' })).toBeTruthy()
   })
 
+  it('without ?view the room is unchanged: a ?sel= link opens no sheet', () => {
+    screenAt('?room=abc&sel=node%3Ap_sam')
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('switching to the list closes the sheet and stays on the list', async () => {
+    screenAt('?room=abc&view=map&sel=node%3Ap_sam')
+    expect(screen.getByRole('dialog', { name: 'Sam' })).toBeTruthy()
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'List' })))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(new URLSearchParams(window.location.search).get('view')).toBe('list')
+    expect(new URLSearchParams(window.location.search).get('sel')).toBeNull()
+  })
+
   it('one person is not a map: the empty state goes back to the list', async () => {
     screenAt('?room=abc&view=map', base)
     expect(screen.getByText('Not enough people for a map yet')).toBeTruthy()
