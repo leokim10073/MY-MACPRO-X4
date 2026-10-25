@@ -5,7 +5,7 @@ One Devpost submission for **Gossip Window**, entered into five sponsor tracks. 
 | Track | File | Fit | What it needs beyond the shared submission |
 | --- | --- | --- | --- |
 | Meta: Bringing People Closer Together with AI | [meta.md](meta.md) | Strongest, main target | A rock-solid live demo |
-| Best Use of Cartesia | [cartesia.md](cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
+| Best Use of Cartesia | [cartesia.md](cartesia.md), Devpost draft [devpost-cartesia.md](devpost-cartesia.md) | Strong, voice is the product | 2-minute demo-first video, README with Cartesia features and known limitations, public repo with no keys |
 | Best Use of Convex | [convex.md](convex.md) | Strong, the whole backend is Convex | A "How we use Convex" section |
 | Anthropic | [anthropic.md](anthropic.md) | Good, community needs naming | A named community, a real conversation with someone in it, Claude's failure modes |
 | Microsoft: Built for the Real World / Customer Impact Award | [microsoft.md](microsoft.md) | Weakest, social isn't a listed domain | Production path and measurable usefulness |
