@@ -31,7 +31,7 @@ None of this has a websocket server, cache or separate API server. It's Convex q
 
 ## Problem it solves (for us as builders)
 
-Gossip Window is a realtime, multi-device app with AI running in the background. Without Convex we'd need a database, a websocket layer, a job queue for AI calls, a cron runner and file storage. With Convex, four people built it in one weekend, each in their own folder, with one shared schema.
+Spill the Tea is a realtime, multi-device app with AI running in the background. Without Convex we'd need a database, a websocket layer, a job queue for AI calls, a cron runner and file storage. With Convex, four people built it in one weekend, each in their own folder, with one shared schema.
 
 ## How we use Convex
 

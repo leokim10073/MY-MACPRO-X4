@@ -1,6 +1,6 @@
 # Track submissions
 
-One Devpost submission for **Gossip Window**, entered into five sponsor tracks. Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
+One Devpost submission for **Spill the Tea**, entered into five sponsor tracks. Each file below pitches the same product against one track's criteria. The product itself is in [../project_description.md](../project_description.md).
 
 | Track | File | Fit | What it needs beyond the shared submission |
 | --- | --- | --- | --- |
@@ -21,8 +21,8 @@ One Devpost submission for **Gossip Window**, entered into five sponsor tracks. 
 
 | Field | What goes in it |
 | --- | --- |
-| Project name | Gossip Window |
-| Elevator pitch (200 chars) | You can scroll back a chat. You can't scroll back a conversation. Gossip Window catches late friends up on a voice call, then reminds them of old stories right when they come up again. |
+| Project name | Spill the Tea |
+| Elevator pitch (200 chars) | Not a meeting summary. Spill the Tea gives late friends a 20-second spoken recap, pops up story cards when old gossip resurfaces, and pours every word away at the Last Sip. |
 | About the project | Inspiration, what we learned, how we built it, challenges. Then a **Sponsor tracks** section with one short paragraph per track, taken from the files here |
 | Built with | Convex, Claude Haiku, Claude Sonnet, Anthropic API, Cartesia Ink, Cartesia Sonic, LiveKit, Krisp, React, Vite, TypeScript, Vitest |
 | "Try it out" links | Public GitHub repo, deployed demo if any |

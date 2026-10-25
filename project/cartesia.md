@@ -30,7 +30,7 @@ This matches Cartesia's own idea list: an ambient, hands-free assistant that hel
 
 ## Problem it solves
 
-Spoken conversations can't be scrolled back. The only way to recover what was said is to make someone repeat it. Gossip Window turns the conversation into data while it happens (Ink) and gives the latecomer the missing context **back as voice** (Sonic), in the same medium they missed it in.
+Spoken conversations can't be scrolled back. The only way to recover what was said is to make someone repeat it. Spill the Tea turns the conversation into data while it happens (Ink) and gives the latecomer the missing context **back as voice** (Sonic), in the same medium they missed it in.
 
 ## What Cartesia contributes
 

@@ -8,15 +8,19 @@
 ## Project name
 
 ```
-Gossip Window
+Spill the Tea
 ```
 
 ## Elevator pitch（≤ 200 字元）
 
 ```
-You can scroll back a chat. You can't scroll back a conversation. Gossip Window catches late friends up on a voice call, then reminds them of old stories right when they come up again.
+Not a meeting summary. Spill the Tea gives late friends a 20-second spoken recap, pops up story cards when old gossip resurfaces, and pours every word away at the Last Sip.
 ```
-（目前 184 字元。偏 Cartesia 的版本：`Voice has no scrollback. Gossip Window listens with Cartesia Ink and catches late friends up out loud with Sonic, then pops up old stories the moment someone mentions them again.` → 178 字元）
+（172 字元，三個功能都有：Recap、Recall story card、Last Sip。開頭直接跟會議統整工具劃清界線。）
+
+備選：
+- `Voice has no scrollback. Spill the Tea catches late friends up out loud, pops up the backstory the moment an old name comes back, and pours it all away at the Last Sip.`（168 字元）
+- `Late to the call? Hear a 20-sec recap. Old gossip comes back? Tap its story card. Night over? Last Sip pours the tea out and deletes it all. Spill the Tea, for voice calls.`（172 字元）
 
 ---
 
@@ -36,14 +40,23 @@ It gets worse as the night goes on. "He did it *again*." "Remember the airport t
 
 We wanted the latecomer to get the missing context **back as voice**, in the same medium they missed it in, without anyone stopping the story.
 
+And we didn't want another meeting summarizer. Meeting tools give you one summary at the end and keep everything forever. Gossip works the other way around: you need the backstory **right when the callback lands**, and nobody wants it on record afterwards. That's where the name comes from: friends *spill the tea*, and when the night is over, the tea gets poured out.
+
 ## What it does
 
-Gossip Window is a voice room for friends telling stories.
+Spill the Tea is a voice room for friends telling stories. Everyone joins an always-on call from their phone, and Cartesia Ink turns each phone's speech into lines under the right name. On top of that, three things you won't find in a meeting tool:
 
-1. **Talk normally.** Everyone joins an always-on voice call from their phone. Cartesia Ink turns every phone's speech into transcript lines under the right name, and friends see each other's words appear live as they speak.
-2. **Join late, hear a 20-second "previously on…".** When someone joins, Cartesia Sonic reads a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. Friends' voices duck while it plays. The others never stop talking.
-3. **Live recall.** When someone who already came up is mentioned again, by name or vaguely ("he", "the roommate", "after the cake thing"), a pop-up shows **Kevin · Cake · Airport · Landlord**, one keyword per story. Tap a keyword to open the story card: what happened as the teller told it, and friends' real reactions in their own words.
-4. **Last Sip.** When the night is over, the host ends the room. The transcript, stories and recap audio are deleted on every phone.
+### 1. Recap: a 20-second "previously on…", spoken
+
+When someone joins late, Cartesia Sonic reads them a short recap in a neutral narrator voice: who's being talked about, the main stories, how friends reacted, and what's being discussed right now. Friends' voices duck while it plays, and **nobody else stops talking**. The latecomer can keep the phone in their pocket and their eyes on their friends.
+
+### 2. Recall: story cards the moment old gossip comes back
+
+A recap on arrival isn't enough, because the callbacks keep coming. When someone who already came up is mentioned again, by name or vaguely ("he", "the roommate", "after the cake thing"), a pop-up shows **Kevin · Cake · Airport · Landlord**, one keyword per story. Tap **Cake** and the story card shows what happened as the teller told it, plus friends' real reactions in their own words (*Sam: "NO WAY he did that"*). It only shows stories **you** missed, so people who were there aren't interrupted.
+
+### 3. Last Sip: the tea gets poured out
+
+When the night is over, the host ends the room. A teacup tips over and pours its tea out, and the transcript, stories and recap audio are deleted on every phone. The invite link stops working. What's said over tea stays over tea.
 
 Success isn't the latecomer reading a summary. It's the latecomer saying *"Wait, the WHOLE cake?"*
 
@@ -107,7 +120,7 @@ To test Ink without four people talking, we had **Sonic read our scripted Kevin 
 - Open mics in a loud room can still catch a neighbor; earbuds help.
 - Recap audio takes a few seconds to generate, so the text shows first.
 
-## What's next for Gossip Window
+## What's next for Spill the Tea
 
 - More languages for Ink and Sonic.
 - Let the group pick the narrator's voice.

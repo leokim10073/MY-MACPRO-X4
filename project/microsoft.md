@@ -20,7 +20,7 @@ It doesn't require Microsoft technology.
 
 Weakest fit: a casual friends' call isn't finance, productivity or healthcare. **Select it, but don't spend build time on it.** The framing that works:
 
-> Gossip Window is a **context hand-off agent for live voice**. Friends' calls are where we proved it. The same agent works wherever someone joins a conversation in progress: a stand-up you're late to, a support call passed to a second agent, or a nurse shift handover.
+> Spill the Tea is a **context hand-off agent for live voice**. Friends' calls are where we proved it. The same agent works wherever someone joins a conversation in progress: a stand-up you're late to, a support call passed to a second agent, or a nurse shift handover.
 
 Keep the demo on the friends' scenario (that's what's built) and use the hand-off framing only in the pitch and this section.
 
