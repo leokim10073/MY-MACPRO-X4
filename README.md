@@ -1,6 +1,5 @@
-<!-- Media placeholders: every image under docs/media/ is listed in docs/media/README.md with what to capture. -->
 <p align="center">
-  <img src="docs/media/hero.png" alt="Spill the Tea: three phones on a table. One shows live captions, one shows a Kevin · Cake · Airport · Landlord recall pop-up, and one shows the Map of everyone being talked about." width="100%">
+  <img src="docs/media/hero.PNG" alt="Spill the Tea: cartoon friends around a smiling teacup on a table, saying no way, !!, and wait, who?" width="100%">
 </p>
 
 <p align="center">
@@ -40,10 +39,10 @@ Our friend group is spread across cities and time zones, so someone always joins
 ## See it work
 
 <p align="center">
-  <img src="docs/media/demo.gif" alt="Demo: two friends talk about Kevin, a third phone joins late and hears a short spoken recap while the others' voices drop, a friend says &quot;after the cake thing with Kevin&quot; and a recall pop-up appears before the sentence ends, then the Map shows Kevin linked to his stories." width="880">
+  <img src="docs/media/demo_fast.gif" alt="Demo: friends talk in a live room, captions appear as they speak, a latecomer catches up with the recap and story cards, and the Map links the people being talked about." width="880">
 </p>
 
-<sub>Recorded on real phones against the live backend, with real Claude and Cartesia output. The conversation is the scripted Kevin story played by replay mode (<code>npx convex run replay:startLatest</code>), so the recording doesn't depend on a crowd.</sub>
+<sub>Recorded from a live room in the app, with real Claude and Cartesia output, sped up.</sub>
 
 Try it yourself: [spill-the-tea-call.vercel.app](https://spill-the-tea-call.vercel.app), opened on two or more phones.
 
@@ -53,39 +52,54 @@ Everyone joins an always-on call from their own phone, with no push-to-talk, and
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="web/docs/screenshots/join-tea-party/create-375x812.jpg" alt="The create screen: pick a name and an avatar, then start a room." width="240"></td>
-    <td width="50%" align="center"><img src="docs/media/recap.png" alt="A latecomer's phone playing the recap, with the recap text on screen and the call still running underneath." width="240"></td>
+    <td width="35%" align="center"><img src="web/docs/screenshots/join-tea-party/create-375x812.jpg" alt="The create screen: pick a name and an avatar, then start a room." width="240"></td>
+    <td width="65%" align="center"><img src="docs/media/recap.png" alt="The Just joined? panel playing a 14-second recap, with its text below: Leo's been telling Jingo about Lucy's friends. Sabrina and Kelly both fell for Lawson, who dated both and won't pick." width="100%"></td>
   </tr>
   <tr>
     <td valign="top"><b>1. Pour a cup.</b> The host starts a room and shares an invite link or QR code. Everyone is told on entry that the call is transcribed, and a red dot on Mute shows whenever the mic is live.</td>
-    <td valign="top"><b>2. Join late, hear the recap.</b> A latecomer hears a 20-second "previously on…" of only what they missed, read by a neutral narrator on their phone only. Friends keep talking, and their voices drop to 30% while it plays.</td>
-  </tr>
-  <tr>
-    <td width="50%" align="center"><img src="docs/media/recall.png" alt="A recall pop-up reading Kevin · Cake · Airport · Landlord over the live captions while a friend is still speaking." width="240"></td>
-    <td width="50%" align="center"><img src="docs/media/story-card.png" alt="The Cake story card: what happened as the teller told it, friends' real reactions credited by name, and a label saying it came up before you joined." width="240"></td>
-  </tr>
-  <tr>
-    <td valign="top"><b>3. Recall, mid-sentence.</b> Sam starts saying <i>"after the cake thing with Kevin…"</i> and the latecomer gets <code>Kevin · Cake · Airport · Landlord</code> before Sam finishes. The phone matches Ink's streaming text against people and stories it already knows, so there's no extra AI call.</td>
-    <td valign="top"><b>4. Tap a story.</b> The card shows what happened as the teller told it, friends' real reactions in their own words, and whether the story came up before or after you joined.</td>
+    <td valign="top"><b>2. Join late, hear the recap.</b> A latecomer gets a <i>Just joined?</i> panel with a 20-second "previously on…" of only what they missed, read by a neutral narrator on their phone only. Friends keep talking, and their voices drop to 30% while it plays.</td>
   </tr>
 </table>
 
-### The whole cast at a glance
+### 3. Recall, mid-sentence
 
-Everyone shares a live recall board: who's being talked about, their stories in a line or two, and what the group is on now. Switch it to **Map** for a web of everyone mentioned. People who share stories are linked, and thicker lines mean more shared stories. It grows as new names come up. Tap a person for their stories, or a line for what two people have been through together.
+When someone mentions a person or story you missed, the backstory pops up before the sentence is even finished. The phone matches Ink's streaming text against the people and stories it already knows, so there's no extra AI call. Tap a story to see what happened as the teller told it, with friends' real reactions in their own words and whether it came up before or after you joined.
+
+<p align="center"><img src="docs/media/story-card.gif" alt="Leo says &quot;Wait. Lawson changed the plan.&quot; Lawson is marked Mentioned again, and his stories Dates and Labels appear as cards labeled Before you joined, each told as Leo says." width="320"></p>
+
+### 4. The whole cast at a glance
+
+Everyone shares a live recall board: who's being talked about, their stories in a line or two, and what the group is on now. Switch it from **List** to **Map** for a web of everyone mentioned. It grows as new names come up.
 
 <table>
   <tr>
-    <td width="50%" align="center"><img src="docs/media/board.png" alt="The recall board: Kevin, Taylor and the landlord, each with a one-line story summary, and a Now talking about line at the top." width="240"></td>
-    <td width="50%" align="center"><img src="docs/media/map.png" alt="The Map: dots for Kevin, the landlord and two friends, joined by lines of different thickness, with the Kevin to landlord line selected." width="240"></td>
+    <td width="50%" align="center"><img src="docs/media/board.png" alt="The List view: Now, Lawson changed the plan again. Lawson is marked Mentioned again, with his Dates and Labels stories." width="280"></td>
+    <td width="50%" align="center"><img src="docs/media/map.png" alt="The Map: Sabrina, Lucy, Kelly, Lawson and Randy as character icons, joined by lines with shared-story counts of 5 and 3." width="280"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>List.</b> Each person with their stories, newest first, and a tag when someone is mentioned again.</td>
+    <td valign="top"><b>Map.</b> Each <b>icon</b> is a person being talked about. Each <b>line</b> is a relationship between two people who show up in the same stories. Thicker lines and the number on them mean more shared stories.</td>
   </tr>
 </table>
 
-### Last Sip
+Tap the Map to dig in:
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/media/person.png" alt="Sabrina's sheet: Connections lists Lawson with 1 story, and All stories shows Leo says Lucy's friend Sabrina is currently losing her mind over Lawson." width="280"></td>
+    <td width="50%" align="center"><img src="docs/media/connection.png" alt="The line between Kelly and Lucy is selected, and the Kelly &amp; Lucy sheet shows Group stories with one story, Discovery, told by Leo." width="280"></td>
+  </tr>
+  <tr>
+    <td valign="top"><b>Tap a person</b> to see that person's own stories, and who they're connected to.</td>
+    <td valign="top"><b>Tap a line</b> to see the relationship: the stories the two people share, newest first.</td>
+  </tr>
+</table>
+
+### 5. Last Sip
 
 The host ends the room and a teacup tips over and pours out its tea. The call ends for everyone, and the transcript, stories and recap audio are deleted. What's said over tea stays over tea.
 
-<p align="center"><img src="docs/media/last-sip.gif" alt="Last Sip: a teacup tips over, the tea pours out, and the room closes." width="320"></p>
+<p align="center"><img src="docs/media/last_sip.gif" alt="Last Sip: a teacup tips over, the tea pours out, and the room closes." width="320"></p>
 
 ## Design decisions
 

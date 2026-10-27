@@ -1,18 +1,19 @@
 # README media
 
-The root [README](../../README.md) points at these files. Until each one is captured, it shows as a broken image on GitHub.
+Images used by the root [README](../../README.md). When you replace one, keep the file name and update its alt text in the README to match the new shot.
 
-Capture phone screens at 375×812 (the same size as `web/docs/screenshots/join-tea-party/`), and run replay mode (`npx convex run replay:startLatest` from `backend/`) so every shot shows the Kevin story.
-
-| File | What to capture | Size |
+| File | Where it's used | What it shows |
 | --- | --- | --- |
-| `hero.png` | Three phones on a table: live captions, the `Kevin · Cake · Airport · Landlord` pop-up, and the Map | Wide, about 1600×800 |
-| `demo.gif` | About 20 s: two friends talk, a third phone joins late and hears the recap while the others are ducked, the recall pop-up lands mid-sentence, then the Map. Two or three phones side by side | 880 wide, under 8 MB |
-| `recap.png` | A latecomer's phone while the recap plays, with the recap text showing | 375×812 |
-| `recall.png` | The recall pop-up over live captions while a friend is still talking | 375×812 |
-| `story-card.png` | The Cake story card with reactions and the "before you joined" label | 375×812 |
-| `board.png` | The recall board with several people and the current topic | 375×812 |
-| `map.png` | The Map with Kevin, the landlord and friends, one line selected | 375×812 |
-| `last-sip.gif` | The teacup tipping over and the room closing | 320 wide, under 3 MB |
+| `hero.PNG` | Top banner | Cartoon friends around the teacup |
+| `demo_fast.gif` | See it work | A live room, sped up |
+| `recap.png` | How it works, step 2 | The *Just joined?* recap panel playing |
+| `story-card.gif` | How it works, step 3 | A person mentioned again, with their story cards |
+| `board.png` | The whole cast, List | The recall board in List view |
+| `map.png` | The whole cast, Map | The Map: icons are people, lines are relationships |
+| `person.png` | Tap the Map | A person's sheet: connections and all their stories |
+| `connection.png` | Tap the Map | A line's sheet: the stories two people share |
+| `last_sip.gif` | Last Sip | The teacup pouring out |
 
-Write each image's alt text in the README to match what the final shot actually shows.
+Step 1 uses `web/docs/screenshots/join-tea-party/create-375x812.jpg`.
+
+Keep GIFs small so the README loads fast on GitHub: aim for under 10 MB each.
