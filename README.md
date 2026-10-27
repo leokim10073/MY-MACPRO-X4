@@ -74,7 +74,7 @@ Everyone shares a live recall board: who's being talked about, their stories in 
 <table>
   <tr>
     <td width="50%" align="center"><img src="docs/media/board.png" alt="The List view: Now, Lawson changed the plan again. Lawson is marked Mentioned again, with his Dates and Labels stories." width="280"></td>
-    <td width="50%" align="center"><img src="docs/media/map.png" alt="The Map: Sabrina, Lucy, Kelly, Lawson and Randy as character icons, joined by lines with shared-story counts of 5 and 3." width="280"></td>
+    <td width="50%" align="center"><img src="docs/media/map.png" alt="The Map: Sabrina, Lucy, Kelly, Lawson and Randy as character icons, joined by lines with shared-story counts of 4 and 3." width="280"></td>
   </tr>
   <tr>
     <td valign="top"><b>List.</b> Each person with their stories, newest first, and a tag when someone is mentioned again.</td>
